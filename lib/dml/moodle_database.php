@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__.'/database_column_info.php');
 require_once(__DIR__.'/moodle_recordset.php');
 require_once(__DIR__.'/moodle_transaction.php');
+require_once(__DIR__.'/moodle_database_reconnectable.php');
 
 /** SQL_PARAMS_NAMED - Bitmask, indicates :name type parameters are supported by db backend. */
 define('SQL_PARAMS_NAMED', 1);

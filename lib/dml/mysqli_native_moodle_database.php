@@ -36,7 +36,7 @@ require_once(__DIR__.'/mysqli_native_moodle_temptables.php');
  * @copyright  2008 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mysqli_native_moodle_database extends moodle_database {
+class mysqli_native_moodle_database extends moodle_database implements moodle_database_reconnectable {
     use moodle_read_slave_trait {
         can_use_readonly as read_slave_can_use_readonly;
     }
@@ -2151,5 +2151,27 @@ class mysqli_native_moodle_database extends moodle_database {
         // This function quotes the table name if it matches one of the MySQL reserved
         // words, e.g. groups.
         return $this->get_manager()->generator->getEncQuoted($prefixedtablename);
+    }
+
+    /**
+     * Close the database without cleaning up data in a way that allows reopening the connection
+     */
+    public function close()
+    {
+        if ($this->mysqli) {
+            $this->mysqli->close();
+            $this->mysqli = null;
+            $this->dbhwrite = null;
+        }
+    }
+
+    /**
+     * Reconnect to the database after closing it with close()
+     * @return bool true
+     * @throws dml_connection_exception if error
+     */
+    public function reconnect()
+    {
+        return $this->connect($this->dbhost, $this->dbuser, $this->dbpass, $this->dbname, $this->prefix, $this->dboptions);
     }
 }

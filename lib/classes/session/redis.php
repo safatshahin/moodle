@@ -443,6 +443,8 @@ class redis extends handler {
      * @throws exception When we are unable to obtain a session lock.
      */
     protected function lock_session($id) {
+        global $DB;
+
         $lockkey = $id.".lock";
 
         $haslock = isset($this->locks[$id]) && $this->time() < $this->locks[$id];
@@ -467,6 +469,8 @@ class redis extends handler {
         $whoami = "[pid {$pid}] {$hostname}:$uri";
 
         $haswarned = false; // Have we logged a lock warning?
+
+        $dbconnected = true;
 
         while (!$haslock) {
 
@@ -505,6 +509,12 @@ class redis extends handler {
                 throw new exception("sessioncannotobtainlock", 'error', '', $a);
             }
 
+            // if the database allows reconnects, close the connection after a second of wait time to avoid keeping it open too long
+            if ($dbconnected && $DB && $DB instanceof moodle_database_reconnectable && $this->time() >= $startlocktime + 2) {
+                $DB->close();
+                $dbconnected = false;
+            }
+
             if ($this->time() < $startlocktime + 5) {
                 // We want a random delay to stagger the polling load. Ideally
                 // this delay should be a fraction of the average response
@@ -520,6 +530,11 @@ class redis extends handler {
             }
 
             usleep($delay * 1000);
+        }
+
+        // reconnect the database if we disconnected it while waiting
+        if ($DB && $DB instanceof \moodle_database_reconnectable && !$dbconnected) {
+            $DB->reconnect();
         }
     }
 
