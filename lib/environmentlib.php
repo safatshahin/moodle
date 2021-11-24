@@ -992,35 +992,35 @@ function environment_check_database($version, $env_select) {
 
     $result = new environment_results('database');
 
-    $vendors = array();  //Array of vendors in version
+    $vendors = array();  // Array of vendors in version.
 
-/// Get the enviroment version we need
+    // Get the enviroment version we need.
     if (!$data = get_environment_for_version($version, $env_select)) {
-    /// Error. No version data found
+        // Error. No version data found.
         $result->setStatus(false);
         $result->setErrorCode(NO_VERSION_DATA_FOUND);
         return $result;
     }
 
-/// Extract the database part
+    // Extract the database part.
     if (!isset($data['#']['DATABASE'])) {
-    /// Error. No DATABASE section found
+        // Error. No DATABASE section found.
         $result->setStatus(false);
         $result->setErrorCode(NO_DATABASE_SECTION_FOUND);
         return $result;
     } else {
-    /// Extract level
+        // Extract level.
         $level = get_level($data['#']['DATABASE']['0']);
     }
 
-/// Extract DB vendors. At least 2 are mandatory (mysql & postgres)
+    // Extract DB vendors. At least 2 are mandatory (mysql & postgres).
     if (!isset($data['#']['DATABASE']['0']['#']['VENDOR'])) {
-    /// Error. No VENDORS found
+        // Error. No VENDORS found.
         $result->setStatus(false);
         $result->setErrorCode(NO_DATABASE_VENDORS_FOUND);
         return $result;
     } else {
-    /// Extract vendors
+        // Extract vendors.
         foreach ($data['#']['DATABASE']['0']['#']['VENDOR'] as $vendor) {
             if (isset($vendor['@']['name']) && isset($vendor['@']['version'])) {
                 $vendors[$vendor['@']['name']] = $vendor['@']['version'];
@@ -1028,28 +1028,34 @@ function environment_check_database($version, $env_select) {
             }
         }
     }
-/// Check we have the mysql vendor version
+    // Check we have the mysql vendor version.
     if (empty($vendors['mysql'])) {
         $result->setStatus(false);
         $result->setErrorCode(NO_DATABASE_VENDOR_MYSQL_FOUND);
         return $result;
     }
-/// Check we have the postgres vendor version
+    // Check we have the postgres vendor version.
     if (empty($vendors['postgres'])) {
         $result->setStatus(false);
         $result->setErrorCode(NO_DATABASE_VENDOR_POSTGRES_FOUND);
         return $result;
     }
 
-/// Now search the version we are using (depending of vendor)
-    $current_vendor = $DB->get_dbvendor();
+    // Now search the version we are using (depending of vendor).
+    $currentvendor = $DB->get_dbvendor();
 
     $dbinfo = $DB->get_server_info();
-    $current_version = normalize_version($dbinfo['version']);
-    $needed_version = $vendors[$current_vendor];
+    $currentversion = normalize_version($dbinfo['version']);
+    $neededversion = $vendors[$currentvendor];
 
-/// Check we have a needed version
-    if (!$needed_version) {
+    // Replace the version with compatibility level for mssql. Check sqlsrv_native_moodle_database::get_server_info() for details.
+    if ($currentvendor === 'mssql') {
+        $currentversion = normalize_version($dbinfo['dbcompatlevel']);
+        $neededversion = $vendorsxml[$currentvendor]["@"]["compatibility"];
+    }
+
+    // Check we have a needed version.
+    if (!$neededversion) {
         $result->setStatus(false);
         $result->setErrorCode(NO_DATABASE_VENDOR_VERSION_FOUND);
         return $result;
@@ -1058,29 +1064,37 @@ function environment_check_database($version, $env_select) {
     // Check if the DB Vendor has been properly configured.
     // Hack: this is required when playing with MySQL and MariaDB since they share the same PHP module and base DB classes,
     // whilst they are slowly evolving using separate directions though MariaDB is still an "almost" drop-in replacement.
-    $dbvendorismysql = ($current_vendor === 'mysql');
+    $dbvendorismysql = ($currentvendor === 'mysql');
     $dbtypeismariadb = (stripos($dbinfo['description'], 'mariadb') !== false);
     if ($dbvendorismysql && $dbtypeismariadb) {
         $result->setStatus(false);
         $result->setLevel($level);
-        $result->setInfo($current_vendor . ' (' . $dbinfo['description'] . ')');
+        $result->setInfo($currentvendor . ' (' . $dbinfo['description'] . ')');
         $result->setFeedbackStr('environmentmariadbwrongdbtype');
         return $result;
     }
 
-/// And finally compare them, saving results
-    if (version_compare($current_version, $needed_version, '>=')) {
+    // And finally compare them, saving results.
+    if (version_compare($currentversion, $neededversion, '>=')) {
         $result->setStatus(true);
     } else {
         $result->setStatus(false);
     }
     $result->setLevel($level);
-    $result->setCurrentVersion($current_version);
-    $result->setNeededVersion($needed_version);
-    $result->setInfo($current_vendor . ' (' . $dbinfo['description'] . ')');
 
-/// Do any actions defined in the XML file.
-    process_environment_result($vendorsxml[$current_vendor], $result);
+    // Reset the compatibility level to version for mssql. Check sqlsrv_native_moodle_database::get_server_info() for details.
+    // Reset is required to show the correct version information in the UI.
+    if ($currentvendor === 'mssql') {
+        $currentversion = normalize_version($dbinfo['version']);
+        $neededversion = $vendors[$currentvendor];
+    }
+
+    $result->setCurrentVersion($currentversion);
+    $result->setNeededVersion($neededversion);
+    $result->setInfo($currentvendor . ' (' . $dbinfo['description'] . ')');
+
+    // Do any actions defined in the XML file.
+    process_environment_result($vendorsxml[$currentvendor], $result);
 
     return $result;
 
