@@ -325,6 +325,7 @@ class sqlsrv_native_moodle_database extends moodle_database {
     }
 
     /**
+     *
      * Returns database server info array
      * @return array Array containing 'description', 'version' and 'database' (current db) info
      */
@@ -332,12 +333,34 @@ class sqlsrv_native_moodle_database extends moodle_database {
         static $info;
 
         if (!$info) {
-            $server_info = sqlsrv_server_info($this->sqlsrv);
+            $serverinfo = sqlsrv_server_info($this->sqlsrv);
 
-            if ($server_info) {
-                $info['description'] = $server_info['SQLServerName'];
-                $info['version'] = $server_info['SQLServerVersion'];
-                $info['database'] = $server_info['CurrentDatabase'];
+            // SQL Server uses compatibility levels at the database level to provide backward compatibility.
+            // While the software version for the server is useful, the compatibility level on the database is more pertinent
+            // as a system requirement. Even if it is running on a newer server, if the compatibility level of a database is
+            // set to 100, it will function as if it were running on SQL Server 2008.  This change switches the version string
+            // for SQL Server to reference the database compatibility level instead of the server's version string. This change
+            // also allows the database to run in Azure SQL as well as on SQL Server. The admin/environment.xml file has updated
+            // compatibility strings to reflect the change.
+            $dbcompatlevel = null;
+            $sql = "SELECT compatibility_level AS cl
+                      FROM sys.databases
+                     WHERE name = '{$this->dbname}'";
+            $this->query_start($sql, null, SQL_QUERY_AUX);
+            $result = sqlsrv_query($this->sqlsrv, $sql);
+            $this->query_end($result);
+            if ($result) {
+                if ($row = sqlsrv_fetch_array($result)) {
+                    $dbcompatlevel = $row['cl'];
+                }
+            }
+            $this->free_result($result);
+
+            if ($serverinfo && $dbcompatlevel) {
+                $info['description'] = $serverinfo['SQLServerName'];
+                $info['version'] = $serverinfo['SQLServerVersion'];
+                $info['dbcompatlevel'] = $dbcompatlevel;
+                $info['database'] = $serverinfo['CurrentDatabase'];
             }
         }
         return $info;
