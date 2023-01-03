@@ -1548,7 +1548,7 @@ $string['xmlrpcwebserviceenabled'] = 'It has been detected that the XML-RPC Web 
 $string['yuicomboloading'] = 'YUI combo loading';
 $string['ziprequired'] = 'The Zip PHP extension is now required by Moodle, info-ZIP binaries or PclZip library are not used anymore.';
 $string['manageqbanks'] = 'Manage question bank plugins';
-
+$string['managecommunications'] = 'Manage communication plugins';
 
 $string['caching'] = 'Caching';
 $string['cachesettings'] = 'Cache settings';

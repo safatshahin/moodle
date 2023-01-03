@@ -448,6 +448,19 @@ if ($hassiteconfig || has_capability('moodle/question:config', $systemcontext)) 
     }
 }
 
+// Communication plugins.
+if ($hassiteconfig || has_capability('moodle/communication:config', $systemcontext)) {
+    $ADMIN->add('modules', new admin_category('communicationsettings', new lang_string('communications', 'communication')));
+    $temp = new admin_settingpage('managecommunications', new lang_string('managecommunications', 'admin'));
+    $temp->add(new \core_question\admin\manage_qbank_plugins_page());
+    $ADMIN->add('communicationsettings', $temp);
+    $plugins = core_plugin_manager::instance()->get_plugins_of_type('comm');
+    foreach ($plugins as $plugin) {
+        /** @var \core\plugininfo\communication $plugin */
+        $plugin->load_settings($ADMIN, 'communicationsettings', $hassiteconfig);
+    }
+}
+
 // Question type settings
 if ($hassiteconfig || has_capability('moodle/question:config', $systemcontext)) {
 
