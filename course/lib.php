@@ -24,6 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+use core_course\external\course_summary_exporter;
 use core_courseformat\base as course_format;
 
 require_once($CFG->libdir.'/completionlib.php');
@@ -2302,13 +2303,22 @@ function create_course($data, $editoroptions = NULL) {
         core_tag_tag::set_item_tags('core', 'course', $course->id, context_course::instance($course->id), $data->tags);
     }
 
+    $data->id = $course->id;
+    // Communication provider events creation.
+    if (!empty($data->enablecommunication)) {
+        if ($courseimage = course_summary_exporter::get_course_image($course)) {
+            $data->avatarurl = $courseimage;
+        }
+        $communication = new \core_communication\communication_handler($data);
+        $communication->create();
+    }
+
     // Save custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
     // Make sure to set the handler's parent context first.
     $coursecatcontext = context_coursecat::instance($category->id);
     $handler->set_parent_context($coursecatcontext);
     // Save the custom field data.
-    $data->id = $course->id;
     $handler->instance_form_save($data, true);
 
     return $course;
@@ -2421,6 +2431,15 @@ function update_course($data, $editoroptions = NULL) {
     // Set showcompletionconditions to null when completion tracking has been disabled for the course.
     if (isset($data->enablecompletion) && $data->enablecompletion == COMPLETION_DISABLED) {
         $data->showcompletionconditions = null;
+    }
+
+    // Communication provider events update.
+    if ($courseimage = course_summary_exporter::get_course_image($data)) {
+        $data->avatarurl = $courseimage;
+    }
+    $communication = new \core_communication\communication_handler($data);
+    if (empty($data->visibleold)) {
+        $communication->update();
     }
 
     // Update custom fields if there are any of them in the form.
