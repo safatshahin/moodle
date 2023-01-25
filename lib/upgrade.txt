@@ -72,6 +72,8 @@ information provided here is intended especially for developers.
 * The core/modal module and all their versions (SAVE_CANCEL, DELETE_CANCEL...) now has a setButtonDisable to disable or enable
   specific modal action buttons. This function allows developers to have modals that could only be submited if the user do some
   action in the modal body like ticking a checkbox or selecting an element.
+* Admin settings for passwords (admin_setting_configpasswordunmask) can now be a required field using the following class:
+    - admin_setting_requiredpasswordunmask
 
 === 4.1 ===
 
