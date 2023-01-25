@@ -97,6 +97,8 @@ information provided here is intended especially for developers.
   - `createCsvDataSet`
   - `createArrayDataSet`
   - `loadDataSet`
+* Admin settings for passwords (admin_setting_configpasswordunmask) can now be a required field using the following class:
+    - admin_setting_requiredpasswordunmask
 
 === 4.1 ===
 
