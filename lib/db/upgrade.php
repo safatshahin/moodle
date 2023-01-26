@@ -2984,5 +2984,31 @@ privatefiles,moodle|/user/files.php';
         upgrade_main_savepoint(true, 2023020800.00);
     }
 
+    if ($oldversion < 2023021000.00) {
+        // Define course communication table.
+        $table = new xmldb_table('communication');
+
+        // Adding fields to table course_communication.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null, 'id');
+        $table->add_field('instanceid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'status');
+        $table->add_field('component', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, 'instanceid');
+        $table->add_field('provider', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null, 'component');
+        $table->add_field('roomname', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'provider');
+        $table->add_field('roomdesc', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'roomname');
+
+        // Add key.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        // Add index.
+        $table->add_index('course', XMLDB_INDEX_NOTUNIQUE, ['course']);
+
+        // Conditionally launch create table for course_communication.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2023021000.00);
+    }
+
     return true;
 }

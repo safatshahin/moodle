@@ -24,6 +24,14 @@
 
 $string['communication'] = 'Communication';
 $string['communicationprovidernotfound'] = 'The \'{$a}\' communication provider doesn\'t exist or is not recognised.';
+$string['communicationroomname'] = 'Provider room name';
+$string['communicationroomname_help'] = 'Name of the room for the selected provider';
+$string['missingcommunicationroomname'] = 'Missing provider room name';
+$string['communicationroomdesc'] = 'Provider room description';
+$string['communicationroomdesc_help'] = 'Description of the room for the selected provider';
+$string['missingcommunicationroomdesc'] = 'Missing provider room description';
+$string['enablecommunication'] = 'Enable communication';
+$string['enablecommunication_help'] = 'If enabled, it will action selected communication provider to trigger necessary events with the actions from the course.';
 $string['managecommunicationproviders'] = 'Manage communication providers';
 $string['nocommunicationprovider'] = 'No communication provider found.';
 $string['privacy:metadata'] = 'The Moodle communication subsystem does not store any personal data.';
