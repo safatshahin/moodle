@@ -56,14 +56,26 @@ class communication {
     public communication_room_base $communicationroom;
 
     /**
+     * @var communication_user_base $communicationuser The communication user object
+     */
+    public communication_user_base $communicationuser;
+
+    /**
+     * @var array $userids The id of the users
+     */
+    protected array $userids;
+
+    /**
      * Communication room constructor to get the communication features.
      *
      * @param string $provider the name of the provider
      * @param int $commid The id of the communication instance
+     * @param array $userids The users for the communication user api
      */
-    public function __construct(string $provider, int $commid) {
+    public function __construct(string $provider, int $commid, array $userids = []) {
         $this->provider = $provider;
         $this->commid = $commid;
+        $this->userids = $userids;
         $this->init_provider();
         $this->init();
     }
@@ -90,6 +102,12 @@ class communication {
             $communicationroom = $pluginentrypoint->get_provider_room($this);
             if (!empty($communicationroom)) {
                 $this->communicationroom = $communicationroom;
+            }
+            if (!empty($this->userids)) {
+                $communicationuser = $pluginentrypoint->get_provider_user($this);
+                if (!empty($communicationuser)) {
+                    $this->communicationuser = $communicationuser;
+                }
             }
 
         }
@@ -175,6 +193,24 @@ class communication {
      */
     public function delete_room(): void {
         $this->communicationroom->delete();
+    }
+
+    /**
+     * Add members to the room.
+     *
+     * @return void
+     */
+    public function add_members(): void {
+        $this->communicationuser->add_members_to_room($this->userids);
+    }
+
+    /**
+     * Remove members from room.
+     *
+     * @return void
+     */
+    public function remove_members(): void {
+        $this->communicationuser->remove_members_from_room($this->userids);
     }
 
 }
