@@ -45,7 +45,7 @@ if ($hassiteconfig) {
     $desc = new lang_string('matrixelementurl_desc', 'communication_matrix');
     $settings->add(new admin_setting_requiredtext('communication_matrix/matrixelementurl', $name, $desc, ''));
 
-    // Create room for new courses.
+    // Create room.
     $name = new lang_string('matrixcreateroom', 'communication_matrix');
     $desc = new lang_string('matrixcreateroom_desc', 'communication_matrix');
     $settings->add(new admin_setting_configcheckbox('communication_matrix/matrixcreateroom', $name, $desc, 1));
