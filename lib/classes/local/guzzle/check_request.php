@@ -77,6 +77,43 @@ class check_request {
     }
 
     /**
+     * Helper that returns ignore security hosts, as defined in the 'guzzleignoresecurityhosts' setting.
+     *
+     * @return array the array of ignore security host entries.
+     */
+    protected function get_ignore_security_hosts(): array {
+        global $CFG;
+        if (!isset($CFG->guzzleignoresecurityhosts)) {
+            return [];
+        }
+        return array_filter(array_map('trim', explode("\n", $CFG->guzzleignoresecurityhosts)), function($entry) {
+            return !empty($entry);
+        });
+    }
+
+    /**
+     * Clean the host to compare with the list.
+     *
+     * @param string $host The host to be cleaned
+     * @return string
+     */
+    protected function get_cleaned_host(string $host): string {
+        if (substr_count($host, ":") > 1) {
+            // Remove port and brackets from IPv6.
+            if (preg_match("/\[(.*)\]:/", $host, $matches)) {
+                $host = $matches[1];
+            }
+        } else {
+            // Remove port from IPv4.
+            if (substr_count($host, ":") == 1) {
+                $parts = explode(":", $host);
+                $host = $parts[0];
+            }
+        }
+        return $host;
+    }
+
+    /**
      * Curl security setup.
      *
      * @param RequestInterface $request The request interface
@@ -86,8 +123,10 @@ class check_request {
     public function __invoke(RequestInterface $request, array $options): PromiseInterface {
         $fn = $this->nexthandler;
         $settings = $this->settings;
+        $host = $request->getHeader('host');
+        $host = reset($host);
 
-        if (!empty($settings['ignoresecurity'])) {
+        if (!empty($settings['ignoresecurity']) || in_array($this->get_cleaned_host($host), $this->get_ignore_security_hosts(), true)) {
             return $fn($request, $options);
         }
 
