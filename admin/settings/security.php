@@ -185,6 +185,11 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
         new lang_string('curlsecurityblockedhosts', 'admin'),
         new lang_string('curlsecurityblockedhostssyntax', 'admin'), implode(PHP_EOL, $blockedhostsdefault)));
 
+    // Ignore security settings for guzzle for development and testing purpose.
+    $temp->add(new admin_setting_configmixedhostiplist('guzzleignoresecurityhosts',
+        new lang_string('guzzleignoresecurityhosts', 'admin'),
+        new lang_string('guzzleignoresecurityhostssyntax', 'admin'), implode(PHP_EOL, [])));
+
     // By default, only allow web ports.
     $temp->add(new admin_setting_configportlist('curlsecurityallowedport',
         new lang_string('curlsecurityallowedport', 'admin'),
