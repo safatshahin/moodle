@@ -36,25 +36,6 @@ trait matrix_test_helper_trait {
     protected string $matrixhomeserverurl;
 
     /**
-     * Get or create course if it does not exist
-     *
-     * @param string $roomname The room name for the communication api
-     * @param string $roomdesc The room description for communication api
-     * @return \stdClass
-     */
-    protected function get_course(string $roomname = 'Sampleroom', string $roomdesc = 'Sampleroomtopic'): \stdClass {
-        $records = [
-            'enablecommunication' => 1,
-            'selectedcommunication' => 'communication_matrix',
-            'communicationroomname' => $roomname,
-            'communicationroomdesc' => $roomdesc,
-        ];
-        $course = $this->getDataGenerator()->create_course($records);
-        $course->component = 'core_course';
-        return $course;
-    }
-
-    /**
      * Initialize the mock configs in settings.
      *
      * @return void

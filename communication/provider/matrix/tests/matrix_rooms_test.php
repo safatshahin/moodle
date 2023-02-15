@@ -17,10 +17,12 @@
 namespace communication_matrix\tests;
 
 use core_communication\communication_handler;
+use core_communication\tests\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/matrix_test_helper_trait.php');
+require_once(__DIR__ . '/../../../tests/communication_test_helper_trait.php');
 
 /**
  * Class matrix_rooms_test to test the matrix room data in db.
@@ -34,6 +36,7 @@ require_once(__DIR__ . '/matrix_test_helper_trait.php');
 class matrix_rooms_test extends \advanced_testcase {
 
     use matrix_test_helper_trait;
+    use communication_test_helper_trait;
 
     /**
      * Test the matrix room creation in database.

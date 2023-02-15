@@ -21,10 +21,12 @@ use communication_matrix\matrix_rooms;
 use core_communication\communication;
 use core_communication\communication_room_base;
 use core_communication\communication_settings_data;
+use core_communication\tests\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/matrix_test_helper_trait.php');
+require_once(__DIR__ . '/../../../tests/communication_test_helper_trait.php');
 
 /**
  * Class matrix_events_manager_test to test the matrix events endpoint.
@@ -38,6 +40,7 @@ require_once(__DIR__ . '/matrix_test_helper_trait.php');
 class matrix_room_manager_test extends \advanced_testcase {
 
     use matrix_test_helper_trait;
+    use communication_test_helper_trait;
 
     /**
      * @var communication_room_base|matrix_room_manager $matrixroommanager Matrix room manager object
