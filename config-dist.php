@@ -838,6 +838,13 @@ $CFG->admin = 'admin';
 // Force result of checks used to determine whether a site is considered "public" or not (such as for site registration).
 // $CFG->site_is_public = false;
 //
+// Ignore security settings for guzzle for development and testing purpose.
+// Guzzle security layer blocks non SSL or self-signed SSL hosts, this setting will bypass that for the listed hosts.
+// $CFG->guzzleignoresecurityhosts = [
+//     '127.0.0.1',
+//     'synapse',
+// ];
+//
 //=========================================================================
 // 8. FORCED SETTINGS
 //=========================================================================
