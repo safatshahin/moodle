@@ -409,4 +409,43 @@ class http_client_test extends \advanced_testcase {
 
         @unlink($cachefile);
     }
+
+    /**
+     * Test guzzle ignore security hosts.
+     *
+     * @covers ::get_cleaned_host
+     * @covers ::get_ignore_security_hosts
+     */
+    public function test_guzzle_ignore_security_hosts(): void {
+        global $CFG;
+        $this->resetAfterTest();
+        // The url to test.
+        $testhtml = $this->getExternalTestFileUrl('/test.html');
+
+        // Send the request before adding this host to the ignore security list.
+        $mock = new MockHandler([new Response(200, [], 'foo')]);
+        $client = new \core\http_client(['mock' => $mock]);
+        $response = $client->request('GET', $testhtml);
+
+        // We expect the response to work as ignore security is not added.
+        $this->assertSame(200, $response->getStatusCode());
+
+        $url = new \moodle_url($testhtml);
+        $host = $url->get_host();
+        $CFG->guzzleignoresecurityhosts = [$host];
+
+        // Confirm that this host is in the block list.
+        $helper = new \core\files\curl_security_helper();
+        set_config('curlsecurityblockedhosts', $host);
+        $this->assertEquals(true, \phpunit_util::call_internal_method($helper, 'host_is_blocked', [$host],
+            '\core\files\curl_security_helper'));
+
+        // Send the request after adding the host to the ignore security list.
+        $mock = new MockHandler([new Response(200, [], 'foo')]);
+        $client = new \core\http_client(['mock' => $mock]);
+        $response = $client->request('GET', $testhtml);
+
+        // We expect the response to work as ignore security is added.
+        $this->assertSame(200, $response->getStatusCode());
+    }
 }
