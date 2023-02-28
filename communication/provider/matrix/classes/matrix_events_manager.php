@@ -138,6 +138,15 @@ class matrix_events_manager {
     }
 
     /**
+     * Get the matrix api endpoint for creating a new user.
+     *
+     * @return string
+     */
+    public function get_create_user_endpoint($matrixuserid): string {
+        return $this->matrixhomeserverurl . '/' . '_synapse/admin/v2/users/' .$matrixuserid;
+    }
+
+    /**
      * The http request for the api call.
      *
      * @param array $jsonarray The array of json

@@ -22,7 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['communicationsubsystem'] = 'Communication';
 $string['countparticipantsfound'] = '{$a} participants found';
+$string['matrixuserid'] = 'Matrix user ID';
+$string['matrixuserid_desc'] = 'User ID to be used for the matrix';
 $string['moodlenetprofile'] = 'MoodleNet profile ID';
 $string['moodlenetprofile_help'] = 'Your MoodleNet profile ID links your MoodleNet profile with this site.';
 $string['placeholdertype'] = 'Type...';
