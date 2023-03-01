@@ -30,52 +30,50 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $oldversion
  * @return bool always true
  */
-function xmldb_communication_matrix_install($oldversion) {
+function xmldb_communication_matrix_install() {
     global $CFG, $DB;
 
     require_once($CFG->dirroot . '/user/profile/definelib.php');
     require_once($CFG->dirroot . '/user/profile/field/text/define.class.php');
 
-    if ($oldversion < 2023030100) {
-        // Check if communicatoin category exists.
-        $categoryname = get_string('communicationsubsystem', 'user');
-        $category = $DB->count_records('user_info_category', ['name' => $categoryname]);
-        if ($category < 1) {
-            $data = new \stdClass();
-            $data->sortorder = $DB->count_records('user_info_category') + 1;
-            $data->name = $categoryname;
-            $data->id = $DB->insert_record('user_info_category', $data, true);
+    // Check if communicatoin category exists.
+    $categoryname = get_string('communicationsubsystem', 'user');
+    $category = $DB->count_records('user_info_category', ['name' => $categoryname]);
+    if ($category < 1) {
+        $data = new \stdClass();
+        $data->sortorder = $DB->count_records('user_info_category') + 1;
+        $data->name = $categoryname;
+        $data->id = $DB->insert_record('user_info_category', $data, true);
 
-            $createdcategory = $DB->get_record('user_info_category', array('id' => $data->id));
-            $categoryid = $createdcategory->id;
-            \core\event\user_info_category_created::create_from_category($createdcategory)->trigger();
-            set_config('profile_category', $categoryname, 'communication');
-        } else {
-            $category = $DB->get_record('user_info_category', array('name' => $categoryname));
-            $categoryid = $category->id;
-        }
+        $createdcategory = $DB->get_record('user_info_category', array('id' => $data->id));
+        $categoryid = $createdcategory->id;
+        \core\event\user_info_category_created::create_from_category($createdcategory)->trigger();
+        set_config('profile_category', $categoryname, 'communication');
+    } else {
+        $category = $DB->get_record('user_info_category', array('name' => $categoryname));
+        $categoryid = $category->id;
+    }
 
-        // Check if matrixuserid exists in user_info_field table.
-        $matrixuserid = $DB->count_records('user_info_field', [
-            'shortname' => 'matrixuserid', 'categoryid' => $categoryid
-        ]);
-        if ($matrixuserid < 1) {
-            $profileclass = new \profile_define_text();
-            $data = (object) [
-                'shortname' => 'matrixuserid',
-                'name' => get_string('matrixuserid', 'user'),
-                'datatype' => 'text',
-                'description' => get_string('matrixuserid_desc', 'user'),
-                'descriptionformat' => 1,
-                'categoryid' => $categoryid,
-                'forceunique' => 1,
-                'visible' => 0,
-                'param1' => 30,
-                'param2' => 2048
-            ];
-            $profileclass->define_save($data);
-            set_config('profile_field_name', 'matrixuserid', 'communication_matrix');
-        }
+    // Check if matrixuserid exists in user_info_field table.
+    $matrixuserid = $DB->count_records('user_info_field', [
+        'shortname' => 'matrixuserid', 'categoryid' => $categoryid
+    ]);
+    if ($matrixuserid < 1) {
+        $profileclass = new \profile_define_text();
+        $data = (object) [
+            'shortname' => 'matrixuserid',
+            'name' => get_string('matrixuserid', 'user'),
+            'datatype' => 'text',
+            'description' => get_string('matrixuserid_desc', 'user'),
+            'descriptionformat' => 1,
+            'categoryid' => $categoryid,
+            'forceunique' => 1,
+            'visible' => 0,
+            'param1' => 30,
+            'param2' => 2048
+        ];
+        $profileclass->define_save($data);
+        set_config('profile_field_name', 'matrixuserid', 'communication_matrix');
     }
 
     return true;
