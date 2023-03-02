@@ -406,8 +406,7 @@ class course_edit_form extends moodleform {
         // Add communication plugins to the form.
         if (!empty($CFG->enablecommunicationsubsystem)) {
             $communication = new \core_communication\communication_handler(empty($course->id) ? 0 : $course->id);
-            $communication->form_definition($mform);
-            $communication->set_data($course);
+            $communication->form_definition($mform, $course);
         }
 
         // When two elements we need a group.
@@ -434,7 +433,7 @@ class course_edit_form extends moodleform {
      * Fill in the current page data for this course.
      */
     function definition_after_data() {
-        global $DB;
+        global $DB, $CFG;
 
         $mform = $this->_form;
 
@@ -479,6 +478,12 @@ class course_edit_form extends moodleform {
         // Tweak the form with values provided by custom fields in use.
         $handler  = core_course\customfield\course_handler::create();
         $handler->instance_form_definition_after_data($mform, empty($courseid) ? 0 : $courseid);
+
+        // Add communication plugins to the form.
+        if (!empty($CFG->enablecommunicationsubsystem)) {
+            $communication = new \core_communication\communication_handler(empty($courseid) ? 0 : $courseid);
+            $communication->form_definition_for_provider_plugins($mform);
+        }
     }
 
     /**
