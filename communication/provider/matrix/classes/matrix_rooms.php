@@ -28,17 +28,27 @@ class matrix_rooms {
     /**
      * @var null|string $roomid The id of the room from matrix
      */
-    public ?string $roomid = null;
+    public ?string $roomid = '';
 
     /**
      * @var null|string $roomalias The alias of the room from matrix
      */
-    public ?string $roomalias = null;
+    public ?string $roomalias = '';
 
     /**
      * @var int $commid The id of the communicaiton instance
      */
     public int $commid;
+
+    /**
+     * @var string The topic of the matrix room
+     */
+    public string $topic = '';
+
+    /**
+     * @var bool $recordexist The record available or not
+     */
+    public bool $recordexist = false;
 
 
     /**
@@ -51,6 +61,7 @@ class matrix_rooms {
         if ($roomrecord = $this->get_matrix_room_data()) {
             $this->roomid = $roomrecord->roomid;
             $this->roomalias = $roomrecord->alias;
+            $this->topic = $roomrecord->topic;
         }
     }
 
@@ -61,7 +72,11 @@ class matrix_rooms {
      */
     public function get_matrix_room_data(): bool|\stdClass {
         global $DB;
-        return $DB->get_record('matrix_rooms', ['commid' => $this->commid]);
+        $record = $DB->get_record('matrix_rooms', ['commid' => $this->commid]);
+        if ($record) {
+            $this->recordexist = true;
+        }
+        return $record;
     }
 
     /**
@@ -75,6 +90,7 @@ class matrix_rooms {
         $roomrecord->commid = $this->commid;
         $roomrecord->roomid = $this->roomid;
         $roomrecord->alias = $this->roomalias;
+        $roomrecord->topic = $this->topic;
         $DB->insert_record('matrix_rooms', $roomrecord);
     }
 
@@ -88,6 +104,7 @@ class matrix_rooms {
         if ($roomrecord = $this->get_matrix_room_data()) {
             $roomrecord->roomid = $this->roomid;
             $roomrecord->alias = $this->roomalias;
+            $roomrecord->topic = $this->topic;
             $DB->update_record('matrix_rooms', $roomrecord);
         }
     }
@@ -100,5 +117,15 @@ class matrix_rooms {
     public function delete(): void {
         global $DB;
         $DB->delete_records('matrix_rooms', ['commid' => $this->commid]);
+        $this->recordexist = false;
+    }
+
+    /**
+     * Check if the record for matrix exist or not.
+     *
+     * @return bool
+     */
+    public function record_exist(): bool {
+        return $this->recordexist;
     }
 }
