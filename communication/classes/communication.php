@@ -31,6 +31,11 @@ class communication {
     public string|null $instanceavatarurl = null;
 
     /**
+     * @var \stdClass|null $providerdata The provider data from the instance form
+     */
+    public ?\stdClass $providerdata;
+
+    /**
      * @var communication_room_base $communicationroom The communication room object
      */
     private communication_room_base $communicationroom;
@@ -48,8 +53,10 @@ class communication {
      * @param string $instancetype The type of instance for the component
      * @param string|null $instanceavatarurl The url of the avatar for the instance
      */
-    public function __construct(int $instanceid, string $component, string $instancetype, string $instanceavatarurl = null) {
+    public function __construct(int $instanceid, string $component, string $instancetype, string $instanceavatarurl = null,
+            \stdClass $providerdata = null) {
         $this->instanceavatarurl = $instanceavatarurl;
+        $this->providerdata = $providerdata;
         $this->communicationsettings = new communication_settings_data($instanceid, $component, $instancetype);
         $this->init_provider();
     }
@@ -60,16 +67,7 @@ class communication {
      * @return void
      */
     protected function init_provider(): void {
-        $plugins = \core_component::get_plugin_list_with_class('communication', 'communication_feature',
-            'communication_feature.php');
-
-        // Unset the inactive plugins.
-        foreach ($plugins as $componentname => $plugin) {
-            if (!\core\plugininfo\communication::is_plugin_enabled($componentname)) {
-                unset($plugins[$componentname]);
-            }
-        }
-
+        $plugins = helper::get_communication_providers_implementing_features();
         $pluginnames = array_keys($plugins);
         if (in_array($this->communicationsettings->get_provider(), $pluginnames, true)) {
             $pluginentrypoint = new $plugins[$this->communicationsettings->get_provider()] ();

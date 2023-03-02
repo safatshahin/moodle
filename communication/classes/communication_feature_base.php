@@ -37,4 +37,13 @@ class communication_feature_base {
         return null;
     }
 
+    /**
+     * Get the provide form definition object.
+     *
+     * @return communication_form_base|null
+     */
+    public function get_provider_form_definition(): ?communication_form_base {
+        return null;
+    }
+
 }

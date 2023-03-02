@@ -74,23 +74,79 @@ class communication_handler {
      * Define the form elements for the communication api.
      *
      * @param \MoodleQuickForm $mform The form element
+     * @param \stdClass $instance The actual instance object
      * @return void
      */
-    public function form_definition(\MoodleQuickForm $mform): void {
+    public function form_definition(\MoodleQuickForm $mform, \stdClass $instance): void {
+        global $PAGE;
+        $PAGE->requires->js_call_amd('core_communication/communicationchooser', 'init');
+
         $mform->addElement('header', 'communication', get_string('communication', 'communication'));
 
         // List the communication providers.
         $communicationproviders = $this->get_communication_plugin_list_for_form();
         $mform->addElement('select', 'selectedcommunication',
-            get_string('seleccommunicationprovider', 'communication'), $communicationproviders);
+                get_string('seleccommunicationprovider', 'communication'),
+                $communicationproviders, ['data-communicationchooser-field' => 'selector',]);
         $mform->addHelpButton('selectedcommunication', 'seleccommunicationprovider', 'communication');
+        $mform->setDefault('selectedcommunication', 'none');
 
-        // Room name for the communication provider.
-        $mform->addElement('text', 'communicationroomname',
-            get_string('communicationroomname', 'communication'), 'maxlength="100" size="20"');
-        $mform->addHelpButton('communicationroomname', 'communicationroomname', 'communication');
-        $mform->setType('communicationroomname', PARAM_TEXT);
-        $mform->hideIf('communicationroomname', 'selectedcommunication', 'eq', 'none');
+        $mform->registerNoSubmitButton('updatecommunicationprovider');
+        $mform->addElement('submit', 'updatecommunicationprovider', 'update communication', [
+            'data-communicationchooser-field' => 'updateButton',
+            'class' => 'd-none',
+        ]);
+
+        // Just a placeholder for the communication options.
+        $mform->addElement('hidden', 'addcommunicationoptionshere');
+        $mform->setType('addcommunicationoptionshere', PARAM_BOOL);
+
+        $this->set_data($instance);
+    }
+
+    /**
+     * Set the form definitions for the plugins.
+     *
+     * @param \MoodleQuickForm $mform
+     * @return void
+     */
+    public function form_definition_for_provider_plugins(\MoodleQuickForm $mform): void {
+        $provider = $mform->getElementValue('selectedcommunication');
+
+        if ($provider[0] !== 'none') {
+            // Room name for the communication provider.
+            $mform->insertElementBefore($mform->createElement('text', 'communicationroomname',
+                    get_string('communicationroomname', 'communication'), 'maxlength="100" size="20"'),
+                    'addcommunicationoptionshere');
+            $mform->addHelpButton('communicationroomname', 'communicationroomname', 'communication');
+            $mform->setType('communicationroomname', PARAM_TEXT);
+
+            $providerformobject = $this->get_provider_form_definition($provider[0]);
+            if (($providerformobject !== null) && method_exists($providerformobject, 'set_form_definition')) {
+                $providerformobject::set_form_definition($mform);
+            }
+        }
+
+    }
+
+    /**
+     * Get the form definition object from the provider.
+     *
+     * @return null|communication_form_base
+     */
+    public function get_provider_form_definition(string $provider): ?communication_form_base {
+        $plugins = helper::get_communication_providers_implementing_features();
+        $pluginnames = array_keys($plugins);
+
+        if (in_array($provider, $pluginnames, true)) {
+            $pluginentrypoint = new $plugins[$provider] ();
+            $communicationform = $pluginentrypoint->get_provider_form_definition();
+
+            if (!empty($communicationform)) {
+                return $communicationform;
+            }
+        }
+        return null;
     }
 
     /**
@@ -101,8 +157,15 @@ class communication_handler {
      */
     public function set_data(\stdClass $instance): void {
         if (!empty($instance->id) && !empty($this->communicationsettings)) {
+
             $instance->selectedcommunication = $this->communicationsettings->get_provider();
             $instance->communicationroomname = $this->communicationsettings->get_room_name();
+
+            // Now set the data from the plugins if available.
+            $providerformobject = $this->get_provider_form_definition($instance->selectedcommunication);
+            if (($providerformobject !== null) && method_exists($providerformobject, 'set_form_data')) {
+                $providerformobject::set_form_data($instance, $this->communicationsettings->get_communication_instance_id());
+            }
         }
     }
 
@@ -116,6 +179,33 @@ class communication_handler {
     public function save_form_data(string $selectedcommunication, string $communicationroomname): void {
         $this->communicationsettings->provider = $selectedcommunication;
         $this->communicationsettings->roomname = $communicationroomname;
+    }
+
+    /**
+     * Process the form data for provider plugins and convert to json.
+     *
+     * @param \stdClass $instance The actual instance object
+     * @param string $selectedcommunication The selected communication provider
+     * @return array|null
+     */
+    public function process_form_data_for_provider_plugins(\stdClass $instance, string $selectedcommunication): ?array {
+        $plugindata = [];
+        $providerformobject = $this->get_provider_form_definition($selectedcommunication);
+
+        if ($providerformobject !== null && method_exists($providerformobject, 'get_form_data_options')) {
+            $formoptions = $providerformobject::get_form_data_options();
+
+            foreach ($formoptions as $formoption) {
+                if (isset($instance->$formoption)) {
+                    $plugindata[$formoption] = $instance->$formoption;
+                }
+            }
+
+            if (!empty($plugindata)) {
+                return $plugindata;
+            }
+        }
+        return null;
     }
 
     /**
@@ -144,12 +234,18 @@ class communication_handler {
      *
      * @param string $selectedcommunication The selected communication provider
      * @param string $communicationroomname The communication room name
+     * @param \stdClass $instance The actual instance object
      * @return void
      */
-    public function create_and_configure_room_and_add_members(string $selectedcommunication, string $communicationroomname): void {
+    public function create_and_configure_room_and_add_members(string $selectedcommunication, string $communicationroomname,
+            \stdClass $instance): void {
         if ($this->is_update_required()) {
             // Update communication record.
             $this->save_form_data($selectedcommunication, $communicationroomname);
+
+            // Now get the form data option from the plugins if available.
+            $plugindata = $this->process_form_data_for_provider_plugins($instance, $this->communicationsettings->provider);
+
             $this->communicationsettings->save();
 
             // Add ad-hoc task to create the provider room.
@@ -160,6 +256,7 @@ class communication_handler {
                     'component' => $this->communicationsettings->component,
                     'instancetype' => $this->communicationsettings->instancetype,
                     'avatarurl' => $this->avatarurl,
+                    'providerdata' => $plugindata,
                     'operation' => 'create_room',
                 ]
             );
@@ -173,12 +270,18 @@ class communication_handler {
      *
      * @param string $selectedcommunication The selected communication provider
      * @param string $communicationroomname The communication room name
+     * @param \stdClass $instance The actual instance object
      * @return void
      */
-    public function update_room_and_membership(string $selectedcommunication, string $communicationroomname): void {
+    public function update_room_and_membership(string $selectedcommunication, string $communicationroomname,
+            \stdClass $instance): void {
         if ($this->communicationsettings->record_exist()) {
             // Update communication record.
             $this->save_form_data($selectedcommunication, $communicationroomname);
+
+            // Now get the form data option from the plugins if available.
+            $plugindata = $this->process_form_data_for_provider_plugins($instance, $selectedcommunication);
+
             $this->communicationsettings->save();
 
             if ($this->is_update_required()) {
@@ -190,6 +293,7 @@ class communication_handler {
                         'component' => $this->communicationsettings->component,
                         'instancetype' => $this->communicationsettings->instancetype,
                         'avatarurl' => $this->avatarurl,
+                        'providerdata' => $plugindata,
                         'operation' => 'update_room',
                     ]
                 );
@@ -197,7 +301,7 @@ class communication_handler {
                 $this->add_to_task_queue($updateroom);
             }
         } else {
-            $this->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname);
+            $this->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname, $instance);
         }
     }
 
@@ -217,6 +321,7 @@ class communication_handler {
                     'component' => $this->communicationsettings->component,
                     'instancetype' => $this->communicationsettings->instancetype,
                     'avatarurl' => $this->avatarurl,
+                    'providerdata' => null,
                     'operation' => 'delete_room',
                 ]
             );
