@@ -90,7 +90,7 @@ class communication_handler_test extends \advanced_testcase {
 
         // Handler object and save form data.
         $communication = new communication_handler($course->id);
-        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname);
+        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname, $course);
 
         // Test the set data.
         $communicationsettingsdata = new communication_settings_data($course->id, 'core_course', 'coursecommunication');
@@ -137,7 +137,7 @@ class communication_handler_test extends \advanced_testcase {
 
         // Handler object to create communication data.
         $communication = new communication_handler($course->id);
-        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname);
+        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname, $course);
 
         // Test the tasks added.
         $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\communication_room_operations');
@@ -190,7 +190,7 @@ class communication_handler_test extends \advanced_testcase {
 
         // Handler object to update communication data.
         $communication = new communication_handler($course->id);
-        $communication->update_room_and_membership($selectedcommunication, $communicationroomname);
+        $communication->update_room_and_membership($selectedcommunication, $communicationroomname, $course);
 
         // Test the tasks added.
         $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\communication_room_operations');

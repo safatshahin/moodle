@@ -14,29 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_communication\task;
-
-use core\task\adhoc_task;
-use core_communication\communication;
+namespace core_communication;
 
 /**
- * Class communication_room_operations to manage communication provider room operations from provider plugins.
- *
- * This task will handle create, update, delete for the provider room.
+ * Class helper will have all the common and necessary methods for core_communication which can be re-used in different locations.
  *
  * @package    core_communication
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class communication_room_operations extends adhoc_task {
+class helper {
 
-    public function execute() {
-        // Initialize the custom data operation to be used for the action.
-        $operation = $this->get_custom_data()->operation;
+    /**
+     * Get the communication providers which are implementing communication feature.
+     *
+     * @return array
+     */
+    public static function get_communication_providers_implementing_features(): array {
+        $plugins = \core_component::get_plugin_list_with_class('communication', 'communication_feature',
+            'communication_feature.php');
 
-        // Call the communication api to action the passed operation.
-        $communication = new communication($this->get_custom_data()->instanceid, $this->get_custom_data()->component,
-                $this->get_custom_data()->instancetype, $this->get_custom_data()->avatarurl, null, []);
-        $communication->$operation();
+        // Unset the inactive plugins.
+        foreach ($plugins as $componentname => $plugin) {
+            if (!\core\plugininfo\communication::is_plugin_enabled($componentname)) {
+                unset($plugins[$componentname]);
+            }
+        }
+
+        return $plugins;
     }
+
 }

@@ -78,16 +78,7 @@ class communication {
      * @return void
      */
     protected function init_provider(): void {
-        $plugins = \core_component::get_plugin_list_with_class('communication', 'communication_feature',
-            'communication_feature.php');
-
-        // Unset the inactive plugins.
-        foreach ($plugins as $componentname => $plugin) {
-            if (!\core\plugininfo\communication::is_plugin_enabled($componentname)) {
-                unset($plugins[$componentname]);
-            }
-        }
-
+        $plugins = helper::get_communication_providers_implementing_features();
         $pluginnames = array_keys($plugins);
         if (in_array($this->communicationsettings->get_provider(), $pluginnames, true)) {
             $pluginentrypoint = new $plugins[$this->communicationsettings->get_provider()] ();
