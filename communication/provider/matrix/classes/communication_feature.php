@@ -18,6 +18,7 @@ namespace communication_matrix;
 
 use core_communication\communication;
 use core_communication\communication_feature_base;
+use core_communication\communication_form_base;
 
 /**
  * Class communication_feature to manage matrix communication provider features from the plugin.
@@ -29,5 +30,9 @@ use core_communication\communication_feature_base;
 class communication_feature extends communication_feature_base {
     public function get_provider_room(communication $communication): matrix_room_manager {
         return new matrix_room_manager($communication);
+    }
+
+    public function get_provider_form_definition(): ?communication_form_base {
+        return new matrix_form_definition();
     }
 }

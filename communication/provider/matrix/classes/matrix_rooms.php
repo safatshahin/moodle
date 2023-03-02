@@ -40,6 +40,11 @@ class matrix_rooms {
      */
     public int $commid;
 
+    /**
+     * @var string The topic of the matrix room
+     */
+    public string $topic = '';
+
 
     /**
      * Matrix rooms constructor to load the matrix room information from matrix_rooms table.
@@ -51,6 +56,7 @@ class matrix_rooms {
         if ($roomrecord = $this->get_matrix_room_data()) {
             $this->roomid = $roomrecord->roomid;
             $this->roomalias = $roomrecord->alias;
+            $this->topic = $roomrecord->topic;
         }
     }
 
@@ -75,6 +81,7 @@ class matrix_rooms {
         $roomrecord->commid = $this->commid;
         $roomrecord->roomid = $this->roomid;
         $roomrecord->alias = $this->roomalias;
+        $roomrecord->topic = $this->topic;
         $DB->insert_record('matrix_rooms', $roomrecord);
     }
 
@@ -88,6 +95,7 @@ class matrix_rooms {
         if ($roomrecord = $this->get_matrix_room_data()) {
             $roomrecord->roomid = $this->roomid;
             $roomrecord->alias = $this->roomalias;
+            $roomrecord->topic = $this->topic;
             $DB->update_record('matrix_rooms', $roomrecord);
         }
     }
