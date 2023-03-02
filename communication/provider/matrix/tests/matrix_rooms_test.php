@@ -61,7 +61,7 @@ class matrix_rooms_test extends \advanced_testcase {
             $communicationdata->get_communication_instance_id());
         $matrixroom->roomid = $sampleroomid;
         $matrixroom->roomalias = $sampleroomalias;
-        $matrixroom->create();
+        $matrixroom->update();
 
         // Test the object.
         $this->assertEquals($matrixroom->roomid, $sampleroomid);
@@ -100,7 +100,7 @@ class matrix_rooms_test extends \advanced_testcase {
             $communicationdata->get_communication_instance_id());
         $matrixroom->roomid = $sampleroomid;
         $matrixroom->roomalias = $sampleroomalias;
-        $matrixroom->create();
+        $matrixroom->update();
 
         // Get the record from db.
         $matrixrecord = $DB->get_record('matrix_rooms',
@@ -153,7 +153,7 @@ class matrix_rooms_test extends \advanced_testcase {
             $communicationdata->get_communication_instance_id());
         $matrixroom->roomid = $sampleroomid;
         $matrixroom->roomalias = $sampleroomalias;
-        $matrixroom->create();
+        $matrixroom->update();
 
         // Get the record from db.
         $matrixrecord = $DB->get_record('matrix_rooms',

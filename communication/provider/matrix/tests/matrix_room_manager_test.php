@@ -211,8 +211,8 @@ class matrix_room_manager_test extends \advanced_testcase {
         $matrixrooms = new matrix_rooms($communication->communicationsettings->get_communication_instance_id());
 
         // Test the response against the stored data.
-        $this->assertNull($matrixrooms->roomid);
-        $this->assertNull($matrixrooms->roomalias);
+        $this->assertEquals('', $matrixrooms->roomid);
+        $this->assertEquals('', $matrixrooms->roomalias);
     }
 
     /**

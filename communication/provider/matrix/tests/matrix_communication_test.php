@@ -98,7 +98,7 @@ class matrix_communication_test extends \advanced_testcase {
 
         // Handler object to update communication data.
         $communication = new communication_handler($course->id, $avatarurl);
-        $communication->update_room_and_membership($selectedcommunication, $communicationroomname);
+        $communication->update_room_and_membership($selectedcommunication, $communicationroomname, $course);
 
         // Run the task.
         $this->runAdhocTasks('\core_communication\task\communication_room_operations');
@@ -671,5 +671,67 @@ class matrix_communication_test extends \advanced_testcase {
         $this->runAdhocTasks('\core_communication\task\communication_user_operations');
         // Check our Matrix user id no longer has membership.
         $this->assertFalse($matrixuser->check_room_membership($matrixuserid));
+    }
+
+    /**
+     * Test set provider data from handler.
+     *
+     * @return void
+     * @covers ::set_data
+     */
+    public function test_set_provider_data(): void {
+        $this->resetAfterTest();
+        $course = $this->get_course();
+        $communication = new communication_handler($course->id);
+
+        // Sample data.
+        $roomname = 'Sampleroom';
+        $provider = 'communication_matrix';
+
+        // Set the data.
+        $communication->set_data($course);
+
+        // Test the set data.
+        $this->assertEquals($roomname, $course->communicationroomname);
+        $this->assertEquals($provider, $course->selectedcommunication);
+        $this->assertTrue(isset($course->matrixroomtopic));
+    }
+
+    /**
+     * Test provider form definition.
+     *
+     * @return void
+     * @covers ::get_provider_form_definition
+     */
+    public function test_get_provider_form_definition(): void {
+        $this->resetAfterTest();
+        $course = $this->get_course();
+        $communication = new communication_handler($course->id);
+        $formdefinition = $communication->get_provider_form_definition('communication_matrix');
+
+        $this->assertNotNull($formdefinition);
+        $this->assertTrue(method_exists($formdefinition, 'save_form_data'));
+        $this->assertTrue(method_exists($formdefinition, 'set_form_data'));
+        $this->assertTrue(method_exists($formdefinition, 'set_form_definition'));
+    }
+
+    /**
+     * Test the processing of data for provider plugin.
+     *
+     * @return void
+     * @covers ::process_form_data_for_provider_plugins
+     * @covers ::get_provider_form_definition
+     */
+    public function test_process_form_data_for_provider_plugins(): void {
+        $this->resetAfterTest();
+        $course = $this->get_course();
+        $communication = new communication_handler($course->id);
+        $course->matrixroomtopic = 'Sampletopic';
+        $communication->process_form_data_for_provider_plugins($course, 'communication_matrix');
+
+
+        $communicationsettingsdata = new communication_settings_data($course->id, 'core_course', 'coursecommunication');
+        $matrixroomdata = new matrix_rooms($communicationsettingsdata->get_communication_instance_id());
+        $this->assertEquals('Sampletopic', $matrixroomdata->topic);
     }
 }

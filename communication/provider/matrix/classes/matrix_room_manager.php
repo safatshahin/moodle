@@ -51,6 +51,10 @@ class matrix_room_manager extends communication_room_base {
             'room_alias_name' => $alias,
             'initial_state' => [],
         ];
+        $matrixroomtopic = $this->matrixrooms->topic ?? '';
+        if (!empty($matrixroomtopic)) {
+            $json['topic'] = $matrixroomtopic;
+        }
 
         $response = $this->eventmanager->request($json)->post($this->eventmanager->get_create_room_endpoint());
         $response = json_decode($response->getBody());
@@ -60,7 +64,11 @@ class matrix_room_manager extends communication_room_base {
             $this->matrixrooms->roomid = $roomid;
             $this->matrixrooms->roomalias = '#' . $alias . ':' .
                     matrix_user_manager::set_matrix_home_server($this->eventmanager->matrixhomeserverurl);
-            $this->matrixrooms->create();
+            if ($this->matrixrooms->record_exist()) {
+                $this->matrixrooms->update();
+            } else {
+                $this->matrixrooms->create();
+            }
             $this->eventmanager->roomid = $roomid;
         } else {
             throw new \coding_exception('Can not create record without room id.');
@@ -82,8 +90,24 @@ class matrix_room_manager extends communication_room_base {
             $this->update_room_name();
         }
 
+        $matrixroomtopic = $this->matrixrooms->topic ?? '';
+        $this->matrixrooms->topic = $matrixroomtopic;
+        $this->update_room_topic($matrixroomtopic);
+        $this->matrixrooms->update();
+
         // Update room avatar.
         $this->update_room_avatar();
+    }
+
+    /**
+     * Update room topic.
+     *
+     * @param string $matrixroomtopic The topic of the matrix room
+     * @return void
+     */
+    public function update_room_topic(string $matrixroomtopic): void {
+        $json = ['topic' => $matrixroomtopic];
+        $this->eventmanager->request($json)->put($this->eventmanager->get_update_room_topic_endpoint());
     }
 
     /**
