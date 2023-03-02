@@ -2312,7 +2312,7 @@ function create_course($data, $editoroptions = NULL) {
 
         // Communication api call.
         $communication = new \core_communication\communication_handler($course->id, empty($courseimage) ? null : $courseimage);
-        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname);
+        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname, $data);
     }
 
     // Save custom fields if there are any of them in the form.
@@ -2445,7 +2445,7 @@ function update_course($data, $editoroptions = NULL) {
         // Communication api call.
         $communication = new \core_communication\communication_handler($data->id, empty($courseimage) ? null : $courseimage);
         if (empty($data->visibleold)) {
-            $communication->update_room_and_membership($selectedcommunication, $communicationroomname);
+            $communication->update_room_and_membership($selectedcommunication, $communicationroomname, $data);
         }
     }
 
