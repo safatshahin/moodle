@@ -117,4 +117,33 @@ class matrix_room_manager extends communication_room_base {
         $this->eventmanager->request($json)->put($this->eventmanager->get_update_avatar_endpoint());
     }
 
+    /**
+     * Generate a room url if there is a room.
+     *
+     * @return string|null
+     */
+    public function generate_room_url(): ?string {
+        // Check for room record in Moodle and that it exists in Matrix.
+        if (!$this->matrixrooms->roomalias) {
+            return null;
+        }
+        return $this->eventmanager->matrixwebclienturl . '#/room/' . $this->matrixrooms->roomalias;
+    }
+
+    /**
+     * Check if a room exists in Matrix by comparing Moodle's and Matrix's room ids.
+     *
+     * @return bool
+     */
+    public function check_room_exists(): bool {
+        $response = $this->eventmanager->request([], [], false)->get($this->eventmanager->get_room_info_endpoint());
+        if ($response->getStatusCode() === 200) {
+            $response = json_decode($response->getBody());
+            // Check we have matching room ids.
+            if ($response->room_id === $this->matrixrooms->roomid) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
