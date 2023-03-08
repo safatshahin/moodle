@@ -214,6 +214,15 @@ if ($hassiteconfig or has_any_capability($capabilities, $systemcontext)) {
     $temp->add(new admin_setting_configselect('moodlecourse/groupmode', new lang_string('groupmode'), '', key($choices),$choices));
     $temp->add(new admin_setting_configselect('moodlecourse/groupmodeforce', new lang_string('force'), new lang_string('coursehelpforce'), 0,array(0 => new lang_string('no'), 1 => new lang_string('yes'))));
 
+    // Communication.
+    $temp->add(new admin_setting_heading('communication',
+        new lang_string('communication', 'core_communication'), ''));
+    $communicationproviders = \core_communication\communication_handler::get_communication_plugin_list_for_form();
+    $temp->add(new admin_setting_configselect('moodlecourse/coursecommunicationprovider',
+        new lang_string('seleccommunicationprovider', 'communication'),
+        new lang_string('coursecommunication_desc', 'course'),
+        'communication_matrix', $communicationproviders));
+
     $ADMIN->add('courses', $temp);
 
     // Download course content.
