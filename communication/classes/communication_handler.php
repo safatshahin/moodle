@@ -367,4 +367,60 @@ class communication_handler {
         }
     }
 
+
+    /**
+     * Get the status of a communication room.
+     *
+     * @return string
+     */
+    public function get_communication_room_status(): string {
+        $status = '';
+        if ($this->is_update_required() && $this->communicationsettings->record_exist()) {
+
+            $instanceid = $this->communicationsettings->instanceid;
+            $component = $this->communicationsettings->component;
+            $instancetype = $this->communicationsettings->instancetype;
+            $communication = new communication($instanceid, $component, $instancetype);
+
+            // Check if user is seeing this notification for the first time.
+            $roomreadypreference = "{$component}_{$instancetype}_{$instanceid}_room_ready";
+            if (empty(get_user_preferences($roomreadypreference))) {
+                // Check state of room.
+                if ($communication->get_room_url()) {
+                    set_user_preference($roomreadypreference, true);
+                    $status = 'ready';
+                } else {
+                    $status = 'pending';
+                }
+            }
+        }
+        return $status;
+    }
+
+    /**
+     * Display the communication room status notification.
+     *
+     * @return void
+     */
+    public function show_communication_room_status_notification(): void {
+
+        $roomstatus = $this->get_communication_room_status();
+
+        if (!empty($roomstatus)) {
+            $pluginname = get_string('pluginname', $this->communicationsettings->provider);
+            $message = get_string('communicationroom' . $roomstatus, 'communication', $pluginname);
+
+            switch ($roomstatus) {
+                case 'pending':
+                    $notificationtype = \core\notification::INFO;
+                    break;
+
+                case 'ready':
+                    $notificationtype = \core\notification::SUCCESS;
+                    break;
+            }
+
+            \core\notification::add($message, $notificationtype);
+        }
+    }
 }
