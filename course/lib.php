@@ -2307,7 +2307,7 @@ function create_course($data, $editoroptions = NULL) {
     if (isset($data->selectedcommunication) && !empty($CFG->enablecommunicationsubsystem)) {
         // Prepare the communication api date.
         $courseimage = course_summary_exporter::get_course_image($course);
-        $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->shortname;
+        $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
         $selectedcommunication = $data->selectedcommunication;
 
         // Communication api call.
@@ -2439,7 +2439,7 @@ function update_course($data, $editoroptions = NULL) {
     if (isset($data->selectedcommunication) && !empty($CFG->enablecommunicationsubsystem)) {
         // Prepare the communication api data.
         $courseimage = course_summary_exporter::get_course_image($data);
-        $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->shortname;
+        $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
         $selectedcommunication = $data->selectedcommunication;
 
         // Communication api call.
