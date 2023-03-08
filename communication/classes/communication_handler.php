@@ -61,7 +61,7 @@ class communication_handler {
      *
      * @return array
      */
-    public function get_communication_plugin_list_for_form(): array {
+    public static function get_communication_plugin_list_for_form(): array {
         // Add the option to have communication disabled.
         $selection['none'] = get_string('nocommunicationselected', 'communication');
         $communicationplugins = \core\plugininfo\communication::get_enabled_plugins();
@@ -76,21 +76,24 @@ class communication_handler {
      *
      * @param \MoodleQuickForm $mform The form element
      * @param \stdClass $instance The actual instance object
+     * @param string $selectdefaultcommunication The default selected communication provider in the form field
      * @return void
      */
-    public function form_definition(\MoodleQuickForm $mform, \stdClass $instance): void {
+    public function form_definition(\MoodleQuickForm $mform, \stdClass $instance,
+            string $selectdefaultcommunication = 'none'): void {
+
         global $PAGE;
         $PAGE->requires->js_call_amd('core_communication/communicationchooser', 'init');
 
         $mform->addElement('header', 'communication', get_string('communication', 'communication'));
 
         // List the communication providers.
-        $communicationproviders = $this->get_communication_plugin_list_for_form();
+        $communicationproviders = self::get_communication_plugin_list_for_form();
         $mform->addElement('select', 'selectedcommunication',
                 get_string('seleccommunicationprovider', 'communication'),
                 $communicationproviders, ['data-communicationchooser-field' => 'selector']);
         $mform->addHelpButton('selectedcommunication', 'seleccommunicationprovider', 'communication');
-        $mform->setDefault('selectedcommunication', 'none');
+        $mform->setDefault('selectedcommunication', $selectdefaultcommunication);
 
         $mform->registerNoSubmitButton('updatecommunicationprovider');
         $mform->addElement('submit', 'updatecommunicationprovider', 'update communication', [

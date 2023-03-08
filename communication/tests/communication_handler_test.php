@@ -44,7 +44,7 @@ class communication_handler_test extends \advanced_testcase {
         $course = $this->get_course();
 
         $communication = new communication_handler($course->id);
-        $communicationplugins = $communication->get_communication_plugin_list_for_form();
+        $communicationplugins = $communication::get_communication_plugin_list_for_form();
 
         // Get the communication plugins.
         $plugins = \core_component::get_plugin_list('communication');
