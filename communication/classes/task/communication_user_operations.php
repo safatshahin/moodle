@@ -28,7 +28,7 @@ use core_communication\communication;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class communication_room_operations extends adhoc_task {
+class communication_user_operations extends adhoc_task {
 
     public function execute() {
         // Initialize the custom data operation to be used for the action.
@@ -36,7 +36,7 @@ class communication_room_operations extends adhoc_task {
 
         // Call the communication api to action the passed operation.
         $communication = new communication($this->get_custom_data()->instanceid, $this->get_custom_data()->component,
-                $this->get_custom_data()->instancetype, $this->get_custom_data()->avatarurl, $this->get_custom_data()->disableprovider);
+            $this->get_custom_data()->instancetype, null, $this->get_custom_data()->disableprovider, $this->get_custom_data()->userids);
         $communication->$operation();
     }
 }
