@@ -60,7 +60,7 @@ class communication {
      * @param array $userids The user ids
      */
     public function __construct(int $instanceid, string $component, string $instancetype, string $instanceavatarurl = null,
-            bool $disableprovider = false, array $userids = []) {
+        bool $disableprovider = false, array $userids = []) {
         $this->instanceavatarurl = $instanceavatarurl;
         $this->userids = $userids;
         $this->communicationsettings = new communication_settings_data($instanceid, $component, $instancetype);
@@ -131,6 +131,9 @@ class communication {
     public function update_room(): void {
         if ($this->check_object_and_method_exist('communicationroom', 'update')) {
             $this->communicationroom->update();
+            if (empty($this->communicationuser)) {
+                $this->update_communication_data();
+            }
         }
     }
 
@@ -179,10 +182,18 @@ class communication {
         if ($this->check_object_and_method_exist('communicationuser', 'remove_members_from_room')) {
             $this->communicationuser->remove_members_from_room($this->userids);
         }
-        if ($this->communicationsettings->disableprovider) {
-            $this->communicationsettings->provider = 'none';
-        }
-        $this->communicationsettings->save();
+        $this->update_communication_data();
     }
 
+    /**
+     * Update the communication room data to disable the communication service after all the changes are done.
+     *
+     * @return void
+     */
+    public function update_communication_data(): void {
+        if ($this->communicationsettings->disableprovider) {
+            $this->communicationsettings->provider = 'none';
+            $this->communicationsettings->save();
+        }
+    }
 }
