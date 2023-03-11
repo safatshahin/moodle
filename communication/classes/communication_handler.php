@@ -116,11 +116,10 @@ class communication_handler {
      * @return void
      */
     public function save_form_data(string $selectedcommunication, string $communicationroomname): void {
-        if ($selectedcommunication !== 'none') {
-            $this->communicationsettings->provider = $selectedcommunication;
-        } else {
-            $this->communicationsettings->disableprovider = true;
+        if ($selectedcommunication === 'none') {
+            $this->communicationsettings->disableprovider = $this->communicationsettings->provider;
         }
+        $this->communicationsettings->provider = $selectedcommunication;
         $this->communicationsettings->roomname = $communicationroomname;
     }
 
@@ -166,7 +165,6 @@ class communication_handler {
                     'component' => $this->communicationsettings->component,
                     'instancetype' => $this->communicationsettings->instancetype,
                     'avatarurl' => $this->avatarurl,
-                    'disableprovider' => $this->communicationsettings->disableprovider,
                     'operation' => 'create_room',
                 ]
             );
@@ -197,7 +195,6 @@ class communication_handler {
                         'component' => $this->communicationsettings->component,
                         'instancetype' => $this->communicationsettings->instancetype,
                         'avatarurl' => $this->avatarurl,
-                        'disableprovider' => $this->communicationsettings->disableprovider,
                         'operation' => 'update_room',
                     ]
                 );
@@ -225,7 +222,6 @@ class communication_handler {
                     'component' => $this->communicationsettings->component,
                     'instancetype' => $this->communicationsettings->instancetype,
                     'avatarurl' => $this->avatarurl,
-                    'disableprovider' => $this->communicationsettings->disableprovider,
                     'operation' => 'delete_room',
                 ]
             );
@@ -243,7 +239,7 @@ class communication_handler {
      */
     public function update_room_membership(string $action, array $userids): void {
 
-        if ($this->is_update_required() && $this->communicationsettings->record_exist()) {
+        if ($this->communicationsettings->record_exist()) {
 
             $data = [
                 'instanceid' => $this->communicationsettings->instanceid,

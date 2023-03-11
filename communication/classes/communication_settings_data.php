@@ -61,9 +61,9 @@ class communication_settings_data {
     public string $instancetype;
 
     /**
-     * @var bool Enable or disable provider after updating associated tasks.
+     * @var ?string The disables provider use after updating associated tasks.
      */
-    public bool $disableprovider = false;
+    public ?string $disableprovider = null;
 
     /**
      * Communication data constructor to load the communication information from communication table.

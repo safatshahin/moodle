@@ -36,7 +36,7 @@ class communication_room_operations extends adhoc_task {
 
         // Call the communication api to action the passed operation.
         $communication = new communication($this->get_custom_data()->instanceid, $this->get_custom_data()->component,
-                $this->get_custom_data()->instancetype, $this->get_custom_data()->avatarurl, $this->get_custom_data()->disableprovider);
+                $this->get_custom_data()->instancetype, $this->get_custom_data()->avatarurl);
         $communication->$operation();
     }
 }

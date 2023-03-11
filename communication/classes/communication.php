@@ -57,14 +57,18 @@ class communication {
      * @param string $component The component of the instance
      * @param string $instancetype The type of instance for the component
      * @param string|null $instanceavatarurl The url of the avatar for the instance
+     * @param string|null $disableprovider The provider to use for associated tasks after disabled
      * @param array $userids The user ids
      */
     public function __construct(int $instanceid, string $component, string $instancetype, string $instanceavatarurl = null,
-        bool $disableprovider = false, array $userids = []) {
+        string $disableprovider = null, array $userids = []) {
         $this->instanceavatarurl = $instanceavatarurl;
         $this->userids = $userids;
         $this->communicationsettings = new communication_settings_data($instanceid, $component, $instancetype);
-        $this->communicationsettings->disableprovider = $disableprovider;
+        if ($disableprovider !== null) {
+            $this->communicationsettings->provider = $disableprovider;
+            $this->communicationsettings->disableprovider = $disableprovider;
+        }
         $this->init_provider();
     }
 
@@ -118,7 +122,8 @@ class communication {
      * @return void
      */
     public function create_room(): void {
-        if ($this->check_object_and_method_exist('communicationroom', 'create')) {
+        if ($this->check_object_and_method_exist('communicationroom', 'create') &&
+                $this->communicationsettings->disableprovider === null) {
             $this->communicationroom->create();
         }
     }
@@ -129,11 +134,9 @@ class communication {
      * @return void
      */
     public function update_room(): void {
-        if ($this->check_object_and_method_exist('communicationroom', 'update')) {
+        if ($this->check_object_and_method_exist('communicationroom', 'update') &&
+                $this->communicationsettings->disableprovider === null) {
             $this->communicationroom->update();
-            if (empty($this->communicationuser)) {
-                $this->update_communication_data();
-            }
         }
     }
 
@@ -143,11 +146,13 @@ class communication {
      * @return void
      */
     public function delete_room(): void {
-        if ($this->check_object_and_method_exist('communicationroom', 'delete')) {
-            $this->communicationroom->delete();
+        if ($this->communicationsettings->disableprovider === null) {
+            if ($this->check_object_and_method_exist('communicationroom', 'delete')) {
+                $this->communicationroom->delete();
+            }
+            // Now delete the local communication record after the deletion if done from the plugin.
+            $this->communicationsettings->delete();
         }
-        // Now delete the local communication record after the deletion if done from the plugin.
-        $this->communicationsettings->delete();
     }
 
     /**
@@ -181,19 +186,6 @@ class communication {
     public function remove_members(): void {
         if ($this->check_object_and_method_exist('communicationuser', 'remove_members_from_room')) {
             $this->communicationuser->remove_members_from_room($this->userids);
-        }
-        $this->update_communication_data();
-    }
-
-    /**
-     * Update the communication room data to disable the communication service after all the changes are done.
-     *
-     * @return void
-     */
-    public function update_communication_data(): void {
-        if ($this->communicationsettings->disableprovider) {
-            $this->communicationsettings->provider = 'none';
-            $this->communicationsettings->save();
         }
     }
 }
