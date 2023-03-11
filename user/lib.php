@@ -161,7 +161,7 @@ function user_update_user($user, $updatepassword = true, $triggerevent = true) {
     if (!empty($CFG->enablecommunicationsubsystem)) {
         $usercourses = enrol_get_users_courses($user->id);
         $currentrecord = $DB->get_record('user', ['id' => $user->id]);
-        if ($currentrecord->suspended !== $user->suspended) {
+        if (!empty($currentrecord) && isset($user->suspended) && $currentrecord->suspended !== $user->suspended) {
             foreach ($usercourses as $usercourse) {
                 // If the record updated the suspended for a user.
                 if ($user->suspended === 0) {
