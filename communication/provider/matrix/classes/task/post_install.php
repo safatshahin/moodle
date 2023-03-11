@@ -71,6 +71,7 @@ class post_install extends \core\task\adhoc_task {
                 'categoryid' => $categoryid,
                 'forceunique' => 1,
                 'visible' => 0,
+                'locked' => 1,
                 'param1' => 30,
                 'param2' => 2048
             ];
