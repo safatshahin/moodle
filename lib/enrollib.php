@@ -2188,9 +2188,12 @@ abstract class enrol_plugin {
         }
 
         $modified = false;
+        $statusmodified = false;
+        $timeendmodified = false;
         if (isset($status) and $ue->status != $status) {
             $ue->status = $status;
             $modified = true;
+            $statusmodified = true;
         }
         if (isset($timestart) and $ue->timestart != $timestart) {
             $ue->timestart = $timestart;
@@ -2199,11 +2202,24 @@ abstract class enrol_plugin {
         if (isset($timeend) and $ue->timeend != $timeend) {
             $ue->timeend = $timeend;
             $modified = true;
+            $timeendmodified = true;
         }
 
         if (!$modified) {
             // no change
             return;
+        }
+
+        // Add/remove users to/from communication room.
+        if (!empty($CFG->enablecommunicationsubsystem)) {
+            if (($statusmodified && ((int) $ue->status === 1)) || ($timeendmodified && $ue->timeend !== 0 && (time() > $ue->timeend))) {
+                $action = 'remove';
+            } else {
+                $action = 'add';
+            }
+            $course = enrol_get_course_by_user_enrolment_id($ue->id);
+            $communication = new \core_communication\communication_handler($course->id);
+            $communication->update_room_membership($action, [$userid]);
         }
 
         $ue->modifierid = $USER->id;
@@ -2958,7 +2974,7 @@ abstract class enrol_plugin {
             $rs->close();
             unset($instances);
 
-        } else if ($action == ENROL_EXT_REMOVED_SUSPENDNOROLES or $action == ENROL_EXT_REMOVED_SUSPEND) {
+        } else if ($action == ENROL_EXT_REMOVED_SUSPENDNOROLES or $action == ENROL_EXT_REMOVED_SUSPEND) {//
             $instances = array();
             $sql = "SELECT ue.*, e.courseid, c.id AS contextid
                       FROM {user_enrolments} ue
