@@ -235,9 +235,10 @@ class communication_handler {
      *
      * @param string $action The action to perform
      * @param array $userids The user ids to update
+     * @param bool $async Run task asyncronously, or not
      * @return void
      */
-    public function update_room_membership(string $action, array $userids): void {
+    public function update_room_membership(string $action, array $userids, $async = true): void {
 
         if ($this->communicationsettings->record_exist()) {
 
@@ -261,8 +262,14 @@ class communication_handler {
             // Add ad-hoc task to update room membership.
             $updatemembership = new communication_user_operations();
             $updatemembership->set_custom_data($data);
-            // Queue the task for the next run.
-            $this->add_to_task_queue($updatemembership);
+
+            if ($async) {
+                // Queue the task for the next run.
+                $this->add_to_task_queue($updatemembership);
+            } else {
+                // Run immidiately.
+                $updatemembership->execute($data);
+            }
         }
     }
 
