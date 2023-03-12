@@ -2670,6 +2670,48 @@ abstract class enrol_plugin {
     }
 
     /**
+     * Update instance status
+     *
+     * Update communication room membership for an instance action being performed.
+     *
+     * @param stdClass $instance
+     * @param string $action The update action being performed
+     * @return void
+     */
+    public function update_communication($instance, $action): void {
+        global $DB;
+        // Get enrolled instance users.
+        $instanceusers = $DB->get_records('user_enrolments', array('enrolid' => $instance->id));
+        $enrolledusers = [];
+
+        foreach ($instanceusers as $user) {
+            $enrolledusers[] = $user->userid;
+        }
+
+        if (count($enrolledusers) > 0) {
+
+            switch ($action) {
+                case 'enable':
+                    $roomaction = 'add';
+                    break;
+
+                case 'disable':
+                    $roomaction = 'remove';
+                    break;
+
+                case 'delete':
+                    $roomaction = 'remove';
+                    break;
+            }
+            // Update room membership based on action.
+            if (isset($roomaction)) {
+                $communication = new \core_communication\communication_handler($instance->courseid);
+                $communication->update_room_membership($roomaction, $enrolledusers);
+            }
+        }
+    }
+
+    /**
      * Delete course enrol plugin instance, unenrol all users.
      * @param object $instance
      * @return void

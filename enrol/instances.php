@@ -93,18 +93,6 @@ if ($canconfig and $action and confirm_sesskey()) {
             redirect($PAGE->url);
 
         } else if ($action === 'delete') {
-            // Communication api setup.
-            $instanceusers = $participants = $DB->get_records('user_enrolments', array('enrolid' => $instanceid));
-            $enrolledusers = [];
-
-            foreach ($instanceusers as $user) {
-                $enrolledusers[] = $user->userid;
-            }
-            // Remove the users for this enrolment method.
-            if (!empty($CFG->enablecommunicationsubsystem) && count($enrolledusers) > 0) {
-                $communication = new \core_communication\communication_handler($course->id);
-                $communication->update_room_membership('remove', $enrolledusers);
-            }
 
             $instance = $instances[$instanceid];
             $plugin = $plugins[$instance->enrol];
@@ -129,6 +117,10 @@ if ($canconfig and $action and confirm_sesskey()) {
                             echo $OUTPUT->footer();
                             die();
                         }
+                    }
+                    // Update communication for instance and given action.
+                    if (!empty($CFG->enablecommunicationsubsystem)) {
+                        $plugin->update_communication($instance, $action);
                     }
                     $plugin->delete_instance($instance);
                     redirect($PAGE->url);
@@ -157,18 +149,6 @@ if ($canconfig and $action and confirm_sesskey()) {
             }
 
         } else if ($action === 'disable') {
-            // Communication api setup.
-            $instanceusers = $participants = $DB->get_records('user_enrolments', array('enrolid' => $instanceid));
-            $enrolledusers = [];
-
-            foreach ($instanceusers as $user) {
-                $enrolledusers[] = $user->userid;
-            }
-            // Remove the users for this enrolment method.
-            if (!empty($CFG->enablecommunicationsubsystem) && count($enrolledusers) > 0) {
-                $communication = new \core_communication\communication_handler($course->id);
-                $communication->update_room_membership('remove', $enrolledusers);
-            }
 
             $instance = $instances[$instanceid];
             $plugin = $plugins[$instance->enrol];
@@ -192,29 +172,25 @@ if ($canconfig and $action and confirm_sesskey()) {
                             die();
                         }
                     }
+                    // Update communication for instance and given action.
+                    if (!empty($CFG->enablecommunicationsubsystem)) {
+                        $plugin->update_communication($instance, $action);
+                    }
                     $plugin->update_status($instance, ENROL_INSTANCE_DISABLED);
                     redirect($PAGE->url);
                 }
             }
 
         } else if ($action === 'enable') {
-            // Communication api setup.
-            $instanceusers = $participants = $DB->get_records('user_enrolments', array('enrolid' => $instanceid));
-            $enrolledusers = [];
-
-            foreach ($instanceusers as $user) {
-                $enrolledusers[] = $user->userid;
-            }
-            // Remove the users for this enrolment method.
-            if (!empty($CFG->enablecommunicationsubsystem) && count($enrolledusers) > 0) {
-                $communication = new \core_communication\communication_handler($course->id);
-                $communication->update_room_membership('add', $enrolledusers);
-            }
 
             $instance = $instances[$instanceid];
             $plugin = $plugins[$instance->enrol];
             if ($plugin->can_hide_show_instance($instance)) {
                 if ($instance->status != ENROL_INSTANCE_ENABLED) {
+                    // Update communication for instance and given action.
+                    if (!empty($CFG->enablecommunicationsubsystem)) {
+                        $plugin->update_communication($instance, $action);
+                    }
                     $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);
                     redirect($PAGE->url);
                 }
