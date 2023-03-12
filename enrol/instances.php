@@ -120,7 +120,7 @@ if ($canconfig and $action and confirm_sesskey()) {
                     }
                     // Update communication for instance and given action.
                     if (!empty($CFG->enablecommunicationsubsystem)) {
-                        $plugin->update_communication($instance, $action);
+                        $plugin->update_communication($instance, 'remove', $course->id);
                     }
                     $plugin->delete_instance($instance);
                     redirect($PAGE->url);
@@ -174,7 +174,7 @@ if ($canconfig and $action and confirm_sesskey()) {
                     }
                     // Update communication for instance and given action.
                     if (!empty($CFG->enablecommunicationsubsystem)) {
-                        $plugin->update_communication($instance, $action);
+                        $plugin->update_communication($instance, 'remove', $course->id);
                     }
                     $plugin->update_status($instance, ENROL_INSTANCE_DISABLED);
                     redirect($PAGE->url);
@@ -189,7 +189,7 @@ if ($canconfig and $action and confirm_sesskey()) {
                 if ($instance->status != ENROL_INSTANCE_ENABLED) {
                     // Update communication for instance and given action.
                     if (!empty($CFG->enablecommunicationsubsystem)) {
-                        $plugin->update_communication($instance, $action);
+                        $plugin->update_communication($instance, 'add', $course->id);
                     }
                     $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);
                     redirect($PAGE->url);

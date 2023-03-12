@@ -2674,41 +2674,23 @@ abstract class enrol_plugin {
      *
      * Update communication room membership for an instance action being performed.
      *
-     * @param stdClass $instance
+     * @param int $instanceid ID of the enrolment instance
      * @param string $action The update action being performed
+     * @param int $courseid The id of the coruse
      * @return void
      */
-    public function update_communication($instance, $action): void {
+    public function update_communication(int $instanceid, string $action, int $courseid): void {
         global $DB;
         // Get enrolled instance users.
-        $instanceusers = $DB->get_records('user_enrolments', array('enrolid' => $instance->id));
+        $instanceusers = $DB->get_records('user_enrolments', array('enrolid' => $instanceid));
         $enrolledusers = [];
 
         foreach ($instanceusers as $user) {
             $enrolledusers[] = $user->userid;
         }
 
-        if (count($enrolledusers) > 0) {
-
-            switch ($action) {
-                case 'enable':
-                    $roomaction = 'add';
-                    break;
-
-                case 'disable':
-                    $roomaction = 'remove';
-                    break;
-
-                case 'delete':
-                    $roomaction = 'remove';
-                    break;
-            }
-            // Update room membership based on action.
-            if (isset($roomaction)) {
-                $communication = new \core_communication\communication_handler($instance->courseid);
-                $communication->update_room_membership($roomaction, $enrolledusers);
-            }
-        }
+        $communication = new \core_communication\communication_handler($courseid);
+        $communication->update_room_membership($action, $enrolledusers);
     }
 
     /**

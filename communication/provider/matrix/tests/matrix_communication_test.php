@@ -600,7 +600,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Check our Matrix user id has room membership.
         $this->assertTrue($matrixuser->check_room_membership($matrixuserid));
         // Update enrolment communication.
-        $enrol->update_communication($instance, 'disable');
+        $enrol->update_communication($instance, 'remove', $course->id);
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\communication_user_operations');
         // Check our Matrix user id no longer has membership.
@@ -651,13 +651,13 @@ class matrix_communication_test extends \advanced_testcase {
         // Check our Matrix user id has room membership.
         $this->assertTrue($matrixuser->check_room_membership($matrixuserid));
         // Update enrolment communication when updating instance to disabled.
-        $enrol->update_communication($instance, 'disable');
+        $enrol->update_communication($instance, 'remove', $course->id);
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\communication_user_operations');
         // Check our Matrix user id no longer has membership.
         $this->assertFalse($matrixuser->check_room_membership($matrixuserid));
         // Update enrolment communication when updating instance to enabled.
-        $enrol->update_communication($instance, 'enable');
+        $enrol->update_communication($instance, 'add', $course->id);
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\communication_user_operations');
         // Check our Matrix user id no longer has membership.
