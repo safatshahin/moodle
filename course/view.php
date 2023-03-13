@@ -256,6 +256,12 @@
     $PAGE->set_heading($course->fullname);
     echo $OUTPUT->header();
 
+    // Show communication room status banner.
+    if (!empty($CFG->enablecommunicationsubsystem) && has_capability('moodle/course:update', $context)) {
+        $communication = new \core_communication\communication_handler($course->id);
+        $communication->show_communication_room_status_notification();
+    }
+
     if ($USER->editing == 1) {
 
         // MDL-65321 The backup libraries are quite heavy, only require the bare minimum.

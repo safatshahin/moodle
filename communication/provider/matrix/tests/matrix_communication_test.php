@@ -729,9 +729,47 @@ class matrix_communication_test extends \advanced_testcase {
         $course->matrixroomtopic = 'Sampletopic';
         $communication->process_form_data_for_provider_plugins($course, 'communication_matrix');
 
-
         $communicationsettingsdata = new communication_settings_data($course->id, 'core_course', 'coursecommunication');
         $matrixroomdata = new matrix_rooms($communicationsettingsdata->get_communication_instance_id());
         $this->assertEquals('Sampletopic', $matrixroomdata->topic);
+    }
+
+    /**
+     * Test that a room status can be retrieved.
+     *
+     * @return void
+     * @covers ::get_communication_room_status
+     */
+    public function test_communication_room_status(): void {
+        $course = $this->get_course();
+        $communication = new communication_handler($course->id);
+        // Check pending room state.
+        $this->assertEquals('pending', $communication->get_communication_room_status());
+        // Run the task.
+        $this->runAdhocTasks('\core_communication\task\communication_room_operations');
+        // Check ready room state.
+        $this->assertEquals('ready', $communication->get_communication_room_status());
+    }
+
+    /**
+     * Test notification of communication room is generated correctly.
+     *
+     * @return void
+     * @covers ::show_communication_room_status_notification
+     */
+    public function test_show_communication_room_status_notification(): void {
+        $course = $this->get_course();
+        $communication = new communication_handler($course->id);
+        // Generate pending notification
+        $communication->show_communication_room_status_notification();
+        // Run the task.
+        $this->runAdhocTasks('\core_communication\task\communication_room_operations');
+        // Generate ready notification
+        $communication->show_communication_room_status_notification();
+        $notifications = \core\notification::fetch();
+        // Should be one for pending status, and one for ready status.
+        $this->assertCount(2, $notifications);
+        $this->assertStringContainsString('Your Matrix room will be ready soon.', $notifications[0]->get_message());
+        $this->assertStringContainsString('Your Matrix room is ready!', $notifications[1]->get_message());
     }
 }
