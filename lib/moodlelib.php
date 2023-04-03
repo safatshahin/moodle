@@ -4148,7 +4148,7 @@ function delete_user(stdClass $user) {
     // Remove user from communication rooms immediately.
     if (!empty($CFG->enablecommunicationsubsystem)) {
         foreach (enrol_get_users_courses($user->id) as $course) {
-            $communication = new \core_communication\communication_handler($course->id);
+            $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $course->id);
             $communication->update_room_membership('remove', [$user->id], false);
         }
     }
@@ -5039,7 +5039,7 @@ function set_login_session_preferences() {
  *             failed, but you have no way of knowing which.
  */
 function delete_course($courseorid, $showfeedback = true) {
-    global $DB;
+    global $DB, $CFG;
 
     if (is_object($courseorid)) {
         $courseid = $courseorid->id;
@@ -5080,8 +5080,21 @@ function delete_course($courseorid, $showfeedback = true) {
     context_helper::delete_instance(CONTEXT_COURSE, $courseid);
 
     // Communication provider delete associated information.
-    $communication = new \core_communication\communication_handler($course->id);
-    $communication->delete_room_and_remove_members();
+    $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $course->id);
+
+    // Update communication room membership of enrolled users.
+    require_once($CFG->libdir . '/enrollib.php');
+    $courseusers = enrol_get_course_users($courseid);
+    $enrolledusers = [];
+
+    foreach ($courseusers as $user) {
+        $enrolledusers[] = $user->id;
+    }
+
+    $communication->update_room_membership('remove', $enrolledusers);
+
+    $communication->delete_room();
+
 
     $DB->delete_records("course", array("id" => $courseid));
     $DB->delete_records("course_format_options", array("courseid" => $courseid));
