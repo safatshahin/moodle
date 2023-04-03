@@ -2322,8 +2322,8 @@ function create_course($data, $editoroptions = NULL) {
         $selectedcommunication = $data->selectedcommunication;
 
         // Communication api call.
-        $communication = new \core_communication\communication_handler($course->id, empty($courseimage) ? null : $courseimage);
-        $communication->create_and_configure_room_and_add_members($selectedcommunication, $communicationroomname);
+        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $course->id);
+        $communication->create_and_configure_room($selectedcommunication, $communicationroomname, $courseimage);
     }
 
     // Save custom fields if there are any of them in the form.
@@ -2454,10 +2454,7 @@ function update_course($data, $editoroptions = NULL) {
         $selectedcommunication = $data->selectedcommunication;
 
         // Communication api call.
-        $communication = new \core_communication\communication_handler($data->id, empty($courseimage) ? null : $courseimage);
-        if (empty($data->visibleold)) {
-            $communication->update_room_and_membership($selectedcommunication, $communicationroomname);
-        }
+        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $data->id);
 
         // Update communication room membership of enrolled users.
         require_once($CFG->libdir . '/enrollib.php');
@@ -2468,11 +2465,25 @@ function update_course($data, $editoroptions = NULL) {
             $enrolledusers[] = $user->id;
         }
 
-        if (count($enrolledusers) > 0) {
-            if ($data->selectedcommunication !== 'none') {
-                $communication->update_room_membership('add', $enrolledusers);
-            } else {
+        $addafterupdate = false;
+        if (count($enrolledusers) > 0 && $data->selectedcommunication !== $communication->get_current_communication_provider()) {
+            if ($data->selectedcommunication === 'none') {
                 $communication->update_room_membership('remove', $enrolledusers);
+            } else {
+                if ($communication->get_current_communication_provider() !== 'none' &&
+                        $data->selectedcommunication !== $communication->get_current_communication_provider()) {
+                    $communication->update_room_membership('remove', $enrolledusers);
+                    $addafterupdate = true;
+                } else {
+                    $communication->update_room_membership('add', $enrolledusers);
+                }
+            }
+        }
+
+        if (empty($data->visibleold)) {
+            $communication->update_room($selectedcommunication, $communicationroomname, $courseimage);
+            if ($addafterupdate) {
+                $communication->update_room_membership('add', $enrolledusers);
             }
         }
     }

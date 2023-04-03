@@ -4326,12 +4326,10 @@ EOD;
      */
     public function communication_url(): string {
         global $COURSE;
-
-        if ($COURSE->id != SITEID) {
-            $component = 'core_course'; // TODO: get dynamically.
-            $instancetype = 'coursecommunication'; // TODO: get dynamically.
-            $comm = new \core_communication\communication($COURSE->id, $component, $instancetype);
-            $url = $comm->get_room_url() ?? '';
+        $url = '';
+        if ($COURSE->id !== SITEID) {
+            $comm = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $COURSE->id);
+            $url = $comm->get_communication_room_url();
         }
 
         return !empty($url) ? $url : '';
