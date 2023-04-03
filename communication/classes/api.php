@@ -299,10 +299,12 @@ class api {
      * This method will add a task to the queue to delete the room.
      */
     public function delete_room(): void {
-        // Add the ad-hoc task to remove the room data from the communication table and associated provider actions.
-        delete_room_task::queue(
-            $this->communication,
-        );
+        if ($this->communication !== null) {
+            // Add the ad-hoc task to remove the room data from the communication table and associated provider actions.
+            delete_room_task::queue(
+                $this->communication,
+            );
+        }
     }
 
     /**
