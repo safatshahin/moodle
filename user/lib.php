@@ -169,7 +169,7 @@ function user_update_user($user, $updatepassword = true, $triggerevent = true) {
                 } else if ($user->suspended === 1) {
                     $action = 'remove';
                 }
-                $communication = new \core_communication\communication_handler($usercourse->id);
+                $communication = \core_communication\api::load_by_instance( 'core_course', 'coursecommunication', $usercourse->id);
                 $communication->update_room_membership($action, [$user->id]);
             }
         }
