@@ -14,29 +14,21 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_communication\task;
-
-use core\task\adhoc_task;
-use core_communication\communication;
+namespace core_communication;
 
 /**
- * Class communication_room_operations to manage communication provider room operations from provider plugins.
- *
- * This task will handle create, update, delete for the provider room.
+ * Class communication_user_base to manage communication provider users.
  *
  * @package    core_communication
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class communication_room_operations extends adhoc_task {
+interface user_provider {
 
-    public function execute() {
-        // Initialize the custom data operation to be used for the action.
-        $operation = $this->get_custom_data()->operation;
-
-        // Call the communication api to action the passed operation.
-        $communication = new communication($this->get_custom_data()->instanceid, $this->get_custom_data()->component,
-                $this->get_custom_data()->instancetype, $this->get_custom_data()->avatarurl);
-        $communication->$operation();
-    }
+    /**
+     * Create members.
+     *
+     * @param array $userid The users ids to be created
+     */
+    public function create_members(array $userid): void;
 }

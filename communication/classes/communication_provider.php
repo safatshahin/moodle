@@ -17,34 +17,22 @@
 namespace core_communication;
 
 /**
- * Class communication_feature_base to manage communication provider features from provider plugins.
+ * A base communication provider.
  *
- * Every provider plugin should implement this class to return the implemented room and user objects.
+ * This interface should be used to declare support for the instantiation method for communication providers.
+ *
+ * Every communication provider must, as a minimum, implement this provider.
  *
  * @package    core_communication
- * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
+ * @copyright  2023 Andrew Lyons <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class communication_feature_base {
+interface communication_provider {
 
     /**
-     * Get the provider room object.
+     * A base communication provider.
      *
-     * @param communication $communication The communication object
-     * @return communication_room_base|null
+     * @param communication_processor $communication The communication object
      */
-    public function get_provider_room(communication $communication): ?communication_room_base {
-        return null;
-    }
-
-    /**
-     * Get the provider user object.
-     *
-     * @param communication $communication The communication object
-     * @return communication_user_base|null
-     */
-    public function get_provider_user(communication $communication): ?communication_user_base {
-        return null;
-    }
-
+    public static function load_for_instance(communication_processor $communication);
 }

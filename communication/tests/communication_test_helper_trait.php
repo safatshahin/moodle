@@ -42,7 +42,11 @@ trait communication_test_helper_trait {
      * @param string $provider The selected provider
      * @return \stdClass
      */
-    protected function get_course(string $roomname = 'Sampleroom', string $provider = 'communication_matrix'): \stdClass {
+    protected function get_course(
+        string $roomname = 'Sampleroom',
+        string $provider = 'communication_matrix'
+    ): \stdClass {
+
         $this->setup_communication_configs();
         $records = [
             'selectedcommunication' => $provider,
@@ -60,8 +64,12 @@ trait communication_test_helper_trait {
      * @param string $username The user's username for the communication api
      * @return \stdClass
      */
-    protected function get_user(string $firstname = 'Samplefn', string $lastname = 'Sampleln',
-        string $username = 'sampleun'): \stdClass {
+    protected function get_user(
+        string $firstname = 'Samplefn',
+        string $lastname = 'Sampleln',
+        string $username = 'sampleun'
+    ): \stdClass {
+
         $this->setup_communication_configs();
         $records = [
             'firstname' => $firstname,
