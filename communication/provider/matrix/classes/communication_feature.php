@@ -113,6 +113,7 @@ class communication_feature implements
                 $userid,
                 $this->eventmanager->matrixhomeserverurl
             );
+
             if ($matrixuserid && $this->check_user_exists($matrixuserid)) {
                 $this->add_registered_matrix_user_to_room($matrixuserid);
             } else {
@@ -135,6 +136,7 @@ class communication_feature implements
         if (!$this->check_room_membership($matrixuserid)) {
             $json = ['user_id' => $matrixuserid];
             $headers = ['Content-Type' => 'application/json'];
+
             $this->eventmanager->request($json, $headers)->post($this->eventmanager->get_room_membership_join_endpoint());
         }
     }
@@ -179,6 +181,7 @@ class communication_feature implements
     public function check_user_exists(string $matrixuserid): bool {
         $response = $this->eventmanager->request([], [], false)->get($this->eventmanager->get_user_info_endpoint($matrixuserid));
         $response = json_decode($response->getBody(), false, 512, JSON_THROW_ON_ERROR);
+
         return isset($response->name);
     }
 
@@ -192,6 +195,7 @@ class communication_feature implements
     public function check_room_membership(string $matrixuserid): bool {
         $response = $this->eventmanager->request([], [], false)->get($this->eventmanager->get_room_membership_joined_endpoint());
         $response = json_decode($response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
         // Check user id is in the returned room member ids.
         return isset($response['joined']) && array_key_exists($matrixuserid, $response['joined']);
     }
@@ -250,15 +254,18 @@ class communication_feature implements
     public function update_room_avatar(): void {
         $instanceimage = $this->communication->get_avatar();
         $contenturi = null;
+
         // If avatar is set for the instance, update in matrix.
         if (!empty($instanceimage)) {
             // First upload the content.
             $contenturi = $this->eventmanager->upload_matrix_content($instanceimage->get_content());
         }
+
         // Now update the room avatar.
         $json = [
             'url' => $contenturi,
         ];
+
         $this->eventmanager->request($json, [], false)->put($this->eventmanager->get_update_avatar_endpoint());
     }
 
@@ -267,6 +274,7 @@ class communication_feature implements
         if (!$this->matrixrooms->room_record_exists()) {
             return null;
         }
+
         return $this->eventmanager->matrixwebclienturl . '#/room/' . $this->matrixrooms->get_matrix_room_alias();
     }
 }

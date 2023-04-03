@@ -48,6 +48,7 @@ class matrix_user_manager {
             $homeserver = self::set_matrix_home_server($homeserver);
             return "@{$pureusername}:$homeserver";
         }
+
         return $pureusername;
     }
 
