@@ -103,7 +103,8 @@ class api_test extends \advanced_testcase {
         $communication = \core_communication\api::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
         $filerecord = $communication->get_avatar_filerecord('avatar.svg');
 
         $this->assertEquals('avatar.svg', $filerecord->filename);
@@ -145,7 +146,7 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test the handler create_and_configure_room method to add/create tasks.
+     * Test the create_and_configure_room method to add/create tasks.
      *
      * @covers ::create_and_configure_room
      */
@@ -184,13 +185,13 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test the handler create_and_configure_room method to add/create tasks when no communication provider selected.
+     * Test the create_and_configure_room method to add/create tasks when no communication provider selected.
      *
      * @covers ::create_and_configure_room
      */
     public function test_create_and_configure_room_without_communication_provider_selected(): void {
         $this->resetAfterTest();
-        // Get the course by disabling communication so that we can create it manually calling the handler.
+        // Get the course by disabling communication so that we can create it manually calling the api.
         $course = $this->getDataGenerator()->create_course();
 
         // Test the tasks added.
@@ -208,7 +209,7 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test update handler operation.
+     * Test update operation.
      *
      * @covers ::update_room
      */
@@ -247,7 +248,7 @@ class api_test extends \advanced_testcase {
     }
 
     /**
-     * Test delete handler operation.
+     * Test delete operation.
      *
      * @covers ::delete_room
      */

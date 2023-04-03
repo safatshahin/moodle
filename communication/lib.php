@@ -33,7 +33,16 @@
  * @param bool $forcedownload whether force download
  * @param array $options additional options affecting the file serving
  */
-function core_communication_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []): void {
+function core_communication_pluginfile(
+    $course,
+    $cm,
+    $context,
+    $filearea,
+    $args,
+    $forcedownload,
+    array $options = []
+): void {
+
     if ($filearea !== 'avatar') {
         return;
     }

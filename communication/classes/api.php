@@ -21,7 +21,6 @@ use core_communication\task\create_and_configure_room_task;
 use core_communication\task\delete_room_task;
 use core_communication\task\remove_members_from_room;
 use core_communication\task\update_room_task;
-use core_h5p\file_storage;
 use stdClass;
 
 /**
@@ -175,7 +174,7 @@ class api {
         $currentfilerecord = $this->communication->get_avatar();
         if (!empty($datauri) && !empty($currentfilerecord)) {
             $currentfilehash = $currentfilerecord->get_contenthash();
-            $updatedfilehash = \file_storage::hash_from_path($datauri);
+            $updatedfilehash = \file_storage::hash_from_string(file_get_contents($datauri));
 
             // No update required.
             if ($currentfilehash === $updatedfilehash) {
@@ -313,6 +312,10 @@ class api {
      * This method will add a task to the queue to delete the room users.
      */
     public function delete_room_members(): void {
+        if (!$this->communication) {
+            return;
+        }
+
         // Add the ad-hoc task to remove the room data from the communication table and associated provider actions.
         remove_members_from_room::queue(
             $this->communication,

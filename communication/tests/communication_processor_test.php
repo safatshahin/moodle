@@ -105,8 +105,11 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor->update_instance($selectedcommunication, $communicationroomname);
 
         // Now test the record against the database.
-        $communicationrecord = $DB->get_record('communication',
-            ['instanceid' => $instanceid, 'component' => $component, 'instancetype' => $instancetype]);
+        $communicationrecord = $DB->get_record('communication', [
+            'instanceid' => $instanceid,
+            'component' => $component,
+            'instancetype' => $instancetype
+        ]);
 
         // Test against the set data.
         $this->assertNotEmpty($communicationrecord);
@@ -149,8 +152,11 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor->delete_instance();
 
         // Now test the record against the database.
-        $communicationrecord = $DB->get_record('communication',
-            ['instanceid' => $instanceid, 'component' => $component, 'instancetype' => $instancetype]);
+        $communicationrecord = $DB->get_record('communication', [
+            'instanceid' => $instanceid,
+            'component' => $component,
+            'instancetype' => $instancetype
+        ]);
 
         // Test against the set data.
         $this->assertEmpty($communicationrecord);
@@ -183,7 +189,11 @@ class communication_processor_test extends \advanced_testcase {
         $instancetype = 'coursecommunication';
 
         // First test the adding members to a room.
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication',$course->id);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $course->id
+        );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
         $communication->update_room_membership('add', [$userid]);
 
@@ -191,7 +201,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             $component,
             $instancetype,
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
 
@@ -224,7 +235,11 @@ class communication_processor_test extends \advanced_testcase {
         $component = 'core_course';
         $instancetype = 'coursecommunication';
 
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication',$course->id);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $course->id
+        );
         $communication->update_room($selectedcommunication, $communicationroomname);
         $communication->update_room_membership('remove', [$userid]);
 
@@ -232,7 +247,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             $component,
             $instancetype,
-            $course->id);
+            $course->id
+        );
 
         $this->assertEmpty($communicationprocessor->get_existing_instance_users());
 
@@ -279,7 +295,11 @@ class communication_processor_test extends \advanced_testcase {
         $instancetype = 'coursecommunication';
 
         // First test the adding members to a room.
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication',$course->id);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $course->id
+        );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
         $communication->update_room_membership('add', [$userid]);
 
@@ -287,7 +307,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             $component,
             $instancetype,
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
 
@@ -325,7 +346,11 @@ class communication_processor_test extends \advanced_testcase {
         $instancetype = 'coursecommunication';
 
         // First test the adding members to a room.
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication',$course->id);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $course->id
+        );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
         $communication->update_room_membership('add', [$userid]);
 
@@ -333,7 +358,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             $component,
             $instancetype,
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
 
@@ -364,7 +390,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertNotNull($communicationprocessor);
         $this->assertInstanceOf(communication_provider::class, $communicationprocessor->get_room_provider());
@@ -386,7 +413,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $communicationprocessorbyid = communication_processor::load_by_id($communicationprocessor->get_id());
 
@@ -410,7 +438,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals('core_course', $communicationprocessor->get_component());
     }
@@ -428,7 +457,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals('communication_matrix', $communicationprocessor->get_provider());
     }
@@ -446,7 +476,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertEquals('Sampleroom', $communicationprocessor->get_room_name());
     }
@@ -466,7 +497,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertInstanceOf(room_chat_provider::class, $communicationprocessor->get_room_provider());
     }
@@ -486,7 +518,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertInstanceOf(user_provider::class, $communicationprocessor->get_room_provider());
     }
@@ -508,7 +541,8 @@ class communication_processor_test extends \advanced_testcase {
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $this->assertInstanceOf(room_user_provider::class, $communicationprocessor->get_room_user_provider());
     }
@@ -529,13 +563,18 @@ class communication_processor_test extends \advanced_testcase {
         $selectedcommunication = 'communication_matrix';
         $avatarurl = $CFG->dirroot . '/communication/tests/fixtures/moodle_logo.jpg';
 
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication',$course->id);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $course->id
+        );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname, $avatarurl);
 
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
             'coursecommunication',
-            $course->id);
+            $course->id
+        );
 
         $avatar = $communicationprocessor->get_avatar();
 
