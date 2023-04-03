@@ -53,7 +53,7 @@ class matrix_events_manager {
      *
      * @param string|null $roomid The id of the room from matrix server
      */
-    public function __construct(string $roomid = null) {
+    public function __construct(?string $roomid = null) {
         if (!empty($roomid)) {
             $this->roomid = $roomid;
         }

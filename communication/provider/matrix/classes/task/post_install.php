@@ -29,8 +29,6 @@ class post_install extends \core\task\adhoc_task {
 
     /**
      * Insert "Communication" and "matrixuserid" field.
-     *
-     * @return void
      */
     public function execute() : void {
         global $CFG, $DB;
@@ -39,7 +37,7 @@ class post_install extends \core\task\adhoc_task {
         require_once($CFG->dirroot . '/user/profile/field/text/define.class.php');
 
         // Check if communication category exists.
-        $categoryname = 'Communication';
+        $categoryname = get_string('communication', 'core_communication');
         $category = $DB->count_records('user_info_category', ['name' => $categoryname]);
         if ($category < 1) {
             $data = new \stdClass();

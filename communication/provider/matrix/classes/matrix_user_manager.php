@@ -30,14 +30,20 @@ class matrix_user_manager {
      *
      * @param string $userid Moodle user id
      * @param string $homeserver Matrix home server url
-     * @return string
+     * @return string|null
      */
-    public static function get_matrixid_from_moodle(string $userid, string $homeserver) : ?string {
+    public static function get_matrixid_from_moodle(
+        string $userid,
+        string $homeserver
+    ) : ?string {
+
         global $CFG;
         require_once("$CFG->dirroot/user/profile/lib.php");
+
         $matrixprofilefield = get_config('communication_matrix', 'matrixuserid_field');
         $field = profile_user_record($userid);
         $pureusername = $field->{$matrixprofilefield} ?? null;
+
         if ($pureusername) {
             $homeserver = self::set_matrix_home_server($homeserver);
             return "@{$pureusername}:$homeserver";
@@ -52,11 +58,17 @@ class matrix_user_manager {
      * @param string $homeserver Matrix home server url
      * @return array
      */
-    public static function set_qualified_matrix_user_id(string $userid, string $homeserver) : array {
+    public static function set_qualified_matrix_user_id(
+        string $userid,
+        string $homeserver
+    ) : array {
+
         $user = \core_user::get_user($userid);
         $username = preg_replace('/[@#$%^&*()+{}|<>?!,]/i', '.', $user->username);
         $username = ltrim(rtrim($username, '.'), '.');
+
         $homeserver = self::set_matrix_home_server($homeserver);
+
         return ["@{$username}:{$homeserver}", $username];
     }
 
@@ -67,12 +79,18 @@ class matrix_user_manager {
      * @param string $matrixuserid Matrix user id
      * @return bool
      */
-    public static function add_user_matrix_id_to_moodle(string $userid, string $matrixuserid): bool {
+    public static function add_user_matrix_id_to_moodle(
+        string $userid,
+        string $matrixuserid
+    ): bool {
+
         global $CFG;
         require_once("$CFG->dirroot/user/profile/lib.php");
+
         $matrixprofilefield = get_config('communication_matrix', 'matrixuserid_field');
         $field = profile_get_custom_field_data_by_shortname($matrixprofilefield);
-        if (!empty($field)) {
+
+        if ($field !== null) {
             $userinfodata = new \stdClass();
             $userinfodata->id = $userid;
             $userinfodata->data = $matrixuserid;
@@ -81,6 +99,7 @@ class matrix_user_manager {
             profile_save_data($userinfodata);
             return true;
         }
+
         return false;
     }
 
@@ -92,24 +111,12 @@ class matrix_user_manager {
      */
     public static function set_matrix_home_server(string $homeserver) : string {
         $homeserver = parse_url($homeserver)['host'];
+
         if (strpos($homeserver, '.') !== false) {
             $host = explode('.', $homeserver);
             return strpos($homeserver, 'www') !== false ? $host[1] : $host[0];
         }
-        return $homeserver;
-    }
 
-    /**
-     * Gets moodle's user data.
-     *
-     * @param string $userid Moodle user id
-     * @return stdClass|null
-     */
-    public static function get_moodle_user_data(string $userid): ?\stdClass {
-        $user = \core_user::get_user($userid);
-        if (!empty($user)) {
-            $user->fullname = "{$user->firstname} {$user->lastname}";
-        }
-        return $user ?? null;
+        return $homeserver;
     }
 }

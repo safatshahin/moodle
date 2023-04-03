@@ -26,19 +26,9 @@ namespace communication_matrix;
 class matrix_rooms {
 
     /**
-     * @var null|string $roomid The id of the room from matrix
+     * @var \stdClass|null $matrixroomrecord The matrix room record from db
      */
-    public ?string $roomid = null;
-
-    /**
-     * @var null|string $roomalias The alias of the room from matrix
-     */
-    public ?string $roomalias = null;
-
-    /**
-     * @var int $commid The id of the communicaiton instance
-     */
-    public int $commid;
+    private ?\stdClass $matrixroomrecord = null;
 
 
     /**
@@ -47,58 +37,96 @@ class matrix_rooms {
      * @param int $commid The id of the communication record
      */
     public function __construct(int $commid) {
-        $this->commid = $commid;
-        if ($roomrecord = $this->get_matrix_room_data()) {
-            $this->roomid = $roomrecord->roomid;
-            $this->roomalias = $roomrecord->alias;
-        }
+        $this->load_matrix_room_data($commid);
     }
 
     /**
      * Get the matrix room data from database. Either get the data object or return false if no data found.
      *
-     * @return \stdClass|bool
+     * @param int $commid The id of the communication record
      */
-    public function get_matrix_room_data(): bool|\stdClass {
+    public function load_matrix_room_data(int $commid): void {
         global $DB;
-        return $DB->get_record('matrix_rooms', ['commid' => $this->commid]);
+        if ($record = $DB->get_record('matrix_rooms', ['commid' => $commid])) {
+            $this->matrixroomrecord = $record;
+        }
     }
 
     /**
      * Create matrix room data.
      *
-     * @return void
+     * @param int $commid The id of the communication record
+     * @param string $roomid The id of the room from matrix
+     * @param string $roomalias The alias of the room from matrix
      */
-    public function create(): void {
+    public function create_matrix_room_record(int $commid, string $roomid, string $roomalias): void {
         global $DB;
         $roomrecord = new \stdClass();
-        $roomrecord->commid = $this->commid;
-        $roomrecord->roomid = $this->roomid;
-        $roomrecord->alias = $this->roomalias;
-        $DB->insert_record('matrix_rooms', $roomrecord);
+        $roomrecord->commid = $commid;
+        $roomrecord->roomid = $roomid;
+        $roomrecord->alias = $roomalias;
+        $roomrecord->id = $DB->insert_record('matrix_rooms', $roomrecord);
+        $this->matrixroomrecord = $roomrecord;
     }
 
     /**
      * Update matrix room data.
      *
-     * @return void
+     * @param string $roomid The id of the room from matrix
+     * @param string $roomalias The alias of the room from matrix
      */
-    public function update(): void {
+    public function update_matrix_room_record(string $roomid, string $roomalias): void {
         global $DB;
-        if ($roomrecord = $this->get_matrix_room_data()) {
-            $roomrecord->roomid = $this->roomid;
-            $roomrecord->alias = $this->roomalias;
-            $DB->update_record('matrix_rooms', $roomrecord);
+        if ($this->room_record_exists()) {
+            $this->matrixroomrecord->roomid = $roomid;
+            $this->matrixroomrecord->alias = $roomalias;
+            $DB->update_record('matrix_rooms', $this->matrixroomrecord);
         }
     }
 
     /**
      * Delete matrix room data.
      *
-     * @return void
+     * @return bool
      */
-    public function delete(): void {
+    public function delete_matrix_room_record(): bool {
         global $DB;
-        $DB->delete_records('matrix_rooms', ['commid' => $this->commid]);
+        if ($this->room_record_exists()) {
+            return $DB->delete_records('matrix_rooms', ['commid' => $this->matrixroomrecord->commid]);
+        }
+        return false;
+    }
+
+    /**
+     * Get the matrix room id.
+     *
+     * @return string|null
+     */
+    public function get_matrix_room_id(): ?string {
+        if ($this->room_record_exists()) {
+            return $this->matrixroomrecord->roomid;
+        }
+        return null;
+    }
+
+    /**
+     * Get the matrix room alias.
+     *
+     * @return string|null
+     */
+    public function get_matrix_room_alias(): ?string {
+        if ($this->room_record_exists()) {
+            return $this->matrixroomrecord->alias;
+        }
+        return null;
+    }
+
+    /**
+     * Check if room record exist for matrix.
+     *
+     * @return bool
+     */
+    public function room_record_exists(): bool {
+        return (bool) $this->matrixroomrecord;
     }
 }

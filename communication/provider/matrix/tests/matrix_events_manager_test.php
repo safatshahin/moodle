@@ -114,7 +114,7 @@ class matrix_events_manager_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $mockroomid = 'sampleroomid';
-        $filecontent = file_get_contents($CFG->dirroot . '/communication/provider/matrix/tests/fixtures/moodle_logo.jpg');
+        $filecontent = file_get_contents($CFG->dirroot . '/communication/tests/fixtures/moodle_logo.jpg');
 
         $matrixeventsmanager = new matrix_events_manager($mockroomid);
         $response = $matrixeventsmanager->upload_matrix_content($filecontent);

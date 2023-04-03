@@ -16,20 +16,18 @@
 
 namespace communication_matrix;
 
-use communication_matrix\matrix_test_helper_trait;
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__ . '/matrix_test_helper_trait.php');
 
 /**
- * Class matrix_user_manager_test to test the matrix user manager.
+ * Class post_install_test to test the post install task.
  *
  * @package    communication_matrix
  * @category   test
  * @copyright  2023 Stevani Andolo <stevani.andolo@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \communication_matrix\matrix_user
+ * @coversDefaultClass \communication_matrix\task\post_install
  */
 class post_install_test extends \advanced_testcase {
 

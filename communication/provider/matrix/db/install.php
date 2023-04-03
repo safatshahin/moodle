@@ -30,12 +30,11 @@ declare(strict_types=1);
 function xmldb_communication_matrix_install() {
     // Use an ad-hoc task to create new Communication category with its field for matrix user id.
     $testsrunning = false;
-    if (defined('PHPUNIT_TEST') || PHPUNIT_TEST || defined('BEHAT_SITE_RUNNING') ||
-            defined('BEHAT_TEST') || defined('BEHAT_UTIL')) {
+    if (defined('BEHAT_SITE_RUNNING') || (defined('PHPUNIT_TEST') && PHPUNIT_TEST)) {
         $testsrunning = true;
     }
 
-    if ($testsrunning === false) {
+    if (!$testsrunning) {
         $postinstall = new \communication_matrix\task\post_install();
         core\task\manager::queue_adhoc_task($postinstall);
     }
