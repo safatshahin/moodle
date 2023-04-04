@@ -235,9 +235,9 @@ class communication_processor {
     /**
      * Load communication instance by instance id.
      *
-     * @param int $instanceid The instance id
      * @param string $component The component name
      * @param string $instancetype The instance type
+     * @param int $instanceid The instance id
      * @param string|null $provoderoverride The provider override for getting the disabled provider object
      * @return communication_processor|null
      */
