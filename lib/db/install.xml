@@ -237,7 +237,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="commid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the communication instance"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the moodle user to map with communication instance"/>
-        <FIELD NAME="synced" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="The user is synced or not"/>
+        <FIELD NAME="synced" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user is synced or not"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
