@@ -5095,7 +5095,6 @@ function delete_course($courseorid, $showfeedback = true) {
 
     $communication->delete_room();
 
-
     $DB->delete_records("course", array("id" => $courseid));
     $DB->delete_records("course_format_options", array("courseid" => $courseid));
 
