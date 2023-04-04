@@ -229,6 +229,7 @@ class api {
      *
      * @param string $selectedcommunication The selected communication provider
      * @param string $communicationroomname The communication room name
+     * @param string|null $avatarurl The avatar url
      */
     public function create_and_configure_room(
         string $selectedcommunication,
@@ -263,6 +264,7 @@ class api {
      *
      * @param string $selectedprovider The selected communication provider
      * @param string $communicationroomname The communication room name
+     * @param string|null $avatarurl The avatar url
      */
     public function update_room(
         string $selectedprovider,

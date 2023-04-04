@@ -3215,7 +3215,7 @@ privatefiles,moodle|/user/files.php';
         upgrade_main_savepoint(true, 2023032800.01);
     }
 
-    if ($oldversion < 2023032200.01) {
+    if ($oldversion < 2023040100.01) {
         // Define communication table.
         $table = new xmldb_table('communication');
 

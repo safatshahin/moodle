@@ -21,6 +21,7 @@ use stored_file;
 
 /**
  * Class communication_processor to manage the base operations of the providers.
+ *
  * This class is responsible for creating, updating, deleting and loading the communication instance, associated actions.
  *
  * @package    core_communication
@@ -213,6 +214,7 @@ class communication_processor {
      * Load communication instance by id.
      *
      * @param int $id The communication instance id
+     * @param string|null $provoderoverride The provider override for getting the disabled provider object
      * @return communication_processor|null
      */
     public static function load_by_id(int $id, ?string $provoderoverride = null): ?self {
@@ -233,9 +235,10 @@ class communication_processor {
     /**
      * Load communication instance by instance id.
      *
-     * @param int $instanceid The instance id.
-     * @param string $component The component name.
-     * @param string $instancetype The instance type.
+     * @param int $instanceid The instance id
+     * @param string $component The component name
+     * @param string $instancetype The instance type
+     * @param string|null $provoderoverride The provider override for getting the disabled provider object
      * @return communication_processor|null
      */
     public static function load_by_instance(
