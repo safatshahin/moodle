@@ -35,27 +35,24 @@ class add_members_to_room_task extends adhoc_task {
         // Call the communication api to action the operation.
         $communication = communication_processor::load_by_id($data->id);
 
-        $communication->get_room_user_provider()->add_members_to_room($data->userids);
+        $communication->get_room_user_provider()->add_members_to_room($communication->get_instance_users());
         // Update the sync to 1 for the users.
-        $communication->update_instance_user_mapping($data->userids);
+        $communication->update_instance_user_mapping($communication->get_instance_users());
     }
 
     /**
      * Queue the task for the next run.
      *
      * @param communication_processor $communication The communication processor to perform the action on
-     * @param array $userids The user ids to perform the action on.
      */
     public static function queue(
         communication_processor $communication,
-        array $userids,
     ): void {
 
         // Add ad-hoc task to update the provider room.
         $task = new self();
         $task->set_custom_data([
             'id' => $communication->get_id(),
-            'userids' => $userids,
             'provider' => $communication->get_provider(),
         ]);
 

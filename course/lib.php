@@ -2315,7 +2315,7 @@ function create_course($data, $editoroptions = NULL) {
     }
 
     // Communication api implementation in course.
-    if (isset($data->selectedcommunication) && !empty($CFG->enablecommunicationsubsystem)) {
+    if (isset($data->selectedcommunication) && core_communication\api::is_enabled()) {
         // Prepare the communication api date.
         $courseimage = course_summary_exporter::get_course_image($course);
         $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
@@ -2447,7 +2447,7 @@ function update_course($data, $editoroptions = NULL) {
         $data->showcompletionconditions = null;
     }
 
-    if (isset($data->selectedcommunication) && !empty($CFG->enablecommunicationsubsystem)) {
+    if (isset($data->selectedcommunication) && core_communication\api::is_enabled()) {
         // Prepare the communication api data.
         $courseimage = course_summary_exporter::get_course_image($data);
         $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
@@ -2466,12 +2466,12 @@ function update_course($data, $editoroptions = NULL) {
         }
 
         $addafterupdate = false;
-        if (count($enrolledusers) > 0 && $data->selectedcommunication !== $communication->get_current_communication_provider()) {
+        if (count($enrolledusers) > 0 && $data->selectedcommunication !== $communication->get_provider()) {
             if ($data->selectedcommunication === 'none') {
                 $communication->update_room_membership('remove', $enrolledusers);
             } else {
-                if ($communication->get_current_communication_provider() !== 'none' &&
-                        $data->selectedcommunication !== $communication->get_current_communication_provider()) {
+                if ($communication->get_provider() !== 'none' &&
+                        $data->selectedcommunication !== $communication->get_provider()) {
                     $communication->update_room_membership('remove', $enrolledusers);
                     $addafterupdate = true;
                 } else {

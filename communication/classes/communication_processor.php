@@ -73,7 +73,7 @@ class communication_processor {
      * @param string $component The component name
      * @param string $instancetype The instance type
      * @param string $roomname The room name
-     * @return communication_processor
+     * @return communication_processor|null
      */
     public static function create_instance(
         string $provider,
@@ -81,9 +81,12 @@ class communication_processor {
         string $component,
         string $instancetype,
         string $roomname,
-    ): self {
+    ): ?self {
         global $DB;
 
+        if ($provider === self::PROVIDER_NONE) {
+            return null;
+        }
         $record = (object) [
             'provider' => $provider,
             'instanceid' => $instanceid,
@@ -128,7 +131,7 @@ class communication_processor {
      *
      * @return array
      */
-    public function get_existing_instance_users(): array {
+    public function get_instance_users(): array {
         global $DB;
         return $DB->get_fieldset_select('communication_user', 'userid', 'commid = ?', [$this->instancedata->id]);
     }
@@ -142,7 +145,7 @@ class communication_processor {
         global $DB;
 
         // Check if user ids exits in existing user ids.
-        $userids = array_diff($userids, $this->get_existing_instance_users());
+        $userids = array_diff($userids, $this->get_instance_users());
 
         foreach ($userids as $userid) {
             $record = (object) [

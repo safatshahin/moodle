@@ -2146,7 +2146,7 @@ abstract class enrol_plugin {
         }
 
         // Add users to a communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
+        if (core_communication\api::is_enabled()) {
             $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $courseid);
             $communication->update_room_membership('add', [$userid]);
         }
@@ -2211,7 +2211,7 @@ abstract class enrol_plugin {
         }
 
         // Add/remove users to/from communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
+        if (core_communication\api::is_enabled()) {
             if (($statusmodified && ((int) $ue->status === 1)) ||
                     ($timeendmodified && $ue->timeend !== 0 && (time() > $ue->timeend))) {
                 $action = 'remove';
@@ -2327,7 +2327,7 @@ abstract class enrol_plugin {
         $event->trigger();
 
         // Remove users from a communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
+        if (core_communication\api::is_enabled()) {
             $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $courseid);
             $communication->update_room_membership('remove', [$userid]);
         }

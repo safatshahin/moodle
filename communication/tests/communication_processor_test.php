@@ -173,7 +173,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test create instance user mapping.
      *
      * @covers ::create_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_instance_users
      */
     public function test_create_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -204,7 +204,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_instance_users());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -220,7 +220,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test update instance user mapping.
      *
      * @covers ::update_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_instance_users
      */
     public function test_update_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -250,7 +250,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
+        $this->assertEmpty($communicationprocessor->get_instance_users());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -263,7 +263,7 @@ class communication_processor_test extends \advanced_testcase {
         // Now add again.
         $communication->update_room_membership('add', [$userid]);
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_instance_users());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -279,7 +279,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test delete instance user mapping.
      *
      * @covers ::delete_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_instance_users
      */
     public function test_delete_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -310,12 +310,12 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_instance_users());
 
         // Delete the user mapping.
         $communicationprocessor->delete_instance_user_mapping([$userid]);
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
+        $this->assertEmpty($communicationprocessor->get_instance_users());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -330,7 +330,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test delete user mappings for instance.
      *
      * @covers ::delete_user_mappings_for_instance
-     * @covers ::get_existing_instance_users
+     * @covers ::get_instance_users
      */
     public function test_delete_user_mappings_for_instance(): void {
         $this->resetAfterTest();
@@ -361,12 +361,12 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_instance_users());
 
         // Delete the user mapping.
         $communicationprocessor->delete_user_mappings_for_instance();
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
+        $this->assertEmpty($communicationprocessor->get_instance_users());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [

@@ -35,26 +35,23 @@ class remove_members_from_room extends adhoc_task {
         // Call the communication api to action the operation.
         // We must override the provider with the one stored in the data in case the provider has changed.
         $communication = communication_processor::load_by_id($data->id, $data->provider);
-        $communication->get_room_user_provider()->remove_members_from_room($data->userids);
-        $communication->delete_instance_user_mapping($data->userids);
+        $communication->get_room_user_provider()->remove_members_from_room($communication->get_instance_users());
+        $communication->delete_instance_user_mapping($communication->get_instance_users());
     }
 
     /**
      * Queue the task for the next run.
      *
      * @param communication_processor $communication The communication processor to perform the action on
-     * @param array $userids The user ids to perform the action on.
      */
     public static function queue(
         communication_processor $communication,
-        array $userids,
     ): void {
 
         // Add ad-hoc task to update the provider room.
         $task = new self();
         $task->set_custom_data([
             'id' => $communication->get_id(),
-            'userids' => $userids,
             'provider' => $communication->get_provider(),
         ]);
 

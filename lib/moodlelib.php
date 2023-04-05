@@ -4146,7 +4146,7 @@ function delete_user(stdClass $user) {
     $usercontext = context_user::instance($user->id);
 
     // Remove user from communication rooms immediately.
-    if (!empty($CFG->enablecommunicationsubsystem)) {
+    if (core_communication\api::is_enabled()) {
         foreach (enrol_get_users_courses($user->id) as $course) {
             $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $course->id);
             $communication->update_room_membership('remove', [$user->id], false);
