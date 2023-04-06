@@ -136,7 +136,7 @@ class api_test extends \advanced_testcase {
         );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname, $avatarurl);
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -174,7 +174,7 @@ class api_test extends \advanced_testcase {
         $this->assertInstanceOf('\\core_communication\\task\\create_and_configure_room_task', $adhoctask);
 
         // Test the communication record exists.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -199,7 +199,7 @@ class api_test extends \advanced_testcase {
         $this->assertCount(0, $adhoctask);
 
         // Test the communication record exists.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -237,7 +237,7 @@ class api_test extends \advanced_testcase {
         $this->assertInstanceOf('\\core_communication\\task\\update_room_task', $adhoctask);
 
         // Test the communication record exists.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -261,7 +261,7 @@ class api_test extends \advanced_testcase {
         $selectedcommunication = 'communication_matrix';
 
         // Test the communication record exists.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -309,7 +309,7 @@ class api_test extends \advanced_testcase {
         $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\add_members_to_room_task');
         $this->assertCount(1, $adhoctask);
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id

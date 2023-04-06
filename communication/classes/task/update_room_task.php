@@ -17,7 +17,7 @@
 namespace core_communication\task;
 
 use core\task\adhoc_task;
-use core_communication\communication_processor;
+use core_communication\processor;
 
 /**
  * Class update_room_task to add a task to update a room and execute the task to action the update.
@@ -34,7 +34,7 @@ class update_room_task extends adhoc_task {
         $data = $this->get_custom_data();
 
         // Call the communication api to action the operation.
-        $communication = communication_processor::load_by_id($data->id);
+        $communication = processor::load_by_id($data->id);
 
         if ($communication->get_provider() !== $data->provider) {
             mtrace("Skipping room update because the provider no longer matches the requested provider");
@@ -47,10 +47,10 @@ class update_room_task extends adhoc_task {
     /**
      * Queue the task for the next run.
      *
-     * @param communication_processor $communication The communication processor to perform the action on
+     * @param processor $communication The communication processor to perform the action on
      */
     public static function queue(
-        communication_processor $communication,
+        processor $communication,
     ): void {
 
         // Add ad-hoc task to update the provider room.

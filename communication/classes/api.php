@@ -41,9 +41,9 @@ use stdClass;
 class api {
 
     /**
-     * @var null|communication_processor $communication The communication settings object
+     * @var null|processor $communication The communication settings object
      */
-    private ?communication_processor $communication;
+    private ?processor $communication;
 
     /**
      * Communication handler constructor to manage and handle all communication related actions.
@@ -61,7 +61,7 @@ class api {
         private string $instancetype,
         private int $instanceid
     ) {
-        $this->communication = communication_processor::load_by_instance(
+        $this->communication = processor::load_by_instance(
             $this->component,
             $this->instancetype,
             $this->instanceid,
@@ -107,7 +107,7 @@ class api {
      */
     public static function get_communication_plugin_list_for_form(): array {
         // Add the option to have communication disabled.
-        $selection[communication_processor::PROVIDER_NONE] = get_string('nocommunicationselected', 'communication');
+        $selection[processor::PROVIDER_NONE] = get_string('nocommunicationselected', 'communication');
         $communicationplugins = \core\plugininfo\communication::get_enabled_plugins();
         foreach ($communicationplugins as $pluginname => $notusing) {
             $selection['communication_' . $pluginname] = get_string('pluginname', 'communication_'. $pluginname);
@@ -132,7 +132,7 @@ class api {
             get_string('seleccommunicationprovider', 'communication'),
             $communicationproviders);
         $mform->addHelpButton('selectedcommunication', 'seleccommunicationprovider', 'communication');
-        $mform->setDefault('selectedcommunication', communication_processor::PROVIDER_NONE);
+        $mform->setDefault('selectedcommunication', processor::PROVIDER_NONE);
 
         // Room name for the communication provider.
         $mform->addElement('text',
@@ -145,7 +145,7 @@ class api {
             'communicationroomname',
             'selectedcommunication',
             'eq',
-            communication_processor::PROVIDER_NONE);
+            processor::PROVIDER_NONE);
     }
 
     /**
@@ -247,9 +247,9 @@ class api {
         ?string $avatarurl = null,
     ): void {
 
-        if ($selectedcommunication !== communication_processor::PROVIDER_NONE && $selectedcommunication !== '') {
+        if ($selectedcommunication !== processor::PROVIDER_NONE && $selectedcommunication !== '') {
             // Create communication record.
-            $this->communication = communication_processor::create_instance(
+            $this->communication = processor::create_instance(
                 $selectedcommunication,
                 $this->instanceid,
                 $this->component,
@@ -296,7 +296,7 @@ class api {
 
             // Add ad-hoc task to update the provider room if the room name changed.
             if (
-                $this->communication->get_provider() !== communication_processor::PROVIDER_NONE &&
+                $this->communication->get_provider() !== processor::PROVIDER_NONE &&
                 ($previousroomname !== $communicationroomname || $imageupdaterequired)
             ) {
                 update_room_task::queue(

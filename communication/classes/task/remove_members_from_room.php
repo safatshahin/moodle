@@ -17,7 +17,7 @@
 namespace core_communication\task;
 
 use core\task\adhoc_task;
-use core_communication\communication_processor;
+use core_communication\processor;
 
 /**
  * Class remove_members_from_room to add the task to remove members to the room and execute the task to action the removal.
@@ -34,17 +34,17 @@ class remove_members_from_room extends adhoc_task {
 
         // Call the communication api to action the operation.
         // We must override the provider with the one stored in the data in case the provider has changed.
-        $communication = communication_processor::load_by_id($data->id, $data->provider);
+        $communication = processor::load_by_id($data->id, $data->provider);
         $communication->get_room_user_provider()->remove_members_from_room($communication->get_all_userids_for_instance());
     }
 
     /**
      * Queue the task for the next run.
      *
-     * @param communication_processor $communication The communication processor to perform the action on
+     * @param processor $communication The communication processor to perform the action on
      */
     public static function queue(
-        communication_processor $communication,
+        processor $communication,
     ): void {
 
         // Add ad-hoc task to update the provider room.

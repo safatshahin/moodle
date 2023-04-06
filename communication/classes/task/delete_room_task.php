@@ -17,7 +17,7 @@
 namespace core_communication\task;
 
 use core\task\adhoc_task;
-use core_communication\communication_processor;
+use core_communication\processor;
 
 /**
  * Class delete_room_task to add a task to delete a room and execute the task to action the deletion.
@@ -35,7 +35,7 @@ class delete_room_task extends adhoc_task {
 
         // Call the communication api to action the operation.
         // We must override the provider with the one stored in the data in case the provider has changed.
-        $communication = communication_processor::load_by_id($data->id, $data->provider);
+        $communication = processor::load_by_id($data->id, $data->provider);
         $communication->get_room_provider()->delete_chat_room();
         $communication->delete_user_mappings_for_instance();
         $communication->delete_instance();
@@ -44,10 +44,10 @@ class delete_room_task extends adhoc_task {
     /**
      * Queue the task for the next run.
      *
-     * @param communication_processor $communication The communication processor to perform the action on
+     * @param processor $communication The communication processor to perform the action on
      */
     public static function queue(
-        communication_processor $communication,
+        processor $communication,
     ): void {
 
         // Add ad-hoc task to update the provider room.

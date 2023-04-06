@@ -17,7 +17,7 @@
 namespace core_communication\task;
 
 use core\task\adhoc_task;
-use core_communication\communication_processor;
+use core_communication\processor;
 
 /**
  * Class add_members_to_room_task to add the task to add members to the room and execute the task to action the addition.
@@ -33,7 +33,7 @@ class add_members_to_room_task extends adhoc_task {
         $data = $this->get_custom_data();
 
         // Call the communication api to action the operation.
-        $communication = communication_processor::load_by_id($data->id);
+        $communication = processor::load_by_id($data->id);
 
         $communication->get_room_user_provider()->add_members_to_room($communication->get_instance_userids_by_synced());
     }
@@ -41,10 +41,10 @@ class add_members_to_room_task extends adhoc_task {
     /**
      * Queue the task for the next run.
      *
-     * @param communication_processor $communication The communication processor to perform the action on
+     * @param processor $communication The communication processor to perform the action on
      */
     public static function queue(
-        communication_processor $communication,
+        processor $communication,
     ): void {
 
         // Add ad-hoc task to update the provider room.

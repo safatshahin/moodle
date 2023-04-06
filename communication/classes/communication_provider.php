@@ -32,7 +32,7 @@ interface communication_provider {
     /**
      * A base communication provider.
      *
-     * @param communication_processor $communication The communication object
+     * @param processor $communication The communication object
      */
-    public static function load_for_instance(communication_processor $communication);
+    public static function load_for_instance(processor $communication);
 }
