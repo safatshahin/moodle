@@ -270,8 +270,6 @@ class processor_test extends \advanced_testcase {
         ]);
 
         $this->assertEmpty($communicationuserrecord);
-
-
     }
 
     /**

@@ -237,14 +237,6 @@ class processor {
             'commid = ? AND userid IN (' . implode(',', $userids) . ')',
             [$this->instancedata->id]
         );
-
-        // foreach ($userids as $userid) {
-        //     $DB->delete_records('communication_user', [
-        //         'commid' => $this->instancedata->id,
-        //         'userid' => $userid
-        //     ]);
-        // }
-
     }
 
     /**
