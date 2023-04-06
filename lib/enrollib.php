@@ -2146,9 +2146,13 @@ abstract class enrol_plugin {
         }
 
         // Add users to a communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
-            $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $courseid);
-            $communication->update_room_membership('add', [$userid]);
+        if (core_communication\api::is_enabled()) {
+            $communication = \core_communication\api::load_by_instance(
+                'core_course',
+                'coursecommunication',
+                $courseid
+            );
+            $communication->add_members_to_room([$userid]);
         }
 
         // reset current user enrolment caching
@@ -2211,16 +2215,19 @@ abstract class enrol_plugin {
         }
 
         // Add/remove users to/from communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
+        if (core_communication\api::is_enabled()) {
+            $course = enrol_get_course_by_user_enrolment_id($ue->id);
+            $communication = \core_communication\api::load_by_instance(
+                'core_course',
+                'coursecommunication',
+                $course->id
+            );
             if (($statusmodified && ((int) $ue->status === 1)) ||
                     ($timeendmodified && $ue->timeend !== 0 && (time() > $ue->timeend))) {
-                $action = 'remove';
+                $communication->remove_members_from_room([$userid]);
             } else {
-                $action = 'add';
+                $communication->add_members_to_room([$userid]);
             }
-            $course = enrol_get_course_by_user_enrolment_id($ue->id);
-            $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $course->id);
-            $communication->update_room_membership($action, [$userid]);
         }
 
         $ue->modifierid = $USER->id;
@@ -2327,9 +2334,13 @@ abstract class enrol_plugin {
         $event->trigger();
 
         // Remove users from a communication room.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
-            $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $courseid);
-            $communication->update_room_membership('remove', [$userid]);
+        if (core_communication\api::is_enabled()) {
+            $communication = \core_communication\api::load_by_instance(
+                'core_course',
+                'coursecommunication',
+                $courseid
+            );
+            $communication->remove_members_from_room([$userid]);
         }
 
         // User enrolments have changed, so mark user as dirty.
@@ -2671,13 +2682,13 @@ abstract class enrol_plugin {
     }
 
     /**
-     * Update instance status
+     * Update instance members.
      *
      * Update communication room membership for an instance action being performed.
      *
      * @param int $instanceid ID of the enrolment instance
      * @param string $action The update action being performed
-     * @param int $courseid The id of the coruse
+     * @param int $courseid The id of the course
      * @return void
      */
     public function update_communication(int $instanceid, string $action, int $courseid): void {
@@ -2690,8 +2701,23 @@ abstract class enrol_plugin {
             $enrolledusers[] = $user->userid;
         }
 
-        $communication = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $courseid);
-        $communication->update_room_membership($action, $enrolledusers);
+        $communication = \core_communication\api::load_by_instance(
+            'core_course',
+            'coursecommunication',
+            $courseid
+        );
+
+        switch ($action) {
+            case 'add':
+                $communication->add_members_to_room($enrolledusers);
+                break;
+
+            case 'remove':
+                $communication->remove_members_from_room($enrolledusers);
+                break;
+            default:
+                throw new \coding_exception('Invalid action');
+        }
     }
 
     /**
