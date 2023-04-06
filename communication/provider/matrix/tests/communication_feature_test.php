@@ -16,7 +16,7 @@
 
 namespace communication_matrix;
 
-use core_communication\communication_processor;
+use core_communication\processor;
 use core_communication\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
@@ -59,7 +59,7 @@ class communication_feature_test extends \advanced_testcase {
         $selectedcommunication = 'communication_matrix';
         $communicationroomname = 'communicationroom';
 
-        $communicationprocessor = communication_processor::create_instance(
+        $communicationprocessor = processor::create_instance(
             $selectedcommunication,
             $instanceid,
             $component,
@@ -102,7 +102,7 @@ class communication_feature_test extends \advanced_testcase {
         $selectedcommunication = 'communication_matrix';
         $communicationroomname = 'communicationroom';
 
-        $communicationprocessor = communication_processor::create_instance(
+        $communicationprocessor = processor::create_instance(
             $selectedcommunication,
             $instanceid,
             $component,
@@ -151,7 +151,7 @@ class communication_feature_test extends \advanced_testcase {
             $avatarurl
         );
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -191,7 +191,7 @@ class communication_feature_test extends \advanced_testcase {
             $avatarurl
         );
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -238,7 +238,7 @@ class communication_feature_test extends \advanced_testcase {
         );
         $communication->add_members_to_room([$userid]);
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -296,7 +296,7 @@ class communication_feature_test extends \advanced_testcase {
         );
         $communication->add_members_to_room([$userid]);
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id

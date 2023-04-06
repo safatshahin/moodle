@@ -16,7 +16,7 @@
 
 namespace communication_matrix;
 
-use core_communication\communication_processor;
+use core_communication\processor;
 use core_communication\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
@@ -36,7 +36,7 @@ require_once(__DIR__ . '/../../../tests/communication_test_helper_trait.php');
  * @coversDefaultClass \core_communication\task\create_and_configure_room_task
  * @coversDefaultClass \core_communication\task\remove_members_from_room
  * @coversDefaultClass \core_communication\task\update_room_task
- * @coversDefaultClass \core_communication\communication_processor
+ * @coversDefaultClass \core_communication\processor
  * @coversDefaultClass \core_communication\api
  */
 class matrix_communication_test extends \advanced_testcase {
@@ -64,7 +64,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the task.
         $this->runAdhocTasks('\core_communication\task\create_and_configure_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -106,7 +106,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the task.
         $this->runAdhocTasks('\core_communication\task\update_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -137,7 +137,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the task.
         $this->runAdhocTasks('\core_communication\task\create_and_configure_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -157,7 +157,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the task.
         $this->runAdhocTasks('\core_communication\task\delete_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -192,7 +192,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run user operation task.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -240,7 +240,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -285,7 +285,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -336,7 +336,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -389,7 +389,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -439,7 +439,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -489,7 +489,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -546,7 +546,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -597,7 +597,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -648,7 +648,7 @@ class matrix_communication_test extends \advanced_testcase {
         // Run the user tasks.
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id

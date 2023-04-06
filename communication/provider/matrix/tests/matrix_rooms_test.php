@@ -16,7 +16,7 @@
 
 namespace communication_matrix;
 
-use core_communication\communication_processor;
+use core_communication\processor;
 use core_communication\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
@@ -52,7 +52,7 @@ class matrix_rooms_test extends \advanced_testcase {
         $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -93,7 +93,7 @@ class matrix_rooms_test extends \advanced_testcase {
         $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -151,7 +151,7 @@ class matrix_rooms_test extends \advanced_testcase {
         $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id

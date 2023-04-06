@@ -16,7 +16,7 @@
 
 namespace communication_matrix;
 
-use core_communication\communication_processor;
+use core_communication\processor;
 use core_communication\communication_test_helper_trait;
 
 defined('MOODLE_INTERNAL') || die();
@@ -68,7 +68,7 @@ class matrix_user_manager_test extends \advanced_testcase {
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -110,7 +110,7 @@ class matrix_user_manager_test extends \advanced_testcase {
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -163,7 +163,7 @@ class matrix_user_manager_test extends \advanced_testcase {
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id
@@ -215,7 +215,7 @@ class matrix_user_manager_test extends \advanced_testcase {
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
-        $communicationprocessor = communication_processor::load_by_instance(
+        $communicationprocessor = processor::load_by_instance(
             'core_course',
             'coursecommunication',
             $course->id

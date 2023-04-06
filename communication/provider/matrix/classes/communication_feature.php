@@ -16,7 +16,7 @@
 
 namespace communication_matrix;
 
-use core_communication\communication_processor;
+use core_communication\processor;
 
 /**
  * class communication_feature to handle matrix specific actions.
@@ -41,10 +41,10 @@ class communication_feature implements
     /**
      * Load the communication provider for the communication api.
      *
-     * @param communication_processor $communication The communication processor object
+     * @param processor $communication The communication processor object
      * @return communication_feature The communication provider object
      */
-    public static function load_for_instance(communication_processor $communication,
+    public static function load_for_instance(processor $communication,
     ): self {
         return new self($communication);
     }
@@ -52,10 +52,10 @@ class communication_feature implements
     /**
      * Constructor for communication provider to initialize necessary objects for api cals etc..
      *
-     * @param communication_processor $communication The communication processor object
+     * @param processor $communication The communication processor object
      */
     private function __construct(
-        private \core_communication\communication_processor $communication,
+        private \core_communication\processor $communication,
     ) {
         $this->matrixrooms = new matrix_rooms($communication->get_id());
         $this->eventmanager = new matrix_events_manager($this->matrixrooms->get_matrix_room_id());
