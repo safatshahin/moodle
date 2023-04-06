@@ -404,7 +404,7 @@ class course_edit_form extends moodleform {
         $handler->instance_form_definition($mform, empty($course->id) ? 0 : $course->id);
 
         // Add communication plugins to the form.
-        if (!empty($CFG->enablecommunicationsubsystem)) {
+        if (core_communication\api::is_enabled()) {
             $communication = \core_communication\api::load_by_instance(
                 'core_course',
                 'coursecommunication',

@@ -4293,7 +4293,7 @@ EOD;
     public function has_communication_links(): bool {
         global $CFG;
 
-        if (empty($CFG->enablecommunicationsubsystem)) {
+        if (!core_communication\api::is_enabled()) {
             return false;
         }
         return !empty($this->communication_link());
