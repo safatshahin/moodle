@@ -76,7 +76,6 @@ class matrix_communication_test extends \advanced_testcase {
         // Test against the data.
         $matrixroomdata = $this->get_matrix_room_data($matrixrooms->get_matrix_room_id());
         $this->assertEquals($matrixrooms->get_matrix_room_id(), $matrixroomdata->room_id);
-        $this->assertEquals($matrixrooms->get_matrix_room_alias(), $matrixroomdata->canonical_alias);
         $this->assertEquals($roomname, $matrixroomdata->name);
     }
 
@@ -119,7 +118,6 @@ class matrix_communication_test extends \advanced_testcase {
         // Test against the data.
         $matrixroomdata = $this->get_matrix_room_data($matrixrooms->get_matrix_room_id());
         $this->assertEquals($matrixrooms->get_matrix_room_id(), $matrixroomdata->room_id);
-        $this->assertEquals($matrixrooms->get_matrix_room_alias(), $matrixroomdata->canonical_alias);
         $this->assertEquals($communicationroomname, $matrixroomdata->name);
         $this->assertNotEmpty($matrixroomdata->avatar);
     }
@@ -152,7 +150,6 @@ class matrix_communication_test extends \advanced_testcase {
         // Test against the data.
         $matrixroomdata = $this->get_matrix_room_data($matrixrooms->get_matrix_room_id());
         $this->assertEquals($matrixrooms->get_matrix_room_id(), $matrixroomdata->room_id);
-        $this->assertEquals($matrixrooms->get_matrix_room_alias(), $matrixroomdata->canonical_alias);
 
         // Now delete the course.
         delete_course($course, false);

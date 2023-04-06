@@ -68,7 +68,6 @@ class matrix_rooms_test extends \advanced_testcase {
 
         // Test the object.
         $this->assertEquals($matrixroom->get_matrix_room_id(), $sampleroomid);
-        $this->assertEquals($matrixroom->get_matrix_room_alias(), $sampleroomalias);
 
         // Get the record from db.
         $matrixrecord = $DB->get_record('matrix_rooms',
@@ -77,7 +76,6 @@ class matrix_rooms_test extends \advanced_testcase {
         // Check the record against sample data.
         $this->assertNotEmpty($matrixrecord);
         $this->assertEquals($sampleroomid, $matrixrecord->roomid);
-        $this->assertEquals($sampleroomalias, $matrixrecord->alias);
         $this->assertEquals($communicationprocessor->get_id(), $matrixrecord->commid);
     }
 
@@ -126,7 +124,6 @@ class matrix_rooms_test extends \advanced_testcase {
 
         // Test the object.
         $this->assertEquals($matrixroom->get_matrix_room_id(), $sampleroomidupdated);
-        $this->assertEquals($matrixroom->get_matrix_room_alias(), $sampleroomaliasupdated);
 
         // Get the record from db.
         $matrixrecord = $DB->get_record('matrix_rooms',
@@ -135,7 +132,6 @@ class matrix_rooms_test extends \advanced_testcase {
         // Check the record against sample data.
         $this->assertNotEmpty($matrixrecord);
         $this->assertEquals($sampleroomidupdated, $matrixrecord->roomid);
-        $this->assertEquals($sampleroomaliasupdated, $matrixrecord->alias);
         $this->assertEquals($communicationprocessor->get_id(), $matrixrecord->commid);
     }
 

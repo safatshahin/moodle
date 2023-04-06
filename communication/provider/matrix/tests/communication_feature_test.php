@@ -72,12 +72,10 @@ class communication_feature_test extends \advanced_testcase {
 
         // Test the response against the stored data.
         $this->assertNotEmpty($matrixrooms->get_matrix_room_id());
-        $this->assertNotEmpty($matrixrooms->get_matrix_room_alias());
 
         // Add api call to get room data and test against set data.
         $matrixroomdata = $this->get_matrix_room_data($matrixrooms->get_matrix_room_id());
         $this->assertEquals($matrixrooms->get_matrix_room_id(), $matrixroomdata->room_id);
-        $this->assertEquals($matrixrooms->get_matrix_room_alias(), $matrixroomdata->canonical_alias);
         $this->assertEquals($communicationprocessor->get_room_name(), $matrixroomdata->name);
 
         $communicationroomname = 'communicationroomedited';
@@ -205,7 +203,7 @@ class communication_feature_test extends \advanced_testcase {
 
         $this->assertNotNull($communicationprocessor->get_room_provider()->get_chat_room_url());
         $this->assertStringContainsString(
-            $matrixrooms->get_matrix_room_alias(),
+            $matrixrooms->get_matrix_room_id(),
             $communicationprocessor->get_room_provider()->get_chat_room_url()
         );
     }
@@ -238,7 +236,7 @@ class communication_feature_test extends \advanced_testcase {
             $communicationroomname,
             $avatarurl
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',
@@ -296,7 +294,7 @@ class communication_feature_test extends \advanced_testcase {
             $communicationroomname,
             $avatarurl
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         $communicationprocessor = communication_processor::load_by_instance(
             'core_course',

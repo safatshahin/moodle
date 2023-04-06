@@ -64,7 +64,7 @@ class matrix_user_manager_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
@@ -106,7 +106,7 @@ class matrix_user_manager_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communication->update_room_membership('add', [$user->id]);
+        $communication->add_members_to_room([$user->id]);
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
@@ -159,7 +159,7 @@ class matrix_user_manager_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 
@@ -211,7 +211,7 @@ class matrix_user_manager_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         $this->runAdhocTasks('\core_communication\task\add_members_to_room_task');
 

@@ -67,6 +67,8 @@ class communication_feature implements
      * @param array $userids The Moodle user ids to create
      */
     public function create_members(array $userids): void {
+        $addedmembers = [];
+
         foreach ($userids as $userid) {
             $user = \core_user::get_user($userid);
             $userfullname = fullname($user);
@@ -94,10 +96,15 @@ class communication_feature implements
                 if (!empty($matrixuserid = $response->name)) {
                     // Then create matrix user id in moodle.
                     matrix_user_manager::add_user_matrix_id_to_moodle($userid, $pureusername);
-                    $this->add_registered_matrix_user_to_room($matrixuserid);
+                    if ($this->add_registered_matrix_user_to_room($matrixuserid)) {
+                        $addedmembers[] = $userid;
+                    }
                 }
             }
         }
+
+        // Mark then users as synced for the added members.
+        $this->communication->mark_users_as_synced($addedmembers);
     }
 
     /**
@@ -107,6 +114,7 @@ class communication_feature implements
      */
     public function add_members_to_room(array $userids): void {
         $unregisteredmembers = [];
+        $addedmembers = [];
 
         foreach ($userids as $userid) {
             $matrixuserid = matrix_user_manager::get_matrixid_from_moodle(
@@ -115,11 +123,16 @@ class communication_feature implements
             );
 
             if ($matrixuserid && $this->check_user_exists($matrixuserid)) {
-                $this->add_registered_matrix_user_to_room($matrixuserid);
+                if ($this->add_registered_matrix_user_to_room($matrixuserid)) {
+                    $addedmembers[] = $userid;
+                }
             } else {
                 $unregisteredmembers[] = $userid;
             }
         }
+
+        // Mark then users as synced for the added members.
+        $this->communication->mark_users_as_synced($addedmembers);
 
         // Create Matrix users.
         if (count($unregisteredmembers) > 0) {
@@ -132,13 +145,23 @@ class communication_feature implements
      *
      * @param string $matrixuserid Registered matrix user id
      */
-    private function add_registered_matrix_user_to_room(string $matrixuserid): void {
+    private function add_registered_matrix_user_to_room(string $matrixuserid): bool {
         if (!$this->check_room_membership($matrixuserid)) {
             $json = ['user_id' => $matrixuserid];
             $headers = ['Content-Type' => 'application/json'];
 
-            $this->eventmanager->request($json, $headers)->post($this->eventmanager->get_room_membership_join_endpoint());
+            $response = $this->eventmanager->request(
+                $json,
+                $headers
+            )->post(
+                $this->eventmanager->get_room_membership_join_endpoint()
+            );
+            $response = json_decode($response->getBody(), false, 512, JSON_THROW_ON_ERROR);
+            if (!empty($roomid = $response->room_id) && $roomid === $this->eventmanager->roomid) {
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -147,6 +170,8 @@ class communication_feature implements
      * @param array $userids The Moodle user ids to remove
      */
     public function remove_members_from_room(array $userids): void {
+        $membersremoved = [];
+
         foreach ($userids as $userid) {
             // Check user is member of room first.
             $matrixuserid = matrix_user_manager::get_matrixid_from_moodle(
@@ -166,9 +191,18 @@ class communication_feature implements
             ) {
                 $json = ['user_id' => $matrixuserid];
                 $headers = ['Content-Type' => 'application/json'];
-                $this->eventmanager->request($json, $headers)->post($this->eventmanager->get_room_membership_kick_endpoint());
+                $this->eventmanager->request(
+                    $json,
+                    $headers
+                )->post(
+                    $this->eventmanager->get_room_membership_kick_endpoint()
+                );
+
+                $membersremoved[] = $userid;
             }
         }
+
+        $this->communication->delete_instance_user_mapping($membersremoved);
     }
 
     /**
@@ -225,7 +259,7 @@ class communication_feature implements
             'name' => $this->communication->get_room_name(),
             'visibility' => 'private',
             'preset' => 'private_chat',
-            'room_alias_name' => $alias,
+            // 'room_alias_name' => $alias,
             'initial_state' => [],
         ];
 
@@ -234,8 +268,8 @@ class communication_feature implements
 
         // Check if room was created.
         if (!empty($roomid = $response->room_id)) {
-            $roomalias = '#' . $alias . ':' . matrix_user_manager::set_matrix_home_server($this->eventmanager->matrixhomeserverurl);
-            $this->matrixrooms->create_matrix_room_record($this->communication->get_id(), $roomid, $roomalias);
+            // $roomalias = '#' . $alias . ':' . matrix_user_manager::set_matrix_home_server($this->eventmanager->matrixhomeserverurl);
+            $this->matrixrooms->create_matrix_room_record($this->communication->get_id(), $roomid);
             $this->eventmanager->roomid = $roomid;
             $this->update_room_avatar();
             return true;
@@ -275,6 +309,6 @@ class communication_feature implements
             return null;
         }
 
-        return $this->eventmanager->matrixwebclienturl . '#/room/' . $this->matrixrooms->get_matrix_room_alias();
+        return $this->eventmanager->matrixwebclienturl . '#/room/' . $this->matrixrooms->get_matrix_room_id();
     }
 }
