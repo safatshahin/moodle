@@ -259,7 +259,6 @@ class communication_feature implements
             'name' => $this->communication->get_room_name(),
             'visibility' => 'private',
             'preset' => 'private_chat',
-            // 'room_alias_name' => $alias,
             'initial_state' => [],
         ];
 
@@ -268,7 +267,6 @@ class communication_feature implements
 
         // Check if room was created.
         if (!empty($roomid = $response->room_id)) {
-            // $roomalias = '#' . $alias . ':' . matrix_user_manager::set_matrix_home_server($this->eventmanager->matrixhomeserverurl);
             $this->matrixrooms->create_matrix_room_record($this->communication->get_id(), $roomid);
             $this->eventmanager->roomid = $roomid;
             $this->update_room_avatar();
