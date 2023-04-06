@@ -158,19 +158,22 @@ function user_update_user($user, $updatepassword = true, $triggerevent = true) {
     }
 
     // Communication api update for user.
-    if (!empty($CFG->enablecommunicationsubsystem)) {
+    if (core_communication\api::is_enabled()) {
         $usercourses = enrol_get_users_courses($user->id);
         $currentrecord = $DB->get_record('user', ['id' => $user->id]);
         if (!empty($currentrecord) && isset($user->suspended) && $currentrecord->suspended !== $user->suspended) {
             foreach ($usercourses as $usercourse) {
+                $communication = \core_communication\api::load_by_instance(
+                    'core_course',
+                    'coursecommunication',
+                    $usercourse->id
+                );
                 // If the record updated the suspended for a user.
                 if ($user->suspended === 0) {
-                    $action = 'add';
+                    $communication->add_members_to_room([$user->id]);
                 } else if ($user->suspended === 1) {
-                    $action = 'remove';
+                    $communication->remove_members_from_room([$user->id]);
                 }
-                $communication = \core_communication\api::load_by_instance( 'core_course', 'coursecommunication', $usercourse->id);
-                $communication->update_room_membership($action, [$user->id]);
             }
         }
     }
