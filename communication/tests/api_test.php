@@ -76,9 +76,9 @@ class api_test extends \advanced_testcase {
     /**
      * Test get_current_communication_provider method.
      *
-     * @covers ::get_current_communication_provider
+     * @covers ::get_provider
      */
-    public function test_get_current_communication_provider(): void {
+    public function test_get_provider(): void {
         $this->resetAfterTest();
         $course = $this->get_course();
 
@@ -88,7 +88,7 @@ class api_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals('communication_matrix', $communication->get_current_communication_provider());
+        $this->assertEquals('communication_matrix', $communication->get_provider());
     }
 
     /**
@@ -289,7 +289,8 @@ class api_test extends \advanced_testcase {
     /**
      * Test the update_room_membership for adding adn removing members.
      *
-     * @covers ::update_room_membership
+     * @covers ::add_members_to_room
+     * @covers ::remove_members_from_room
      */
     public function test_update_room_membership(): void {
         $this->resetAfterTest();
@@ -302,7 +303,7 @@ class api_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         // Test the tasks added.
         $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\add_members_to_room_task');
@@ -313,10 +314,10 @@ class api_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $this->assertCount(1, $communicationprocessor->get_existing_instance_users());
+        $this->assertCount(1, $communicationprocessor->get_all_userids_for_instance());
 
         // Now test the removing members from a room.
-        $communication->update_room_membership('remove', [$userid]);
+        $communication->remove_members_from_room([$userid]);
 
         // Test the tasks added.
         $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\remove_members_from_room');

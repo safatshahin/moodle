@@ -85,6 +85,13 @@ class api {
     }
 
     /**
+     * Check if the communication api is enabled.
+     */
+    public static function is_enabled(): bool {
+        return (bool) get_config('core', 'enablecommunicationsubsystem');
+    }
+
+    /**
      * Get the communication room url.
      *
      * @return string|null
@@ -219,7 +226,10 @@ class api {
      *
      * @return string
      */
-    public function get_current_communication_provider(): string {
+    public function get_provider(): string {
+        if (!$this->communication) {
+            return '';
+        }
         return $this->communication->get_provider();
     }
 
@@ -234,7 +244,8 @@ class api {
     public function create_and_configure_room(
         string $selectedcommunication,
         string $communicationroomname,
-        ?string $avatarurl = null): void {
+        ?string $avatarurl = null,
+    ): void {
 
         if ($selectedcommunication !== communication_processor::PROVIDER_NONE && $selectedcommunication !== '') {
             // Create communication record.
@@ -269,7 +280,8 @@ class api {
     public function update_room(
         string $selectedprovider,
         string $communicationroomname,
-        ?string $avatarurl = null): void {
+        ?string $avatarurl = null,
+    ): void {
 
         // Existing object found, let's update the communication record and associated actions.
         if ($this->communication !== null) {
@@ -283,8 +295,10 @@ class api {
             $imageupdaterequired = $this->set_avatar_from_datauri_or_filepath($avatarurl);
 
             // Add ad-hoc task to update the provider room if the room name changed.
-            if ($this->communication->get_provider() !== communication_processor::PROVIDER_NONE &&
-                    ($previousroomname !== $communicationroomname || $imageupdaterequired)) {
+            if (
+                $this->communication->get_provider() !== communication_processor::PROVIDER_NONE &&
+                ($previousroomname !== $communicationroomname || $imageupdaterequired)
+            ) {
                 update_room_task::queue(
                     $this->communication,
                 );
@@ -321,19 +335,18 @@ class api {
         // Add the ad-hoc task to remove the room data from the communication table and associated provider actions.
         remove_members_from_room::queue(
             $this->communication,
-            $this->communication->get_existing_instance_users(),
         );
     }
 
     /**
-     * Update room membership for a user.
-     * This method will add a task to the queue to update the membership.
+     * Create a communication ad-hoc task for add members operation and add the user mapping.
      *
-     * @param string $action The action to perform
-     * @param array $userids The user ids to update
-     * @param bool $async Run task asynchronously, or not
+     * This method will add a task to the queue to add the room users.
+     *
+     * @param array $userids The user ids to add to the room
+     * @param bool $queue Whether to queue the task or not
      */
-    public function update_room_membership(string $action, array $userids, bool $async = true): void {
+    public function add_members_to_room(array $userids, bool $queue = true): void {
         // No communication object? something not done right.
         if (!$this->communication) {
             return;
@@ -344,31 +357,35 @@ class api {
             return;
         }
 
-        // Action selection to add or remove members.
-        switch ($action) {
-            case 'add':
-                $task = add_members_to_room_task::class;
-                $operation = 'add_members_to_room';
-                $this->communication->create_instance_user_mapping($userids);
-                break;
+        $this->communication->create_instance_user_mapping($userids);
 
-            case 'remove':
-                $task = remove_members_from_room::class;
-                $operation = 'remove_members_from_room';
-                break;
-            default:
-                throw new \coding_exception('Invalid action');
-        }
-
-        // Add the task to action member addition or removal/do it immediately.
-        if ($async) {
-            $task::queue(
+        if ($queue) {
+            add_members_to_room_task::queue(
                 $this->communication,
-                $userids,
             );
-        } else {
-            $this->communication->get_room_user_provider()->{$operation}($userids);
         }
     }
 
+    /**
+     * Create a communication ad-hoc task for remove members operation or action immediately.
+     *
+     * This method will add a task to the queue to remove the room users.
+     *
+     * @param array $userids The user ids to remove from the room
+     */
+    public function remove_members_from_room(array $userids): void {
+        // No communication object? something not done right.
+        if (!$this->communication) {
+            return;
+        }
+
+        // No user ids? don't bother doing anything.
+        if (empty($userids)) {
+            return;
+        }
+
+        remove_members_from_room::queue(
+            $this->communication,
+        );
+    }
 }

@@ -73,7 +73,7 @@ class communication_processor {
      * @param string $component The component name
      * @param string $instancetype The instance type
      * @param string $roomname The room name
-     * @return communication_processor
+     * @return communication_processor|null
      */
     public static function create_instance(
         string $provider,
@@ -81,9 +81,12 @@ class communication_processor {
         string $component,
         string $instancetype,
         string $roomname,
-    ): self {
+    ): ?self {
         global $DB;
 
+        if ($provider === self::PROVIDER_NONE) {
+            return null;
+        }
         $record = (object) [
             'provider' => $provider,
             'instanceid' => $instanceid,
@@ -124,13 +127,34 @@ class communication_processor {
     }
 
     /**
+     * Get non synced instance user ids for the instance.
+     *
+     * @param bool $synced The synced status
+     * @return array
+     */
+    public function get_instance_userids_by_synced(bool $synced = false): array {
+        global $DB;
+        return $DB->get_fieldset_select(
+            'communication_user',
+            'userid',
+            'commid = ? AND synced = ?',
+            [$this->instancedata->id, (int) $synced]
+        );
+    }
+
+    /**
      * Get existing instance user ids.
      *
      * @return array
      */
-    public function get_existing_instance_users(): array {
+    public function get_all_userids_for_instance(): array {
         global $DB;
-        return $DB->get_fieldset_select('communication_user', 'userid', 'commid = ?', [$this->instancedata->id]);
+        return $DB->get_fieldset_select(
+            'communication_user',
+            'userid',
+            'commid = ?',
+            [$this->instancedata->id]
+        );
     }
 
     /**
@@ -142,7 +166,7 @@ class communication_processor {
         global $DB;
 
         // Check if user ids exits in existing user ids.
-        $userids = array_diff($userids, $this->get_existing_instance_users());
+        $userids = array_diff($userids, $this->get_all_userids_for_instance());
 
         foreach ($userids as $userid) {
             $record = (object) [
@@ -154,33 +178,46 @@ class communication_processor {
     }
 
     /**
-     * Update communication user record for mapping and sync.
+     * Mark users as synced for the instance.
      *
      * @param array $userids The user ids
-     * @param int $synced The synced status
      */
-    public function update_instance_user_mapping(array $userids, int $synced = 1): void {
+    public function mark_users_as_synced(array $userids): void {
         global $DB;
 
-        foreach ($userids as $userid) {
-            // Check if the user exists in the communication_user table.
-            $communicationuserdata = $DB->get_record('communication_user', [
-                'commid' => $this->instancedata->id,
-                'userid' => $userid
-            ]);
-
-            // Create the data if not there.
-            if (!$communicationuserdata) {
-                $this->create_instance_user_mapping([$userid]);
-                return;
-            }
-
-            $record = (object) [
-                'id' => $communicationuserdata->id,
-                'synced' => $synced,
-            ];
-            $DB->update_record('communication_user', $record);
+        if (empty($userids)) {
+            return;
         }
+
+        $DB->set_field_select(
+            'communication_user',
+            'synced',
+            1,
+            'commid = ? AND userid IN (' . implode(',', $userids) . ')',
+            [$this->instancedata->id]
+        );
+    }
+
+    /**
+     * Reset users sync flag for the instance.
+     *
+     * @param int $commid The communication instance id
+     * @param array $userids The user ids
+     */
+    public function reset_users_sync_flag(int $commid, array $userids): void {
+        global $DB;
+
+        if (empty($userids)) {
+            return;
+        }
+
+        $DB->set_field_select(
+            'communication_user',
+            'synced',
+            0,
+            'commid = ? AND userid IN (' . implode(',', $userids) . ')',
+            [$commid]
+        );
     }
 
     /**
@@ -191,12 +228,22 @@ class communication_processor {
     public function delete_instance_user_mapping(array $userids): void {
         global $DB;
 
-        foreach ($userids as $userid) {
-            $DB->delete_records('communication_user', [
-                'commid' => $this->instancedata->id,
-                'userid' => $userid
-            ]);
+        if (empty($userids)) {
+            return;
         }
+
+        $DB->delete_records_select(
+            'communication_user',
+            'commid = ? AND userid IN (' . implode(',', $userids) . ')',
+            [$this->instancedata->id]
+        );
+
+        // foreach ($userids as $userid) {
+        //     $DB->delete_records('communication_user', [
+        //         'commid' => $this->instancedata->id,
+        //         'userid' => $userid
+        //     ]);
+        // }
 
     }
 

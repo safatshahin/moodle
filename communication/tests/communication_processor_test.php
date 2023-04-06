@@ -173,7 +173,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test create instance user mapping.
      *
      * @covers ::create_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_all_userids_for_instance
      */
     public function test_create_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -195,7 +195,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         // Test against the object.
         $communicationprocessor = communication_processor::load_by_instance(
@@ -204,7 +204,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_all_userids_for_instance());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -219,8 +219,7 @@ class communication_processor_test extends \advanced_testcase {
     /**
      * Test update instance user mapping.
      *
-     * @covers ::update_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_all_userids_for_instance
      */
     public function test_update_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -241,7 +240,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
         $communication->update_room($selectedcommunication, $communicationroomname);
-        $communication->update_room_membership('remove', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         // Test against the object.
         $communicationprocessor = communication_processor::load_by_instance(
@@ -250,20 +249,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
-
-        // Test against the database.
-        $communicationuserrecord = $DB->get_record('communication_user', [
-            'commid' => $communicationprocessor->get_id(),
-            'userid' => $userid
-        ]);
-
-        $this->assertEmpty($communicationuserrecord);
-
-        // Now add again.
-        $communication->update_room_membership('add', [$userid]);
-
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertnotEmpty($communicationprocessor->get_instance_userids_by_synced());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -273,13 +259,26 @@ class communication_processor_test extends \advanced_testcase {
 
         $this->assertEquals($communicationuserrecord->userid, $userid);
         $this->assertEquals($communicationuserrecord->commid, $communicationprocessor->get_id());
+
+        // Now add again.
+        $communicationprocessor->delete_instance_user_mapping([$userid]);
+
+        // Test against the database.
+        $communicationuserrecord = $DB->get_record('communication_user', [
+            'commid' => $communicationprocessor->get_id(),
+            'userid' => $userid
+        ]);
+
+        $this->assertEmpty($communicationuserrecord);
+
+
     }
 
     /**
      * Test delete instance user mapping.
      *
      * @covers ::delete_instance_user_mapping
-     * @covers ::get_existing_instance_users
+     * @covers ::get_all_userids_for_instance
      */
     public function test_delete_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -301,7 +300,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         // Test against the object.
         $communicationprocessor = communication_processor::load_by_instance(
@@ -310,12 +309,12 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_all_userids_for_instance());
 
         // Delete the user mapping.
         $communicationprocessor->delete_instance_user_mapping([$userid]);
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
+        $this->assertEmpty($communicationprocessor->get_all_userids_for_instance());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
@@ -330,7 +329,7 @@ class communication_processor_test extends \advanced_testcase {
      * Test delete user mappings for instance.
      *
      * @covers ::delete_user_mappings_for_instance
-     * @covers ::get_existing_instance_users
+     * @covers ::get_all_userids_for_instance
      */
     public function test_delete_user_mappings_for_instance(): void {
         $this->resetAfterTest();
@@ -352,7 +351,7 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
         $communication->create_and_configure_room($selectedcommunication, $communicationroomname);
-        $communication->update_room_membership('add', [$userid]);
+        $communication->add_members_to_room([$userid]);
 
         // Test against the object.
         $communicationprocessor = communication_processor::load_by_instance(
@@ -361,12 +360,12 @@ class communication_processor_test extends \advanced_testcase {
             $course->id
         );
 
-        $this->assertEquals([$userid], $communicationprocessor->get_existing_instance_users());
+        $this->assertEquals([$userid], $communicationprocessor->get_all_userids_for_instance());
 
         // Delete the user mapping.
         $communicationprocessor->delete_user_mappings_for_instance();
 
-        $this->assertEmpty($communicationprocessor->get_existing_instance_users());
+        $this->assertEmpty($communicationprocessor->get_all_userids_for_instance());
 
         // Test against the database.
         $communicationuserrecord = $DB->get_record('communication_user', [
