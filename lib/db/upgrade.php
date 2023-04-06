@@ -3243,7 +3243,7 @@ privatefiles,moodle|/user/files.php';
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE);
         $table->add_field('commid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'id');
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'commid');
-        $table->add_field('synced', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null, 'user');
+        $table->add_field('synced', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'userid');
 
         // Add keys.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
