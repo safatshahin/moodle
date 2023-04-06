@@ -782,7 +782,7 @@ if ($hassiteconfig) {
 }
 
 // Communication plugins.
-if ($hassiteconfig && !empty($CFG->enablecommunicationsubsystem)) {
+if ($hassiteconfig && core_communication\api::is_enabled()) {
     $ADMIN->add('modules', new admin_category('communicationsettings', new lang_string('communication', 'core_communication')));
     $temp = new admin_settingpage('managecommunicationproviders',
         new lang_string('managecommunicationproviders', 'core_communication'));
