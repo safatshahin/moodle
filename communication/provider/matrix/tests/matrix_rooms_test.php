@@ -49,7 +49,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';
-        $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
         $communicationprocessor = processor::load_by_instance(
@@ -63,7 +62,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $matrixroom->create_matrix_room_record(
             $communicationprocessor->get_id(),
             $sampleroomid,
-            $sampleroomalias
         );
 
         // Test the object.
@@ -90,7 +88,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';
-        $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
         $communicationprocessor = processor::load_by_instance(
@@ -104,7 +101,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $matrixroom->create_matrix_room_record(
             $communicationprocessor->get_id(),
             $sampleroomid,
-            $sampleroomalias
         );
 
         // Get the record from db.
@@ -115,11 +111,9 @@ class matrix_rooms_test extends \advanced_testcase {
         $this->assertNotEmpty($matrixrecord);
 
         $sampleroomidupdated = 'samplematrixroomidupdated';
-        $sampleroomaliasupdated = 'samplematrixalias#roomaliasupdated';
 
         $matrixroom->update_matrix_room_record(
             $sampleroomidupdated,
-            $sampleroomaliasupdated
         );
 
         // Test the object.
@@ -140,7 +134,6 @@ class matrix_rooms_test extends \advanced_testcase {
      *
      * @covers ::delete_matrix_room_record
      * @covers ::get_matrix_room_id
-     * @covers ::get_matrix_room_alias
      */
     public function test_delete_matrix_room_record(): void {
         global $DB;
@@ -148,7 +141,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';
-        $sampleroomalias = 'samplematrixalias#roomalias';
 
         // Communication internal api call.
         $communicationprocessor = processor::load_by_instance(
@@ -162,7 +154,6 @@ class matrix_rooms_test extends \advanced_testcase {
         $matrixroom->create_matrix_room_record(
             $communicationprocessor->get_id(),
             $sampleroomid,
-            $sampleroomalias
         );
 
         // Get the record from db.
