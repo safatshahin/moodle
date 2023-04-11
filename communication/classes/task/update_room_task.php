@@ -41,7 +41,7 @@ class update_room_task extends adhoc_task {
             return;
         }
 
-        $communication->get_room_provider()->create_or_update_chat_room();
+        $communication->get_room_provider()->update_chat_room();
     }
 
     /**

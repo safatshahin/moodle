@@ -28,9 +28,14 @@ namespace core_communication;
 interface room_chat_provider {
 
     /**
+     * Create a provider room when a instance is created.
+     */
+    public function create_chat_room(): bool;
+
+    /**
      * Update a provider room when a instance is updated.
      */
-    public function create_or_update_chat_room(): bool;
+    public function update_chat_room(): bool;
 
     /**
      * Delete a provider room when a instance is deleted.
