@@ -305,7 +305,7 @@ class api {
             }
         } else {
             // The instance didn't have any communication record, so create one.
-            $this->create_and_configure_room($selectedprovider, $communicationroomname);
+            $this->create_and_configure_room($selectedprovider, $communicationroomname, $avatarurl);
         }
     }
 
