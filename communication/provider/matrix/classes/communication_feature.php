@@ -234,27 +234,8 @@ class communication_feature implements
         return isset($response['joined']) && array_key_exists($matrixuserid, $response['joined']);
     }
 
-    public function create_or_update_chat_room(): bool {
-        // Check if room exists, then update if existing.
-        if ($this->matrixrooms->room_record_exists()) {
-            // Get room data.
-            $matrixroomdata = $this->eventmanager->request()->get($this->eventmanager->get_room_info_endpoint());
-            $matrixroomdata = json_decode($matrixroomdata->getBody(), false, 512, JSON_THROW_ON_ERROR);
-
-            // Update the room name when it's updated from the form.
-            if ($matrixroomdata->name !== $this->communication->get_room_name()) {
-                $json = ['name' => $this->communication->get_room_name()];
-                $this->eventmanager->request($json)->put($this->eventmanager->get_update_room_name_endpoint());
-            }
-
-            // Update room avatar.
-            $this->update_room_avatar();
-
-            return true;
-        }
-
+    public function create_chat_room(): bool {
         // Create a new room.
-        $alias = str_replace(' ', '', $this->communication->get_room_name());
         $json = [
             'name' => $this->communication->get_room_name(),
             'visibility' => 'private',
@@ -274,6 +255,23 @@ class communication_feature implements
         }
 
         return false;
+    }
+
+    public function update_chat_room(): bool {
+        // Get room data.
+        $matrixroomdata = $this->eventmanager->request()->get($this->eventmanager->get_room_info_endpoint());
+        $matrixroomdata = json_decode($matrixroomdata->getBody(), false, 512, JSON_THROW_ON_ERROR);
+
+        // Update the room name when it's updated from the form.
+        if ($matrixroomdata->name !== $this->communication->get_room_name()) {
+            $json = ['name' => $this->communication->get_room_name()];
+            $this->eventmanager->request($json)->put($this->eventmanager->get_update_room_name_endpoint());
+        }
+
+        // Update room avatar.
+        $this->update_room_avatar();
+
+        return true;
     }
 
     public function delete_chat_room(): bool {

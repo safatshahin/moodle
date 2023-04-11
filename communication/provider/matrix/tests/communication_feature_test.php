@@ -47,7 +47,8 @@ class communication_feature_test extends \advanced_testcase {
     /**
      * Test create or update chat room.
      *
-     * @covers ::create_or_update_chat_room
+     * @covers ::create_chat_room
+     * @covers ::update_chat_room
      */
     public function test_create_or_update_chat_room() {
         $course = $this->getDataGenerator()->create_course();
@@ -66,7 +67,7 @@ class communication_feature_test extends \advanced_testcase {
             $instancetype,
             $communicationroomname,
         );
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
 
@@ -80,7 +81,7 @@ class communication_feature_test extends \advanced_testcase {
 
         $communicationroomname = 'communicationroomedited';
         $communicationprocessor->update_instance($selectedcommunication, $communicationroomname);
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->update_chat_room();
 
         // Add api call to get room data and test against set data.
         $matrixroomdata = $this->get_matrix_room_data($matrixrooms->get_matrix_room_id());
@@ -109,7 +110,7 @@ class communication_feature_test extends \advanced_testcase {
             $instancetype,
             $communicationroomname,
         );
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
 
@@ -156,7 +157,7 @@ class communication_feature_test extends \advanced_testcase {
             'coursecommunication',
             $course->id
         );
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
 
@@ -197,7 +198,7 @@ class communication_feature_test extends \advanced_testcase {
             $course->id
         );
 
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
 
@@ -244,7 +245,7 @@ class communication_feature_test extends \advanced_testcase {
             $course->id
         );
 
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
         $communicationprocessor->get_room_provider()->add_members_to_room([$userid]);
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
@@ -302,7 +303,7 @@ class communication_feature_test extends \advanced_testcase {
             $course->id
         );
 
-        $communicationprocessor->get_room_provider()->create_or_update_chat_room();
+        $communicationprocessor->get_room_provider()->create_chat_room();
         $communicationprocessor->get_room_provider()->add_members_to_room([$userid]);
 
         $matrixrooms = new matrix_rooms($communicationprocessor->get_id());
