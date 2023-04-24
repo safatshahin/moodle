@@ -2508,7 +2508,7 @@ function update_course($data, $editoroptions = NULL) {
 
         $communication->update_room($provider, $communicationroomname, $courseimage);
         if ($addafterupdate) {
-            $communication->add_members_to_room($enrolledusers);
+            $communication->add_members_to_room($enrolledusers, false);
         }
     }
 
