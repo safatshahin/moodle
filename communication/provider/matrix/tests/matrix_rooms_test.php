@@ -38,6 +38,12 @@ class matrix_rooms_test extends \advanced_testcase {
     use matrix_test_helper_trait;
     use communication_test_helper_trait;
 
+    public function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+        $this->setup_communication_configs();
+    }
+
     /**
      * Test the matrix room creation in database.
      *
@@ -45,7 +51,6 @@ class matrix_rooms_test extends \advanced_testcase {
      */
     public function test_create_matrix_room_record(): void {
         global $DB;
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';
@@ -84,7 +89,6 @@ class matrix_rooms_test extends \advanced_testcase {
      */
     public function test_update_matrix_room_record(): void {
         global $DB;
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';
@@ -137,7 +141,6 @@ class matrix_rooms_test extends \advanced_testcase {
      */
     public function test_delete_matrix_room_record(): void {
         global $DB;
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $sampleroomid = 'samplematrixroomid';

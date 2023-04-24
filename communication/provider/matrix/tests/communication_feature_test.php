@@ -41,6 +41,7 @@ class communication_feature_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
+        $this->setup_communication_configs();
         $this->initialise_mock_server();
     }
 

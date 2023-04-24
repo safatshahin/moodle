@@ -40,6 +40,7 @@ class matrix_communication_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();
+        $this->setup_communication_configs();
         $this->initialise_mock_server();
     }
 
@@ -662,7 +663,7 @@ class matrix_communication_test extends \advanced_testcase {
      *
      * @covers \core_communication\processor::create_instance_user_mapping
      * @covers \core_communication\processor::mark_users_as_synced
-     * @covers \core_communication\processor::get_instance_userids_by_synced
+     * @covers \core_communication\processor::get_instance_userids
      */
     public function test_create_instance_user_mapping(): void {
         $this->resetAfterTest();
@@ -711,7 +712,7 @@ class matrix_communication_test extends \advanced_testcase {
      *
      * @covers \core_communication\processor::create_instance_user_mapping
      * @covers \core_communication\processor::mark_users_as_synced
-     * @covers \core_communication\processor::get_instance_userids_by_synced
+     * @covers \core_communication\processor::get_instance_userids
      * @covers \core_communication\processor::delete_instance_user_mapping
      */
     public function test_update_instance_user_mapping(): void {
@@ -773,7 +774,7 @@ class matrix_communication_test extends \advanced_testcase {
      *
      * @covers \core_communication\processor::create_instance_user_mapping
      * @covers \core_communication\processor::mark_users_as_synced
-     * @covers \core_communication\processor::get_instance_userids_by_synced
+     * @covers \core_communication\processor::get_instance_userids
      * @covers \core_communication\processor::delete_instance_user_mapping
      */
     public function test_delete_instance_user_mapping(): void {
@@ -829,7 +830,7 @@ class matrix_communication_test extends \advanced_testcase {
      *
      * @covers \core_communication\processor::create_instance_user_mapping
      * @covers \core_communication\processor::mark_users_as_synced
-     * @covers \core_communication\processor::get_instance_userids_by_synced
+     * @covers \core_communication\processor::get_instance_userids
      * @covers \core_communication\processor::delete_user_mappings_for_instance
      */
     public function test_delete_user_mappings_for_instance(): void {
