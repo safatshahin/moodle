@@ -33,6 +33,12 @@ class api_test extends \advanced_testcase {
 
     use communication_test_helper_trait;
 
+    public function setUp(): void {
+        parent::setUp();
+        $this->resetAfterTest();
+        $this->setup_communication_configs();
+    }
+
     /**
      * Test the communication plugin list for the form element returns the correct number of plugins.
      *
@@ -52,7 +58,6 @@ class api_test extends \advanced_testcase {
      * @covers ::set_data
      */
     public function test_set_data(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $communication = \core_communication\api::load_by_instance(
@@ -79,7 +84,6 @@ class api_test extends \advanced_testcase {
      * @covers ::get_provider
      */
     public function test_get_provider(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $communication = \core_communication\api::load_by_instance(
@@ -97,7 +101,6 @@ class api_test extends \advanced_testcase {
      * @covers ::get_avatar_filerecord
      */
     public function test_get_avatar_filerecord(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         $communication = \core_communication\api::load_by_instance(
@@ -119,8 +122,6 @@ class api_test extends \advanced_testcase {
      * @covers ::get_avatar_filerecord
      */
     public function test_set_avatar_from_datauri_or_filepath(): void {
-        $this->resetAfterTest();
-
         global $CFG;
         $course = $this->get_course('Sampleroom', 'none');
 
@@ -151,7 +152,6 @@ class api_test extends \advanced_testcase {
      * @covers ::create_and_configure_room
      */
     public function test_create_and_configure_room(): void {
-        $this->resetAfterTest();
         // Get the course by disabling communication so that we can create it manually calling the api.
         $course = $this->get_course('Sampleroom', 'none');
 
@@ -190,7 +190,6 @@ class api_test extends \advanced_testcase {
      * @covers ::create_and_configure_room
      */
     public function test_create_and_configure_room_without_communication_provider_selected(): void {
-        $this->resetAfterTest();
         // Get the course by disabling communication so that we can create it manually calling the api.
         $course = $this->getDataGenerator()->create_course();
 
@@ -214,7 +213,6 @@ class api_test extends \advanced_testcase {
      * @covers ::update_room
      */
     public function test_update_room(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         // Sample data.
@@ -253,7 +251,6 @@ class api_test extends \advanced_testcase {
      * @covers ::delete_room
      */
     public function test_delete_room(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
 
         // Sample data.
@@ -293,7 +290,6 @@ class api_test extends \advanced_testcase {
      * @covers ::remove_members_from_room
      */
     public function test_update_room_membership(): void {
-        $this->resetAfterTest();
         $course = $this->get_course();
         $userid = $this->get_user()->id;
 

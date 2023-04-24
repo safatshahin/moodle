@@ -300,9 +300,13 @@ class api {
             // Update the avatar.
             $imageupdaterequired = $this->set_avatar_from_datauri_or_filepath($avatarurl);
 
+            // If the provider is none, we don't need to do anything from room point of view.
+            if ($this->communication->get_provider() === processor::PROVIDER_NONE) {
+                return;
+            }
+
             // Add ad-hoc task to update the provider room if the room name changed.
             if (
-                $this->communication->get_provider() !== processor::PROVIDER_NONE &&
                 $previousprovider === $selectedprovider &&
                 ($previousroomname !== $communicationroomname || $imageupdaterequired)
             ) {
@@ -310,7 +314,6 @@ class api {
                     $this->communication,
                 );
             } else if (
-                $this->communication->get_provider() !== processor::PROVIDER_NONE &&
                 $previousprovider !== $selectedprovider
             ) {
                 // Add ad-hoc task to create the provider room.
@@ -343,8 +346,9 @@ class api {
      * This method will add a task to the queue to add the room users.
      *
      * @param array $userids The user ids to add to the room
+     * @param bool $queue Whether to queue the task or not
      */
-    public function add_members_to_room(array $userids): void {
+    public function add_members_to_room(array $userids, bool $queue = true): void {
         // No communication object? something not done right.
         if (!$this->communication) {
             return;
@@ -355,10 +359,13 @@ class api {
             return;
         }
 
-        add_members_to_room_task::queue(
-            $this->communication,
-            $userids,
-        );
+        $this->communication->create_instance_user_mapping($userids);
+
+        if ($queue) {
+            add_members_to_room_task::queue(
+                $this->communication
+            );
+        }
     }
 
     /**
@@ -367,8 +374,9 @@ class api {
      * This method will add a task to the queue to remove the room users.
      *
      * @param array $userids The user ids to remove from the room
+     * @param bool $queue Whether to queue the task or not
      */
-    public function remove_members_from_room(array $userids): void {
+    public function remove_members_from_room(array $userids, bool $queue = true): void {
         // No communication object? something not done right.
         if (!$this->communication) {
             return;
@@ -383,9 +391,12 @@ class api {
             return;
         }
 
-        remove_members_from_room::queue(
-            $this->communication,
-            $userids,
-        );
+        $this->communication->add_delete_user_flag($userids);
+
+        if ($queue) {
+            remove_members_from_room::queue(
+                $this->communication
+            );
+        }
     }
 }

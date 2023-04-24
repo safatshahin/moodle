@@ -37,6 +37,9 @@ class processor_test extends \advanced_testcase {
      * Test create instance.
      *
      * @covers ::create_instance
+     * @covers ::get_id
+     * @covers ::get_instance
+     * @covers ::get_room_name
      */
     public function test_create_instance(): void {
         global $DB;
@@ -79,6 +82,9 @@ class processor_test extends \advanced_testcase {
      * Test update instance.
      *
      * @covers ::update_instance
+     * @covers ::is_instance_active
+     * @covers ::get_id
+     * @covers ::get_room_name
      */
     public function test_update_instance(): void {
         global $DB;
@@ -115,13 +121,13 @@ class processor_test extends \advanced_testcase {
         $this->assertNotEmpty($communicationrecord);
         $this->assertEquals($instanceid, $communicationrecord->instanceid);
         $this->assertEquals($component, $communicationrecord->component);
-        $this->assertEquals($selectedcommunication, $communicationrecord->provider);
+        $this->assertEquals(processor::PROVIDER_INACTIVE, $communicationrecord->active);
         $this->assertEquals($communicationroomname, $communicationrecord->roomname);
         $this->assertEquals($instancetype, $communicationrecord->instancetype);
 
         // Test against the object.
         $this->assertEquals($communicationprocessor->get_id(), $communicationrecord->id);
-        $this->assertEquals($communicationprocessor->get_provider(), $communicationrecord->provider);
+        $this->assertEquals($communicationprocessor->is_instance_active(), $communicationrecord->active);
         $this->assertEquals($communicationprocessor->get_room_name(), $communicationrecord->roomname);
     }
 
@@ -129,6 +135,8 @@ class processor_test extends \advanced_testcase {
      * Test delete instance.
      *
      * @covers ::delete_instance
+     * @covers ::create_instance
+     * @covers ::load_by_instance
      */
     public function test_delete_instance(): void {
         global $DB;
@@ -173,6 +181,7 @@ class processor_test extends \advanced_testcase {
      * Test load by id.
      *
      * @covers ::load_by_instance
+     * @covers ::get_room_provider
      */
     public function test_load_by_instance(): void {
         $this->resetAfterTest();
@@ -196,6 +205,8 @@ class processor_test extends \advanced_testcase {
      * Test load by id.
      *
      * @covers ::load_by_id
+     * @covers ::get_room_provider
+     * @covers ::load_by_instance
      */
     public function test_load_by_id(): void {
         $this->resetAfterTest();
@@ -221,6 +232,7 @@ class processor_test extends \advanced_testcase {
      * Test get component.
      *
      * @covers ::get_component
+     * @covers ::load_by_instance
      */
     public function test_get_component(): void {
         $this->resetAfterTest();
@@ -240,6 +252,7 @@ class processor_test extends \advanced_testcase {
      * Test get provider.
      *
      * @covers ::get_provider
+     * @covers ::load_by_instance
      */
     public function test_get_provider(): void {
         $this->resetAfterTest();
@@ -259,6 +272,7 @@ class processor_test extends \advanced_testcase {
      * Test get room name.
      *
      * @covers ::get_room_name
+     * @covers ::load_by_instance
      */
     public function test_get_room_name(): void {
         $this->resetAfterTest();
@@ -280,6 +294,7 @@ class processor_test extends \advanced_testcase {
      * @covers ::get_room_provider
      * @covers ::require_room_features
      * @covers ::supports_room_features
+     * @covers ::load_by_instance
      */
     public function test_get_room_provider(): void {
         $this->resetAfterTest();
@@ -301,6 +316,7 @@ class processor_test extends \advanced_testcase {
      * @covers ::get_user_provider
      * @covers ::require_user_features
      * @covers ::supports_user_features
+     * @covers ::load_by_instance
      */
     public function test_get_user_provider(): void {
         $this->resetAfterTest();
@@ -324,6 +340,7 @@ class processor_test extends \advanced_testcase {
      * @covers ::require_room_user_features
      * @covers ::supports_room_user_features
      * @covers ::supports_room_features
+     * @covers ::load_by_instance
      */
     public function test_get_room_user_provider(): void {
         $this->resetAfterTest();
@@ -343,6 +360,7 @@ class processor_test extends \advanced_testcase {
      * Test get avatar.
      *
      * @covers ::get_avatar
+     * @covers ::load_by_instance
      */
     public function test_get_avatar(): void {
         $this->resetAfterTest();

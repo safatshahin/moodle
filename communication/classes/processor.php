@@ -33,6 +33,12 @@ class processor {
     /** @var string The magic 'none' provider */
     public const PROVIDER_NONE = 'none';
 
+    /** @var int The provider active flag */
+    public const PROVIDER_ACTIVE = 1;
+
+    /** @var int The provider inactive flag */
+    public const PROVIDER_INACTIVE = 0;
+
     /** @var null|communication_provider|user_provider|room_chat_provider|room_user_provider The provider class */
     private communication_provider|user_provider|room_chat_provider|room_user_provider|null $provider = null;
 
@@ -45,24 +51,22 @@ class processor {
         private stdClass $instancedata,
     ) {
         $providercomponent = $this->instancedata->provider;
-        if ($providercomponent !== self::PROVIDER_NONE) {
-            if (!\core\plugininfo\communication::is_plugin_enabled($providercomponent)) {
-                throw new \moodle_exception('communicationproviderdisabled', 'core_communication', '', $providercomponent);
-            }
-            $providerclass = $this->get_classname_for_provider($providercomponent);
-            if (!class_exists($providerclass)) {
-                throw new \moodle_exception('communicationproviderclassnotfound', 'core_communication', '', $providerclass);
-            }
-
-            if (!is_a($providerclass, communication_provider::class, true)) {
-                // At the moment we only have one communication provider interface.
-                // In the future, we may have others, at which point we will support the newest first and
-                // emit a debugging notice for older ones.
-                throw new \moodle_exception('communicationproviderclassinvalid', 'core_communication', '', $providerclass);
-            }
-
-            $this->provider = $providerclass::load_for_instance($this);
+        if (!\core\plugininfo\communication::is_plugin_enabled($providercomponent)) {
+            throw new \moodle_exception('communicationproviderdisabled', 'core_communication', '', $providercomponent);
         }
+        $providerclass = $this->get_classname_for_provider($providercomponent);
+        if (!class_exists($providerclass)) {
+            throw new \moodle_exception('communicationproviderclassnotfound', 'core_communication', '', $providerclass);
+        }
+
+        if (!is_a($providerclass, communication_provider::class, true)) {
+            // At the moment we only have one communication provider interface.
+            // In the future, we may have others, at which point we will support the newest first and
+            // emit a debugging notice for older ones.
+            throw new \moodle_exception('communicationproviderclassinvalid', 'core_communication', '', $providerclass);
+        }
+
+        $this->provider = $providerclass::load_for_instance($this);
     }
 
     /**
@@ -94,6 +98,7 @@ class processor {
             'instancetype' => $instancetype,
             'roomname' => $roomname,
             'avatarfilename' => null,
+            'active' => self::PROVIDER_ACTIVE,
         ];
         $record->id = $DB->insert_record('communication', $record);
 
@@ -112,7 +117,12 @@ class processor {
     ): void {
 
         global $DB;
-        $this->instancedata->provider = $provider;
+        if ($provider === self::PROVIDER_NONE) {
+            $this->instancedata->active = self::PROVIDER_INACTIVE;
+        } else {
+            $this->instancedata->provider = $provider;
+            $this->instancedata->active = self::PROVIDER_ACTIVE;
+        }
         $this->instancedata->roomname = $roomname;
 
         $DB->update_record('communication', $this->instancedata);
@@ -130,15 +140,16 @@ class processor {
      * Get non synced instance user ids for the instance.
      *
      * @param bool $synced The synced status
+     * @param bool $deleted The deleted status
      * @return array
      */
-    public function get_instance_userids_by_synced(bool $synced = false): array {
+    public function get_instance_userids(bool $synced = false, bool $deleted = false): array {
         global $DB;
         return $DB->get_fieldset_select(
             'communication_user',
             'userid',
-            'commid = ? AND synced = ?',
-            [$this->instancedata->id, (int) $synced]
+            'commid = ? AND synced = ? AND deleted = ?',
+            [$this->instancedata->id, (int) $synced, (int) $deleted]
         );
     }
 
@@ -166,15 +177,37 @@ class processor {
         global $DB;
 
         // Check if user ids exits in existing user ids.
-        $userids = array_diff($userids, $this->get_all_userids_for_instance());
+        $useridstoadd = array_diff($userids, $this->get_all_userids_for_instance());
 
-        foreach ($userids as $userid) {
+        foreach ($useridstoadd as $userid) {
             $record = (object) [
                 'commid' => $this->instancedata->id,
                 'userid' => $userid,
             ];
             $DB->insert_record('communication_user', $record);
         }
+        $this->mark_users_as_not_deleted($userids);
+    }
+
+    /**
+     * Mark users as not deleted for the instance.
+     *
+     * @param array $userids The user ids
+     */
+    public function mark_users_as_not_deleted(array $userids): void {
+        global $DB;
+
+        if (empty($userids)) {
+            return;
+        }
+
+        $DB->set_field_select(
+            'communication_user',
+            'deleted',
+            0,
+            'commid = ? AND userid IN (' . implode(',', $userids) . ')',
+            [$this->instancedata->id]
+        );
     }
 
     /**
@@ -201,10 +234,9 @@ class processor {
     /**
      * Reset users sync flag for the instance.
      *
-     * @param int $commid The communication instance id
      * @param array $userids The user ids
      */
-    public function reset_users_sync_flag(int $commid, array $userids): void {
+    public function reset_users_sync_flag(array $userids): void {
         global $DB;
 
         if (empty($userids)) {
@@ -216,7 +248,28 @@ class processor {
             'synced',
             0,
             'commid = ? AND userid IN (' . implode(',', $userids) . ')',
-            [$commid]
+            [$this->instancedata->id]
+        );
+    }
+
+    /**
+     * Delete users flag for the instance users.
+     *
+     * @param array $userids The user ids
+     */
+    public function add_delete_user_flag(array $userids): void {
+        global $DB;
+
+        if (empty($userids)) {
+            return;
+        }
+
+        $DB->set_field_select(
+            'communication_user',
+            'deleted',
+            1,
+            'commid = ? AND userid IN (' . implode(',', $userids) . ')',
+            [$this->instancedata->id]
         );
     }
 
@@ -240,6 +293,25 @@ class processor {
     }
 
     /**
+     * Delete communication user record for userid who are not synced.
+     *
+     * @param array $userids The user ids
+     */
+    public function delete_instance_non_synced_user_mapping(array $userids): void {
+        global $DB;
+
+        if (empty($userids)) {
+            return;
+        }
+
+        $DB->delete_records_select(
+            'communication_user',
+            'commid = ? AND userid IN (' . implode(',', $userids) . ') AND synced = ?' ,
+            [$this->instancedata->id, 0]
+        );
+    }
+
+    /**
      * Delete communication user record for instance.
      */
     public function delete_user_mappings_for_instance(): void {
@@ -253,18 +325,12 @@ class processor {
      * Load communication instance by id.
      *
      * @param int $id The communication instance id
-     * @param string|null $provoderoverride The provider override for getting the disabled provider object
      * @return processor|null
      */
-    public static function load_by_id(int $id, ?string $provoderoverride = null): ?self {
+    public static function load_by_id(int $id): ?self {
         global $DB;
 
         if ($record = $DB->get_record('communication', ['id' => $id])) {
-
-            if ($provoderoverride && $provoderoverride !== self::PROVIDER_NONE) {
-                $record->provider = $provoderoverride;
-            }
-
             return new self($record);
         }
 
@@ -277,14 +343,13 @@ class processor {
      * @param string $component The component name
      * @param string $instancetype The instance type
      * @param int $instanceid The instance id
-     * @param string|null $provoderoverride The provider override for getting the disabled provider object
      * @return processor|null
      */
     public static function load_by_instance(
         string $component,
         string $instancetype,
-        int $instanceid,
-        ?string $provoderoverride = null): ?self {
+        int $instanceid
+    ): ?self {
 
         global $DB;
 
@@ -295,15 +360,19 @@ class processor {
         ]);
 
         if ($record) {
-
-            if ($provoderoverride && $provoderoverride !== self::PROVIDER_NONE) {
-                $record->provider = $provoderoverride;
-            }
-
             return new self($record);
         }
 
         return null;
+    }
+
+    /**
+     * Check if communication instance is active.
+     *
+     * @return bool
+     */
+    public function is_instance_active(): bool {
+        return $this->instancedata->active;
     }
 
     /**
@@ -340,7 +409,11 @@ class processor {
      * @return string|null
      */
     public function get_provider(): ?string {
-        return $this->instancedata->provider;
+        // var_dump($this->instancedata);die;
+        if ((int)$this->instancedata->active === self::PROVIDER_ACTIVE) {
+            return $this->instancedata->provider;
+        }
+        return self::PROVIDER_NONE;
     }
 
     /**
@@ -358,6 +431,7 @@ class processor {
      * @return room_chat_provider
      */
     public function get_room_provider(): room_chat_provider {
+        $this->require_api_enabled();
         $this->require_room_features();
         return $this->provider;
     }
@@ -368,6 +442,7 @@ class processor {
      * @return user_provider
      */
     public function get_user_provider(): user_provider {
+        $this->require_api_enabled();
         $this->require_user_features();
         return $this->provider;
     }
@@ -378,6 +453,7 @@ class processor {
      * @return room_user_provider
      */
     public function get_room_user_provider(): room_user_provider {
+        $this->require_api_enabled();
         $this->require_room_features();
         $this->require_room_user_features();
         return $this->provider;
@@ -425,6 +501,15 @@ class processor {
      */
     public function supports_room_features(): bool {
         return ($this->provider instanceof room_chat_provider);
+    }
+
+    /**
+     * Check if communication api is enabled.
+     */
+    public function require_api_enabled(): void {
+        if (!api::is_enabled()) {
+            throw new \coding_exception('Communication API is not enabled, please enable it from experimental features');
+        }
     }
 
     /**

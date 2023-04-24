@@ -31,18 +31,22 @@ use core_communication\processor;
 class delete_room_task extends adhoc_task {
 
     public function execute() {
-        global $DB;
         $data = $this->get_custom_data();
 
-        // Call the communication api to action the operation.
-        // We must override the provider with the one stored in the data in case the provider has changed.
-        if ($data->provider === processor::PROVIDER_NONE) {
-            // Provider is disabled, no provider specific data to delete, just delete the communication record.
-            $DB->delete_records('communication', ['id' => $data->id]);
-        } else {
-            $communication = processor::load_by_id($data->id, $data->provider);
-            $communication->get_room_provider()->delete_chat_room();
-            $communication->delete_user_mappings_for_instance();
+        $communication = processor::load_by_id($data->id);
+
+        if ($communication === null) {
+            mtrace("Skipping room creation because the instance does not exist");
+            return;
+        }
+
+        // First remove the members from the room.
+        $communication->get_room_user_provider()->remove_members_from_room($communication->get_instance_userids(true, true));
+        // Now remove any mapping for users who are not in the room.
+        $communication->delete_instance_non_synced_user_mapping($communication->get_instance_userids(false, true));
+
+        // Now delete the room.
+        if ($communication->get_room_provider()->delete_chat_room()) {
             $communication->delete_instance();
         }
     }
@@ -59,8 +63,7 @@ class delete_room_task extends adhoc_task {
         // Add ad-hoc task to update the provider room.
         $task = new self();
         $task->set_custom_data([
-            'id' => $communication->get_id(),
-            'provider' => $communication->get_provider(),
+            'id' => $communication->get_id()
         ]);
 
         // Queue the task for the next run.

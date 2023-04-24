@@ -34,14 +34,25 @@ class create_and_configure_room_task extends adhoc_task {
         $data = $this->get_custom_data();
 
         // Call the communication api to action the operation.
-        $communication = processor::load_by_id($data->id, $data->provider);
+        $communication = processor::load_by_id($data->id);
 
-        if ($communication->get_provider() !== $data->provider) {
-            mtrace("Skipping room creation because the provider no longer matches the requested provider");
+        if ($communication === null) {
+            mtrace("Skipping room creation because the instance does not exist");
             return;
         }
 
-        $communication->get_room_provider()->create_chat_room();
+        if (!$communication->is_instance_active()) {
+            mtrace("Skipping room creation because the instance is not active");
+            return;
+        }
+
+        // If the room is created successfully, add members to the room.
+        if ($communication->get_room_provider()->create_chat_room()) {
+            add_members_to_room_task::queue(
+                $communication
+            );
+        }
+
     }
 
     /**
@@ -56,8 +67,7 @@ class create_and_configure_room_task extends adhoc_task {
         // Add ad-hoc task to update the provider room.
         $task = new self();
         $task->set_custom_data([
-            'id' => $communication->get_id(),
-            'provider' => $communication->get_provider(),
+            'id' => $communication->get_id()
         ]);
 
         // Queue the task for the next run.

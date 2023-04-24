@@ -34,10 +34,10 @@ class update_room_task extends adhoc_task {
         $data = $this->get_custom_data();
 
         // Call the communication api to action the operation.
-        $communication = processor::load_by_id($data->id, $data->provider);
+        $communication = processor::load_by_id($data->id);
 
-        if ($communication->get_provider() !== $data->provider) {
-            mtrace("Skipping room update because the provider no longer matches the requested provider");
+        if ($communication === null) {
+            mtrace("Skipping room creation because the instance does not exist");
             return;
         }
 
@@ -56,8 +56,7 @@ class update_room_task extends adhoc_task {
         // Add ad-hoc task to update the provider room.
         $task = new self();
         $task->set_custom_data([
-            'id' => $communication->get_id(),
-            'provider' => $communication->get_provider(),
+            'id' => $communication->get_id()
         ]);
 
         // Queue the task for the next run.
