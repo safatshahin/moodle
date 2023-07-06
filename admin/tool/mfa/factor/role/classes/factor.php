@@ -163,7 +163,7 @@ class factor extends object_factor_base {
                 $roles[] = get_string('administrator');
             } else {
                 $record = $DB->get_record('role', ['id' => $role]);
-                $roles[] = role_get_name($record);
+                $roles[] = $record ? role_get_name($record) : null;
             }
         }
         return implode(', ', $roles);

@@ -25,9 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version      = 2023062900;      // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version      = 2023072100;      // The current plugin version (Date: YYYYMMDDXX).
 $plugin->release      = 2023062900;
-$plugin->requires     = 2017051500.00;   // Support back to 3.3.
+$plugin->requires     = 2023042400.00;   // Supports from 4.2.
 $plugin->component    = 'factor_webauthn';
 $plugin->maturity     = MATURITY_ALPHA;
 $plugin->dependencies = ['tool_mfa' => 2023031600];

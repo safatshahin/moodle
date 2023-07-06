@@ -150,6 +150,8 @@ class factor extends object_factor_base {
     public function login_form_definition($mform) {
         global $PAGE, $USER, $SESSION;
 
+        $mform->addElement('html', get_string('loginexplanation', 'factor_webauthn'));
+
         $mform->addElement('hidden', 'response_input', '', ['id' => 'id_response_input']);
         $mform->setType('response_input', PARAM_RAW);
 
@@ -237,7 +239,7 @@ class factor extends object_factor_base {
     public function setup_factor_form_definition($mform) {
         global $PAGE, $USER, $SESSION;
 
-        $mform->addElement('text', 'webauthn_name', 'Authenticator Name');
+        $mform->addElement('text', 'webauthn_name', get_string('authenticatorname', 'factor_webauthn'));
         $mform->setType('webauthn_name', PARAM_ALPHANUM);
         $mform->addRule('webauthn_name', get_string('required'), 'required', null, 'client');
 

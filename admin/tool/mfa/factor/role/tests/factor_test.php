@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace factor_role\tests;
-
-defined('MOODLE_INTERNAL') || die();
+namespace factor_role;
 
 /**
  * Tests for role factor.

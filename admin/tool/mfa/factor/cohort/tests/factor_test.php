@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace factor_cohort\tests;
-
-defined('MOODLE_INTERNAL') || die();
+namespace factor_cohort;
 
 /**
  * Tests for cohort factor.
@@ -43,7 +41,7 @@ class factor_test extends \advanced_testcase {
 
         // Create a cohort.
         $cohortid = $DB->insert_record('cohort', [
-            'idnumber' => NULL,
+            'idnumber' => null,
             'name' => 'test',
             'contextid' => \context_system::instance()->id,
             'description' => '',
