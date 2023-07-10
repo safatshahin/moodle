@@ -16,6 +16,7 @@
 
 namespace communication_matrix;
 
+use context_course;
 use core_communication\processor;
 
 /**
@@ -37,6 +38,26 @@ class communication_feature implements
 
     /** @var matrix_rooms $matrixrooms The matrix room object to update room information */
     private matrix_rooms $matrixrooms;
+
+    /**
+     * User default power level for matrix.
+     */
+    private const POWER_LEVEL_DEFAULT = 0;
+
+    /**
+     * User moderator power level for matrix.
+     */
+    private const POWER_LEVEL_MODERATOR = 50;
+
+    /**
+     * User power level for matrix associated to moodle site admins. It is a custom power level for site admins.
+     */
+    private const POWER_LEVEL_MOODLE_SITE_ADMIN = 90;
+
+    /**
+     * User maximum power level for matrix. This is only associated to the token user to allow god mode actions.
+     */
+    private const POWER_LEVEL_MAXIMUM = 100;
 
     /**
      * Load the communication provider for the communication api.
@@ -102,8 +123,21 @@ class communication_feature implements
             }
         }
 
+        // Set the power level of the users.
+        if (!empty($addedmembers) && $this->is_power_levels_update_required($addedmembers)) {
+            $this->set_matrix_power_levels();
+        }
+
         // Mark then users as synced for the added members.
         $this->communication->mark_users_as_synced($addedmembers);
+    }
+
+    public function update_room_membership(array $userids): void {
+        if ($this->is_power_levels_update_required($userids)) {
+            $this->set_matrix_power_levels();
+        }
+        // Mark then users as synced for the updated members.
+        $this->communication->mark_users_as_synced($userids);
     }
 
     /**
@@ -130,6 +164,11 @@ class communication_feature implements
             }
         }
 
+        // Set the power level of the users.
+        if (!empty($addedmembers) && $this->is_power_levels_update_required($addedmembers)) {
+            $this->set_matrix_power_levels();
+        }
+
         // Mark then users as synced for the added members.
         $this->communication->mark_users_as_synced($addedmembers);
 
@@ -140,9 +179,104 @@ class communication_feature implements
     }
 
     /**
+     * Determine if a power level update is required.
+     * Matrix will always set a user to the default power level of 0 when a power level update is made.
+     * That is, unless we specify another level. As long as one person's level is greater than the default,
+     * we will need to set the power levels of all users greater than the default.
+     *
+     * @param array $userids The users to evaluate
+     * @return boolean Returns true if an update is required
+     */
+    private function is_power_levels_update_required(array $userids): bool {
+        // Is the user's power level greater than the default?
+        foreach ($userids as $userid) {
+            if ($this->get_user_allowed_power_level($userid) > self::POWER_LEVEL_DEFAULT) {
+                return true;
+            }
+        }
+        return false;
+
+    }
+
+    /**
+     * Set the matrix power level with the room.
+     *
+     * @param array $resetusers The list of users to override and reset their power level to 0
+     */
+    private function set_matrix_power_levels(array $resetusers = []): void {
+        // Get all the current users for the room.
+        $existingusers = $this->communication->get_all_userids_for_instance();
+
+        $userpowerlevels = [];
+        foreach ($existingusers as $existinguser) {
+            $matrixuserid = matrix_user_manager::get_matrixid_from_moodle(
+                $existinguser,
+                $this->eventmanager->matrixhomeserverurl
+            );
+
+            if (!$matrixuserid) {
+                continue;
+            }
+
+            if (!empty($resetusers) && in_array($existinguser, $resetusers, true)) {
+                $userpowerlevels[$matrixuserid] = self::POWER_LEVEL_DEFAULT;
+            } else {
+                $existinguserpowerlevel = $this->get_user_allowed_power_level($existinguser);
+                // We don't need to include the default power level users in request, as matrix will make then default anyways.
+                if ($existinguserpowerlevel > self::POWER_LEVEL_DEFAULT) {
+                    $userpowerlevels[$matrixuserid] = $existinguserpowerlevel;
+                }
+            }
+        }
+
+        // Now add the token user permission to retain the permission in the room.
+        $matrixtokenuser = $this->eventmanager->get_token_user();
+        if ($matrixtokenuser && $this->check_user_exists($matrixtokenuser)) {
+            $userpowerlevels[$matrixtokenuser] = self::POWER_LEVEL_MAXIMUM;
+        }
+
+        // The json to set the user power level.
+        $json = [
+            'ban' => self::POWER_LEVEL_MAXIMUM,
+            'invite' => self::POWER_LEVEL_MODERATOR,
+            'kick' => self::POWER_LEVEL_MODERATOR,
+            'notifications' => [
+                'room' => self::POWER_LEVEL_MODERATOR,
+            ],
+            'redact' => self::POWER_LEVEL_MODERATOR,
+            'users' => $userpowerlevels,
+        ];
+
+        $this->eventmanager->request($json)->put($this->eventmanager->get_set_power_levels_endpoint());
+    }
+
+    /**
+     * Get the allowed power level for the user id according to perms/site admin or default.
+     *
+     * @param int $userid
+     * @return int
+     */
+    public function get_user_allowed_power_level(int $userid): int {
+        $context = context_course::instance($this->communication->get_instance_id());
+        $powerlevel = self::POWER_LEVEL_DEFAULT;
+
+        if (has_capability('communication/matrix:moderator', $context, $userid)) {
+            $powerlevel = self::POWER_LEVEL_MODERATOR;
+        }
+
+        // If site admin, override all caps.
+        if (is_siteadmin($userid)) {
+            $powerlevel = self::POWER_LEVEL_MOODLE_SITE_ADMIN;
+        }
+
+        return $powerlevel;
+    }
+
+    /**
      * Adds the registered matrix user id to room.
      *
      * @param string $matrixuserid Registered matrix user id
+     * @return bool Returns true if a user is newly added, or an existing member of the room.
      */
     private function add_registered_matrix_user_to_room(string $matrixuserid): bool {
         if (!$this->check_room_membership($matrixuserid)) {
@@ -156,11 +290,11 @@ class communication_feature implements
                 $this->eventmanager->get_room_membership_join_endpoint()
             );
             $response = json_decode($response->getBody(), false, 512, JSON_THROW_ON_ERROR);
-            if (!empty($roomid = $response->room_id) && $roomid === $this->eventmanager->roomid) {
-                return true;
+            if (empty($roomid = $response->room_id) && $roomid !== $this->eventmanager->roomid) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**
@@ -169,6 +303,13 @@ class communication_feature implements
      * @param array $userids The Moodle user ids to remove
      */
     public function remove_members_from_room(array $userids): void {
+        // If the room is not created or not existing, dont need to do anything with users.
+        if (!$this->eventmanager->roomid) {
+            return;
+        }
+
+        // Remove the power level for the user first.
+        $this->set_matrix_power_levels($userids);
         $membersremoved = [];
 
         foreach ($userids as $userid) {
