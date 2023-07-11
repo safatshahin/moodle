@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace tool_mfa\tests;
+
 /**
  * Tests for plugininfo.
  *
@@ -22,8 +24,18 @@
  * @copyright   Catalyst IT
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class plugininfo_factor_test extends advanced_testcase {
+class plugininfo_factor_test extends \advanced_testcase {
 
+    /**
+     * Tests getting next user factor
+     *
+     * @covers ::get_next_user_factor
+     * @covers ::setup_user_factor
+     * @covers ::get_enabled_factors
+     * @covers ::is_enabled
+     * @covers ::has_setup
+     * @covers ::get_active_user_factor_types
+     */
     public function test_get_next_user_factor() {
 
         $this->resetAfterTest(true);

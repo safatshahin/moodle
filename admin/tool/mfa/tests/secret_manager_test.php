@@ -26,6 +26,11 @@ namespace tool_mfa\tests;
  */
 class secret_manager_test extends \advanced_testcase {
 
+    /**
+     * Tests create factor's secret
+     *
+     * @covers ::create_secret
+     */
     public function test_create_secret() {
         global $DB;
 
@@ -75,6 +80,9 @@ class secret_manager_test extends \advanced_testcase {
         $DB->delete_records('tool_mfa_secrets', []);
     }
 
+    /**
+     * Tests add factor's secret to database
+     */
     public function test_add_secret_to_db() {
         global $DB, $USER;
 
@@ -107,6 +115,12 @@ class secret_manager_test extends \advanced_testcase {
         $this->assertEquals($sid, $record->sessionid);
     }
 
+    /**
+     * Tests validating factor's secret
+     *
+     * @covers ::validate_secret
+     * @covers ::create_secret
+     */
     public function test_validate_secret() {
         global $DB;
 
@@ -161,6 +175,13 @@ class secret_manager_test extends \advanced_testcase {
         $DB->delete_records('tool_mfa_secrets', []);
     }
 
+    /**
+     * Tests revoking factor's secret
+     *
+     * @covers ::validate_secret
+     * @covers ::create_secret
+     * @covers ::revoke_secret
+     */
     public function test_revoke_secret() {
         global $DB, $SESSION;
 
@@ -186,6 +207,12 @@ class secret_manager_test extends \advanced_testcase {
         $this->assertEquals(\tool_mfa\local\secret_manager::NONVALID, $secman->validate_secret('nonvalid'));
     }
 
+    /**
+     * Tests checking if factor has an active secret
+     *
+     * @covers ::create_secret
+     * @covers ::revoke_secret
+     */
     public function test_has_active_secret() {
         global $DB;
 

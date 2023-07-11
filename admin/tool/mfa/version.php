@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2023031600;      // The current plugin version (Date: YYYYMMDDXX).
 $plugin->release   = 2023031600;      // Same as version.
-$plugin->requires  = 2017051500.00;   // Support back to 3.3 - Totara 12. Patches required.
+$plugin->requires  = 2017051500.00;   // Support back to 3.3.
 $plugin->component = 'tool_mfa';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->supported  = [35, 401];
+$plugin->supported  = [35, 402];

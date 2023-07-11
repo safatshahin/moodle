@@ -29,6 +29,12 @@ require_once(__DIR__ . '/tool_mfa_testcase.php');
  */
 class manager_test extends tool_mfa_testcase {
 
+    /**
+     * Tests getting the factor total weight
+     *
+     * @covers ::get_total_weight
+     * @covers ::setup_user_factor
+     */
     public function test_get_total_weight() {
         $this->resetAfterTest(true);
 
@@ -69,6 +75,11 @@ class manager_test extends tool_mfa_testcase {
         $this->assertEquals(300, \tool_mfa\manager::get_total_weight());
     }
 
+    /**
+     * Tests getting the factor status
+     *
+     * @covers ::get_status
+     */
     public function test_get_status() {
         $this->resetAfterTest(true);
 
@@ -102,6 +113,11 @@ class manager_test extends tool_mfa_testcase {
         $this->assertEquals(\tool_mfa\manager::get_status(), \tool_mfa\plugininfo\factor::STATE_NEUTRAL);
     }
 
+    /**
+     * Tests checking if passed enough factors
+     *
+     * @covers ::passed_enough_factors
+     */
     public function test_passed_enough_factors() {
         $this->resetAfterTest(true);
 
@@ -154,15 +170,13 @@ class manager_test extends tool_mfa_testcase {
             ['/admin/tool/mfa/action.php', 'http://test.server/parent/directory', true],
             ['/', 'http://test.server/parent/directory', true, ['url' => $badparam1]],
             ['/', 'http://test.server/parent/directory', true, ['url' => $badparam2]],
-            ['/admin/tool/securityquestions/set_responses.php', 'http://test.server', false],
-            ['/admin/tool/securityquestions/set_responses.php', 'http://test.server', false, ['delete' => 1]],
-            ['/admin/tool/securityquestions/randompage.php', 'http://test.server', true, ['delete' => 1]],
         ];
     }
 
     /**
      * Tests whether it should require mfa
      *
+     * @covers ::should_require_mfa
      * @param string $urlstring
      * @param string $webroot
      * @param bool $status
@@ -179,6 +193,11 @@ class manager_test extends tool_mfa_testcase {
         $this->assertEquals(\tool_mfa\manager::should_require_mfa($url, false), $status);
     }
 
+    /**
+     * Tests whether it should require the mfa checks
+     *
+     * @covers ::should_require_mfa
+     */
     public function test_should_require_mfa_checks() {
         // Setup test and user.
         global $CFG;
@@ -244,6 +263,11 @@ class manager_test extends tool_mfa_testcase {
         $this->setUser($user);
     }
 
+    /**
+     * Tests should require the mfa redirection loop
+     *
+     * @covers ::should_require_mfa
+     */
     public function test_should_require_mfa_redirection_loop() {
         // Setup test and user.
         global $CFG, $SESSION;
@@ -295,6 +319,12 @@ class manager_test extends tool_mfa_testcase {
         $this->assertEquals(\tool_mfa\manager::should_require_mfa($url, false), \tool_mfa\manager::REDIRECT);
     }
 
+    /**
+     * Tests checking for possible setup factor
+     *
+     * @covers ::possible_factor_setup
+     * @covers ::setup_user_factor
+     */
     public function test_possible_factor_setup() {
         // Setup test and user.
         $this->resetAfterTest(true);
@@ -325,6 +355,11 @@ class manager_test extends tool_mfa_testcase {
         set_config('enabled', 0, 'factor_admin');
     }
 
+    /**
+     * Tests checking if a factor is ready
+     *
+     * @covers ::is_ready
+     */
     public function test_is_ready() {
         // Setup test and user.
         global $CFG;
@@ -360,6 +395,12 @@ class manager_test extends tool_mfa_testcase {
         set_config('enabled', 1, 'factor_nosetup');
     }
 
+    /**
+     * Tests core hooks
+     *
+     * @covers ::mfa_config_hook_test
+     * @covers ::mfa_login_hook_test
+     */
     public function test_core_hooks() {
         // Setup test and user.
         global $CFG, $SESSION;
@@ -374,6 +415,11 @@ class manager_test extends tool_mfa_testcase {
         $this->assertTrue($SESSION->mfa_login_hook_test);
     }
 
+    /**
+     * Tests circular redirect auth
+     *
+     * @covers ::should_require_mfa
+     */
     public function test_circular_redirect_auth() {
         // Setup test and user.
         $this->resetAfterTest(true);
@@ -388,7 +434,7 @@ class manager_test extends tool_mfa_testcase {
         $this->assertEquals(\tool_mfa\manager::REDIRECT,
             \tool_mfa\manager::should_require_mfa($baseurl, false));
 
-        // Now hammer it up to the threshold to emulate a repeated force browse from auth.php
+        // Now hammer it up to the threshold to emulate a repeated force browse from auth.php.
         for ($i = 0; $i < \tool_mfa\manager::REDIR_LOOP_THRESHOLD; $i++) {
             \tool_mfa\manager::should_require_mfa($baseurl, false);
         }
