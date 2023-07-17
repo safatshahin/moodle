@@ -2976,6 +2976,13 @@ class global_navigation extends navigation_node {
             }
         }
 
+        // Add link for editing communication settings.
+        if ($navoptions->editcommunication) {
+            $url = new moodle_url('/communication/edit.php', array('courseid' => $course->id));
+            $coursenode->add(get_string('communicationsettings', 'communication'), $url,
+                navigation_node::TYPE_SETTING, null, 'editcommunication');
+        }
+
         return true;
     }
     /**

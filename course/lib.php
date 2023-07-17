@@ -2454,6 +2454,11 @@ function update_course($data, $editoroptions = NULL) {
         $provider = 'none';
     }
 
+    // Attempt to get the communication provider if it wasn't provided in the data.
+    if (empty($provider) && core_communication\api::is_available()) {
+        $provider = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $data->id)->get_provider();
+    }
+
     // Communication api call.
     if (!empty($provider) && core_communication\api::is_available()) {
         // Prepare the communication api data.
@@ -3998,6 +4003,7 @@ function course_get_user_navigation_options($context, $course = null) {
         'participants' => false,
         'search' => false,
         'tags' => false,
+        'editcommunication' => false,
     ];
 
     $options->blogs = !empty($CFG->enableblogs) &&
@@ -4067,6 +4073,10 @@ function course_get_user_navigation_options($context, $course = null) {
             }
         }
         $options->grades = $grades;
+    }
+
+    if (\core_communication\api::is_available()) {
+        $options->editcommunication = has_capability('moodle/course:update', $context);
     }
 
     if (\core_competency\api::is_enabled()) {
