@@ -2281,7 +2281,11 @@ function create_course($data, $editoroptions = NULL) {
         $defaultprovider = get_config('moodlecourse', 'coursecommunicationprovider');
         $provider = (isset($data->selectedcommunication)) ? $data->selectedcommunication : $defaultprovider;
 
-        if (!empty($provider)) {
+        // Check if selected provider is enabled and configured.
+        $isproviderenabled = core_communication\api::is_selected_provider_enabled($provider);
+        $isproviderconfigured = core_communication\api::is_selected_provider_configured($provider);
+
+        if (!empty($provider) && $isproviderenabled && $isproviderconfigured) {
             // Prepare the communication api data.
             $courseimage = course_get_courseimage($course);
             $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
@@ -2434,8 +2438,12 @@ function update_course($data, $editoroptions = NULL) {
         $provider = \core_communication\api::load_by_instance('core_course', 'coursecommunication', $data->id)->get_provider();
     }
 
+    // Check if selected provider is enabled and configured.
+    $isproviderenabled = core_communication\api::is_selected_provider_enabled($provider);
+    $isproviderconfigured = core_communication\api::is_selected_provider_configured($provider);
+
     // Communication api call.
-    if (!empty($provider) && core_communication\api::is_available()) {
+    if (!empty($provider) && core_communication\api::is_available() && $isproviderenabled && $isproviderconfigured) {
         // Prepare the communication api data.
         $courseimage = course_get_courseimage($data);
 
@@ -4045,7 +4053,8 @@ function course_get_user_navigation_options($context, $course = null) {
         $options->grades = $grades;
     }
 
-    if (\core_communication\api::is_available()) {
+    if (\core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+        core_communication\api::is_selected_provider_configured()) {
         $options->communication = has_capability('moodle/course:configurecoursecommunication', $context);
     }
 

@@ -284,8 +284,9 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
 // Show communication room status notification.
-if (core_communication\api::is_available() && has_capability('moodle/course:update', $context)) {
-    $communication = \core_communication\api::load_by_instance(
+if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+    core_communication\api::is_selected_provider_configured() && has_capability('moodle/course:update', $context)) {
+    $communication = core_communication\api::load_by_instance(
         'core_course',
         'coursecommunication',
         $course->id

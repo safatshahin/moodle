@@ -515,4 +515,30 @@ class communication_feature implements
 
         return json_decode($body, false, 512, JSON_THROW_ON_ERROR);
     }
+
+    /**
+     * Check if matrix settings are configured
+     *
+     * @return boolean
+     */
+    public static function is_configured(): bool {
+        // Matrix communication settings.
+        $matrixhomeserverurl = get_config('communication_matrix', 'matrixhomeserverurl');
+        $matrixaccesstoken = get_config('communication_matrix', 'matrixaccesstoken');
+        $matrixelementurl = get_config('communication_matrix', 'matrixelementurl');
+
+        if (empty($matrixhomeserverurl) || empty($matrixaccesstoken) || empty($matrixelementurl)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if matrix provider plugin is enabled
+     *
+     * @return boolean
+     */
+    public static function is_enabled(): bool {
+        return empty(get_config('communication_matrix', 'disabled'));
+    }
 }

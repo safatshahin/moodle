@@ -158,7 +158,8 @@ function user_update_user($user, $updatepassword = true, $triggerevent = true) {
     }
 
     // Communication api update for user.
-    if (core_communication\api::is_available()) {
+    if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+        core_communication\api::is_selected_provider_configured()) {
         $usercourses = enrol_get_users_courses($user->id);
         $currentrecord = $DB->get_record('user', ['id' => $user->id]);
         if (!empty($currentrecord) && isset($user->suspended) && $currentrecord->suspended !== $user->suspended) {

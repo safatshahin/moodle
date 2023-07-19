@@ -119,7 +119,8 @@ if ($canconfig and $action and confirm_sesskey()) {
                         }
                     }
                     // Update communication for instance and given action.
-                    if (core_communication\api::is_available() && $instance->enrol !== 'guest') {
+                    if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+                        core_communication\api::is_selected_provider_configured() && $instance->enrol !== 'guest') {
                         $plugin->update_communication($instance->id, 'remove', $course->id);
                     }
                     $plugin->delete_instance($instance);
@@ -173,7 +174,8 @@ if ($canconfig and $action and confirm_sesskey()) {
                         }
                     }
                     // Update communication for instance and given action.
-                    if (core_communication\api::is_available() && $instance->enrol !== 'guest') {
+                    if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+                        core_communication\api::is_selected_provider_configured() && $instance->enrol !== 'guest') {
                         $plugin->update_communication($instance->id, 'remove', $course->id);
                     }
                     $plugin->update_status($instance, ENROL_INSTANCE_DISABLED);
@@ -188,7 +190,8 @@ if ($canconfig and $action and confirm_sesskey()) {
             if ($plugin->can_hide_show_instance($instance)) {
                 if ($instance->status != ENROL_INSTANCE_ENABLED) {
                     // Update communication for instance and given action.
-                    if (core_communication\api::is_available() && $instance->enrol !== 'guest') {
+                    if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+                        core_communication\api::is_selected_provider_configured() && $instance->enrol !== 'guest') {
                         $plugin->update_communication($instance->id, 'add', $course->id);
                     }
                     $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);

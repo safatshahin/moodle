@@ -4060,7 +4060,8 @@ function delete_user(stdClass $user) {
     $usercontext = context_user::instance($user->id);
 
     // Remove user from communication rooms immediately.
-    if (core_communication\api::is_available()) {
+    if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+        core_communication\api::is_selected_provider_configured()) {
         foreach (enrol_get_users_courses($user->id) as $course) {
             $communication = \core_communication\processor::load_by_instance(
                 'core_course',

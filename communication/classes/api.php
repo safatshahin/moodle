@@ -16,6 +16,7 @@
 
 namespace core_communication;
 
+use core\plugininfo\communication;
 use core_communication\task\add_members_to_room_task;
 use core_communication\task\create_and_configure_room_task;
 use core_communication\task\delete_room_task;
@@ -145,6 +146,53 @@ class api {
      */
     public static function is_available(): bool {
         return (bool) get_config('core', 'enablecommunicationsubsystem');
+    }
+
+    /**
+     * Check if selected provider is enabled
+     *
+     * @param string $selectedprovider
+     * @return boolean
+     */
+    public static function is_selected_provider_enabled(string $selectedprovider = ''): bool {
+        $selectedprovider = self::get_selected_provider($selectedprovider);
+        $communication_feature = "{$selectedprovider}\communication_feature";
+
+        // Check if communication_feature class and is_enabled method exist in the selected provider.
+        if (class_exists($communication_feature) && method_exists($communication_feature, 'is_enabled')) {
+            return $communication_feature::is_enabled();
+        }
+        return false;
+    }
+
+    /**
+     * Check if selected provider is configured
+     *
+     * @param string $selectedprovider Selected provider
+     * @return boolean
+     */
+    public static function is_selected_provider_configured(string $selectedprovider = ''): bool {
+        $selectedprovider = self::get_selected_provider($selectedprovider);
+        $communication_feature = "{$selectedprovider}\communication_feature";
+
+        // Check if communication_feature class and is_configured method exist in the selected provider.
+        if (class_exists($communication_feature) && method_exists($communication_feature, 'is_configured')) {
+            return $communication_feature::is_configured();
+        }
+        return false;
+    }
+
+    /**
+     * Get selected provider
+     *
+     * @param string $selectedprovider Selected provider
+     * @return string
+     */
+    private static function get_selected_provider(string $selectedprovider = ''): string {
+        if (empty($selectedprovider)) {
+            $selectedprovider = get_config('moodlecourse', 'coursecommunicationprovider');
+        }
+        return $selectedprovider;
     }
 
     /**

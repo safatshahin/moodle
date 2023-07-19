@@ -2160,7 +2160,8 @@ abstract class enrol_plugin {
         }
 
         // Add users to a communication room.
-        if (core_communication\api::is_available()) {
+        if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+            core_communication\api::is_selected_provider_configured()) {
             $communication = \core_communication\api::load_by_instance(
                 'core_course',
                 'coursecommunication',
@@ -2229,7 +2230,8 @@ abstract class enrol_plugin {
         }
 
         // Add/remove users to/from communication room.
-        if (core_communication\api::is_available()) {
+        if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+            core_communication\api::is_selected_provider_configured()) {
             $course = enrol_get_course_by_user_enrolment_id($ue->id);
             $communication = \core_communication\api::load_by_instance(
                 'core_course',
@@ -2348,7 +2350,8 @@ abstract class enrol_plugin {
         $event->trigger();
 
         // Remove users from a communication room.
-        if (core_communication\api::is_available()) {
+        if (core_communication\api::is_available() && core_communication\api::is_selected_provider_enabled() &&
+            core_communication\api::is_selected_provider_configured()) {
             $communication = \core_communication\api::load_by_instance(
                 'core_course',
                 'coursecommunication',
