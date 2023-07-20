@@ -2646,7 +2646,7 @@ class externallib_test extends externallib_advanced_testcase {
                 $this->assertFalse($navoptions->grades);
                 $this->assertFalse($navoptions->search);
                 $this->assertTrue($navoptions->competencies);
-                $this->assertFalse($navoptions->editcommunication);
+                $this->assertFalse($navoptions->communication);
             } else {
                 $this->assertTrue($navoptions->blogs);
                 $this->assertFalse($navoptions->notes);
@@ -2656,7 +2656,7 @@ class externallib_test extends externallib_advanced_testcase {
                 $this->assertTrue($navoptions->grades);
                 $this->assertFalse($navoptions->search);
                 $this->assertTrue($navoptions->competencies);
-                $this->assertFalse($navoptions->editcommunication);
+                $this->assertFalse($navoptions->communication);
             }
         }
     }

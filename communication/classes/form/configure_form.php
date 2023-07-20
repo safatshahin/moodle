@@ -15,21 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Edit communication settings for a course - the form definition.
+ * Configure communication for a given instance - the form definition.
  *
  * @package    core_communication
  * @copyright  2023 David Woloszyn <david.woloszyn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace core_communication\form;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
 /**
- * Defines the course communication settings form.
+ * Defines the communication configure form.
  */
-class course_communication_form extends moodleform {
+class configure_form extends \moodleform {
 
     /**
      * Defines the form fields.
@@ -37,32 +39,42 @@ class course_communication_form extends moodleform {
     public function definition() {
 
         $mform = $this->_form;
-        $course = $this->_customdata['course'];
+        $instanceid = $this->_customdata['instanceid'];
+        $instancetype = $this->_customdata['instancetype'];
+        $component = $this->_customdata['component'];
+
+        // Get the instance we are configuring for.
+        if ($instancetype == 'coursecommunication') {
+            $instance = get_course($instanceid);
+        }
 
         // Add communication plugins to the form.
-        $instanceconfig = core_communication\processor::PROVIDER_NONE;
+        $defaultprovider = \core_communication\processor::PROVIDER_NONE;
         $communication = \core_communication\api::load_by_instance(
-            'core_course',
-            'coursecommunication',
-            $course->id);
-        $communication->form_definition($mform, $instanceconfig);
-        $communication->set_data($course);
+            $component,
+            $instancetype,
+            $instanceid);
+        $communication->form_definition($mform, $defaultprovider);
+        $communication->set_data($instance);
 
         // Form buttons.
         $buttonarray = [];
         $classarray = ['class' => 'form-submit'];
-        $buttonarray[] = &$mform->createElement('submit', 'saveandreturn', get_string('savechangesandreturn'), $classarray);
+        $buttonarray[] = &$mform->createElement('submit', 'saveandreturn', get_string('savechanges'), $classarray);
         $buttonarray[] = &$mform->createElement('cancel');
         $mform->addGroup($buttonarray, 'buttonar', '', [' '], false);
         $mform->closeHeaderBefore('buttonar');
 
         // Hidden elements.
-        $mform->addElement('hidden', 'courseid', $course->id);
-        $mform->setType('courseid', PARAM_INT);
+        $mform->addElement('hidden', 'instanceid', $instanceid);
+        $mform->setType('instanceid', PARAM_INT);
+        $mform->addElement('hidden', 'instancetype', $instancetype);
+        $mform->setType('instancetype', PARAM_TEXT);
+        $mform->addElement('hidden', 'component', $component);
+        $mform->setType('component', PARAM_TEXT);
 
         // Finally set the current form data.
-        $this->set_data($course);
-
+        $this->set_data($instance);
     }
 
     /**
@@ -71,13 +83,15 @@ class course_communication_form extends moodleform {
     public function definition_after_data() {
 
         $mform = $this->_form;
-        $courseid = $mform->getElementValue('courseid');
+        $instanceid = $mform->getElementValue('instanceid');
+        $instancetype = $mform->getElementValue('instancetype');
+        $component = $mform->getElementValue('component');
 
         // Add communication plugins to the form with respect to the provider.
         $communication = \core_communication\api::load_by_instance(
-            'core_course',
-            'coursecommunication',
-            $courseid
+            $component,
+            $instancetype,
+            $instanceid
         );
         $communication->form_definition_for_provider($mform);
     }
