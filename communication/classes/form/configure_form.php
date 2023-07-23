@@ -42,11 +42,7 @@ class configure_form extends \moodleform {
         $instanceid = $this->_customdata['instanceid'];
         $instancetype = $this->_customdata['instancetype'];
         $component = $this->_customdata['component'];
-
-        // Get the instance we are configuring for.
-        if ($instancetype == 'coursecommunication') {
-            $instance = get_course($instanceid);
-        }
+        $instance = $this->_customdata['instance'];
 
         // Add communication plugins to the form.
         $defaultprovider = \core_communication\processor::PROVIDER_NONE;

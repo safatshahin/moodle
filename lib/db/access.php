@@ -2693,7 +2693,7 @@ $capabilities = array(
     ],
 
     // Allow users to configure communication rooms.
-    'moodle/communication:configurerooms' => [
+    'moodle/course:configurecoursecommunication' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [

@@ -23,14 +23,13 @@
  */
 
 require_once('../config.php');
-require_once($CFG->dirroot . '/course/lib.php');
 require_once('lib.php');
 
 $instanceid = required_param('instanceid', PARAM_INT);
 $instancetype = required_param('instancetype', PARAM_TEXT);
 $component = required_param('component', PARAM_TEXT);
 
-$pageparams = [
+$instanceinfo = [
     'instanceid' => $instanceid,
     'instancetype' => $instancetype,
     'component' => $component,
@@ -54,31 +53,8 @@ if (!$communication) {
     throw new \moodle_exception('nocommunicationinstance', 'communication');
 }
 
-// Let's get variables according to the instance type.
-switch ($instancetype) {
-
-    case 'coursecommunication':
-
-        $context = context_course::instance($instanceid);
-        require_capability('moodle/communication:configurerooms', $context);
-        require_login($instanceid);
-
-        if (!$instance = $DB->get_record('course', ['id' => $instanceid])) {
-            throw new \moodle_exception('invalidcourseid');
-        }
-
-        // Instance specific params.
-        $heading = $instance->fullname;
-        $pagelayout = 'course';
-        $backtourl = new moodle_url('/course/view.php', ['id' => $instanceid]);
-        break;
-
-    default:
-
-        // There is no acceptable instance type.
-        throw new \moodle_exception('nocommunicationinstance', 'communication');
-        break;
-}
+$component = str_replace('core_', '', $component);
+list($instance, $heading, $context) = component_callback($component, 'get_communication_instance_data', [$instanceid]);
 
 // Set up the page.
 $PAGE->set_context($context);
@@ -87,30 +63,12 @@ $PAGE->set_title(get_string('communication', 'communication'));
 $PAGE->set_heading($heading);
 $PAGE->add_body_class('limitedwidth');
 
+$instanceinfo['instance'] = $instance;
 // Get our form definitions.
 $form = new \core_communication\form\configure_form(null, $pageparams);
 
-if ($form->is_cancelled()) {
-
-    redirect($backtourl);
-
-} else if ($data = $form->get_data()) {
-
-    // Hande the form data depending on our instance type.
-    switch ($instancetype) {
-
-        case 'coursecommunication':
-
-            $data->id = $data->instanceid; // For correct use in update_course.
-            update_course($data);
-            redirect($backtourl);
-            break;
-
-        default:
-
-            redirect($backtourl);
-            break;
-    }
+if ($data = $form->get_data()) {
+    component_callback($component, 'update_communication_instance_data', [$data]);
 }
 
 // Display the page contents.

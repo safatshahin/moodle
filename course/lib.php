@@ -4080,7 +4080,7 @@ function course_get_user_navigation_options($context, $course = null) {
     }
 
     if (\core_communication\api::is_available()) {
-        $options->communication = has_capability('moodle/communication:configurerooms', $context);
+        $options->communication = has_capability('moodle/course:configurecoursecommunication', $context);
     }
 
     if (\core_competency\api::is_enabled()) {
@@ -5137,4 +5137,21 @@ function course_output_fragment_new_base_form($args) {
     ob_end_clean();
 
     return $o;
+}
+
+function course_get_communication_instance_data(int $courseid): array {
+    global $DB;
+    if (!$course = $DB->get_record('course', ['id' => $courseid])) {
+        throw new \moodle_exception('invalidcourseid');
+    }
+    $context = context_course::instance($course->id);
+    require_capability('moodle/communication:configurecoursecommunication', $context);
+
+    // Instance specific params.
+    $heading = $course->fullname;
+    return [$course, $heading, $context];
+}
+
+function course_update_communication_instance_data(stdClass $course): void {
+    update_course($course);
 }
