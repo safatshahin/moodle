@@ -16,6 +16,8 @@
 
 namespace tool_mfa;
 
+use core_component;
+
 defined('MOODLE_INTERNAL') || die();
 require_once(__DIR__ . '/tool_mfa_testcase.php');
 
@@ -208,6 +210,8 @@ class manager_test extends tool_mfa_testcase {
 
         // Upgrade checks.
         $this->setAdminUser();
+        // Mark the site as upgraded.
+        $CFG->allversionshash = core_component::get_all_versions_hash();
         $this->assertEquals(\tool_mfa\manager::should_require_mfa($badurl, false), \tool_mfa\manager::REDIRECT);
         $oldhash = $CFG->allversionshash;
         $CFG->allversionshash = 'abc';

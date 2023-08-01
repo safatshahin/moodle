@@ -8243,6 +8243,7 @@ function moodle_needs_upgrading($checkupgradeflag = true) {
     }
 
     if (empty($CFG->version)) {
+        var_dump('update needed 1');
         return true;
     }
 
@@ -8251,10 +8252,13 @@ function moodle_needs_upgrading($checkupgradeflag = true) {
     // every upgrade.
 
     if (empty($CFG->allversionshash)) {
+        var_dump('update needed 2');
         return true;
     }
 
     $hash = core_component::get_all_versions_hash();
+    var_dump($hash);
+    var_dump($CFG->allversionshash);
 
     return ($hash !== $CFG->allversionshash);
 }

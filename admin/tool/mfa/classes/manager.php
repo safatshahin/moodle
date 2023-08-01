@@ -427,6 +427,7 @@ class manager {
             // After that is completed, only the settings shouldn't redirect.
             // Everything else should be safe to enforce MFA.
             if (moodle_needs_upgrading()) {
+                var_dump('update needed');
                 return self::NO_REDIRECT;
             }
             // An upgrade isn't complete if there are settings that must be saved.
