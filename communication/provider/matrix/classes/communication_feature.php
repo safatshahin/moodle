@@ -48,7 +48,8 @@ class communication_feature implements
     \core_communication\user_provider,
     \core_communication\room_chat_provider,
     \core_communication\room_user_provider,
-    \core_communication\form_provider {
+    \core_communication\form_provider,
+    \core_communication\provider_configuration {
 
     /** @var matrix_rooms $room The matrix room object to update room information */
     private ?matrix_rooms $room = null;

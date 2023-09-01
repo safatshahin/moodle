@@ -420,6 +420,17 @@ class api {
     }
 
     /**
+     * Check if the provider is available to be used as a part of communication instance.
+     *
+     * @param string $provider The provider name
+     * @return bool True if the provider is enabled and configured
+     */
+    public static function is_provider_available(string $provider): bool {
+        return processor::is_provider_configured($provider) &&
+            processor::is_provider_enabled($provider);
+    }
+
+    /**
      * Create a communication ad-hoc task for create operation.
      * This method will add a task to the queue to create the room.
      *
@@ -434,7 +445,11 @@ class api {
         ?\stored_file $avatar = null,
         ?\stdClass $instance = null,
     ): void {
-        if ($selectedcommunication !== processor::PROVIDER_NONE && $selectedcommunication !== '') {
+        if (
+            $selectedcommunication !== processor::PROVIDER_NONE &&
+            $selectedcommunication !== '' &&
+            self::is_provider_available($selectedcommunication)
+        ) {
             // Create communication record.
             $this->communication = processor::create_instance(
                 $selectedcommunication,
@@ -477,7 +492,7 @@ class api {
         ?\stdClass $instance = null,
     ): void {
         // Existing object found, let's update the communication record and associated actions.
-        if ($this->communication !== null) {
+        if ($this->communication !== null && self::is_provider_available($selectedprovider)) {
             // Get the previous data to compare for update.
             $previousprovider = $this->communication->get_provider();
             if ($previousprovider === $selectedprovider) {

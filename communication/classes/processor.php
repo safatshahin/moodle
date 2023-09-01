@@ -473,6 +473,28 @@ class processor {
     }
 
     /**
+     * Check if the provider is enabled.
+     *
+     * @param string $provider The provider name
+     * @return bool True if provider is enabled
+     */
+    public static function is_provider_enabled(string $provider): bool {
+        $providerclass = "{$provider}\\communication_feature";
+        return $providerclass::is_enabled();
+    }
+
+    /**
+     * Check if the provider is configured.
+     *
+     * @param string $provider The provider name
+     * @return bool True if provider is configured
+     */
+    public static function is_provider_configured(string $provider): bool {
+        $providerclass = "{$provider}\\communication_feature";
+        return $providerclass::is_configured();
+    }
+
+    /**
      * Get communication instance for form feature.
      *
      * @return form_provider
