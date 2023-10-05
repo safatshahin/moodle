@@ -2470,13 +2470,9 @@ function update_course($data, $editoroptions = NULL) {
         );
         $existingprovider = $communication->get_provider();
         $addusersrequired = false;
-        $enablenewprovider = false;
 
         // Action required changes if provider has changed.
         if ($provider !== $existingprovider) {
-            // Provider changed, flag new one to be enabled.
-            $enablenewprovider = true;
-
             // If provider set to none, remove all the members from previous provider.
             if ($provider === 'none' && $existingprovider !== '') {
                 $communication->remove_members_from_room($enrolledusers);
