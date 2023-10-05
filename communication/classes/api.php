@@ -405,25 +405,23 @@ class api {
      * Create a communication ad-hoc task for create operation.
      * This method will add a task to the queue to create the room.
      *
-     * @param string $selectedcommunication The selected communication provider
      * @param string $communicationroomname The communication room name
      * @param null|\stored_file $avatar The stored file for the avatar
      * @param \stdClass|null $instance The actual instance object
      */
     public function create_and_configure_room(
-        string $selectedcommunication,
         string $communicationroomname,
         ?\stored_file $avatar = null,
         ?\stdClass $instance = null,
     ): void {
-        if ($selectedcommunication === processor::PROVIDER_NONE || $selectedcommunication === '') {
+        if ($this->get_provider() === processor::PROVIDER_NONE || $this->get_provider() === '') {
             return;
         }
 
         // Create communication record.
         $this->communication = processor::create_instance(
             context: $this->context,
-            provider: $selectedcommunication,
+            provider: $this->get_provider(),
             instanceid: $this->instanceid,
             component: $this->component,
             instancetype: $this->instancetype,
@@ -436,7 +434,7 @@ class api {
         }
 
         // Set the avatar.
-        if (!empty($avatar)) {
+        if ($avatar !== null) {
             $this->set_avatar($avatar);
         }
 
@@ -461,9 +459,6 @@ class api {
         ?\stored_file $avatar = null,
         ?\stdClass $instance = null,
     ): void {
-        // Reload so the currently selected provider is used.
-        $this->reload();
-
         // If the provider is none, we don't need to do anything from room point of view.
         if ($this->communication->get_provider() === processor::PROVIDER_NONE) {
             return;

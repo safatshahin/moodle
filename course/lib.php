@@ -2295,7 +2295,6 @@ function create_course($data, $editoroptions = NULL) {
                 provider: $provider,
             );
             $communication->create_and_configure_room(
-                $provider,
                 $communicationroomname,
                 $courseimage ?: null,
                 $data,
@@ -2517,19 +2516,12 @@ function update_course($data, $editoroptions = NULL) {
                 // Create it if it does not exist.
                 if ($communication->get_provider() === '') {
                     $communication->create_and_configure_room(
-                        selectedcommunication: $provider,
                         communicationroomname: $communicationroomname,
                         avatar: $courseimage,
                         instance: $data
                     );
 
-                    $communication = \core_communication\api::load_by_instance(
-                        context: $context,
-                        component: 'core_course',
-                        instancetype: 'coursecommunication',
-                        instanceid: $data->id,
-                        provider: $provider,
-                    );
+                    $communication->reload();
 
                     $addusersrequired = true;
                     $queuememberstask = false;
