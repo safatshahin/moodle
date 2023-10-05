@@ -2513,41 +2513,34 @@ function update_course($data, $editoroptions = NULL) {
                     provider: $provider,
                 );
 
-                // Create it if it does not exist.
-                if ($communication->get_provider() === '') {
-                    $communication->create_and_configure_room(
-                        communicationroomname: $communicationroomname,
-                        avatar: $courseimage,
-                        instance: $data
-                    );
+                $communication->create_and_configure_room(
+                    communicationroomname: $communicationroomname,
+                    avatar: $courseimage,
+                    instance: $data
+                );
 
-                    $communication->reload();
-
-                    $addusersrequired = true;
-                    $queuememberstask = false;
-                } else if ($addusersrequired) {
-                    // Existing room that requires users can queue the members task now.
-                    $queuememberstask = true;
-                }
+                $communication->reload();
 
                 // Complete room membership tasks if required.
                 // Newly created providers complete the user mapping but do not queue the task
                 // (it will be handled by the room creation task).
                 if ($addusersrequired) {
-                    $communication->add_members_to_room($enrolledusers, $queuememberstask);
+                    $communication->add_members_to_room($enrolledusers, false);
                 }
             }
         }
 
-        if ($provider !== 'none') {
-            // Update the currently enabled provider's room data.
-            $communication->update_room(
-                active: $enablenewprovider ? \core_communication\processor::PROVIDER_ACTIVE : null,
-                communicationroomname: $communicationroomname,
-                avatar: $courseimage,
-                instance: $data,
-            );
-        }
+
+        // WHY is this needed? It's already done in the create_and_configure_room() call above.
+        // if ($provider !== 'none') {
+        //     // Update the currently enabled provider's room data.
+        //     $communication->update_room(
+        //         active: $enablenewprovider ? \core_communication\processor::PROVIDER_ACTIVE : null,
+        //         communicationroomname: $communicationroomname,
+        //         avatar: $courseimage,
+        //         instance: $data,
+        //     );
+        // }
     }
 
     // Update custom fields if there are any of them in the form.
