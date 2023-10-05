@@ -109,7 +109,7 @@ class processor {
     /**
      * Update the communication instance with any changes.
      *
-     * @param null|int $active Active state of the instance (PROVIDER_ACTIVE or PROVIDER_INACTIVE)
+     * @param string|null $active Active state of the instance (PROVIDER_ACTIVE or PROVIDER_INACTIVE)
      * @param null|string $roomname The room name
      */
     public function update_instance(
@@ -373,25 +373,22 @@ class processor {
 
         global $DB;
 
+        $params = [
+            'contextid' => $context->id,
+            'instanceid' => $instanceid,
+            'component' => $component,
+            'instancetype' => $instancetype,
+        ];
+
         if ($provider === null) {
             // Fetch the active provider in this context.
-            $record = $DB->get_record('communication', [
-                'contextid' => $context->id,
-                'instanceid' => $instanceid,
-                'component' => $component,
-                'instancetype' => $instancetype,
-                'active' => 1,
-            ]);
+            $params['active'] = 1;
         } else {
             // Fetch a specific provider in this context (which may be inactive).
-            $record = $DB->get_record('communication', [
-                'contextid' => $context->id,
-                'instanceid' => $instanceid,
-                'component' => $component,
-                'instancetype' => $instancetype,
-                'provider' => $provider,
-            ]);
+            $params['provider'] = $provider;
         }
+
+        $record = $DB->get_record('communication', $params);
         if ($record && self::is_provider_available($record->provider)) {
             return new self($record);
         }
