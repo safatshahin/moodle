@@ -566,4 +566,45 @@ class communication_feature_test extends \advanced_testcase {
         unset_config('matrixaccesstoken', 'communication_matrix');
         $this->assertFalse($communicationprocessor->get_room_provider()->is_configured());
     }
+
+    /**
+     * Test to ensure the room members are synchronised properly.
+     *
+     * @covers ::ensure_synchronised_room_members
+     */
+    public function test_ensure_synchronised_room_members(): void {
+        $this->resetAfterTest();
+
+        // Create a new room.
+        $course = $this->get_course('Sampleroom', 'none');
+        $user = $this->getDataGenerator()->create_user();
+
+        $communication = $this->create_room(
+            component: 'core_course',
+            itemtype: 'coursecommunication',
+            itemid: $course->id
+        );
+        $provider = $communication->get_room_user_provider();
+
+        // Add the member to the room.
+        $provider->add_members_to_room([$user->id]);
+
+        // Add another user to room.
+        $user2 = $this->getDataGenerator()->create_user();
+
+        // Now add the record for that user but do not add the task.
+        $communication->add_members_to_room([$user2->id], false);
+
+        // Now get the users from the room, should be 2 as the second user is never added as the task was never added or ran.
+        // There is one admin user added as a part of initialization.
+        $this->assertCount(2, $this->backoffice_get_all_users());
+
+        // Now run the sync.
+        $communication->reload();
+        $processor = $communication->get_processor();
+        $processor->get_sync_provider()->ensure_synchronised_room_members($processor->get_all_userids_for_instance());
+
+        // Now the count should be 3.
+        $this->assertCount(3, $this->backoffice_get_all_users());
+    }
 }

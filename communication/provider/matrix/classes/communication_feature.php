@@ -16,6 +16,7 @@
 
 namespace communication_matrix;
 
+use core_communication\synchronise_provider;
 use communication_matrix\local\spec\features\matrix\{
     create_room_v3 as create_room_feature,
     get_room_members_v3 as get_room_members_feature,
@@ -48,7 +49,8 @@ class communication_feature implements
     \core_communication\form_provider,
     \core_communication\room_chat_provider,
     \core_communication\room_user_provider,
-    \core_communication\user_provider {
+    \core_communication\user_provider,
+    \core_communication\synchronise_provider {
     /** @var ?matrix_room $room The matrix room object to update room information */
     private ?matrix_room $room = null;
 
@@ -772,5 +774,56 @@ class communication_feature implements
             return true;
         }
         return false;
+    }
+
+    public function ensure_synchronised_room_members(array $userids): void {
+        // First, fetch the matrixuserids locally from Moodle.
+        $userstocreate = [];
+        $localusers = [];
+        foreach ($userids as $userid) {
+            $matrixid = matrix_user_manager::get_matrixid_from_moodle($userid);
+            if ($matrixid) {
+                $localusers[$matrixid] = $userid;
+            } else {
+                // If matrix id not found, that means users are not even created.
+                $userstocreate[] = $userid;
+            }
+        }
+
+        $fetchedlocaluserids = array_keys($localusers);
+
+        // Now fetch the matrix users for the room.
+        $this->matrixapi->require_feature(get_room_members_feature::class);
+
+        $response = $this->matrixapi->get_room_members(
+            roomid: $this->get_room_id(),
+        );
+        $body = self::get_body($response);
+        // Now get the fetched matrix user ids from the array key of the body.
+        $fetchedmatrixuserids = array_keys((array) $body->joined);
+
+        // Now, compare the local matrix user ids with the matrix room userids.
+        $userstoadd = array_diff($fetchedlocaluserids, $fetchedmatrixuserids);
+
+        if (!empty($userstoadd)) {
+            // Now find the user ids from the local users list.
+            $userstoadd = array_map(
+                fn($matrixid) => $localusers[$matrixid],
+                $userstoadd,
+            );
+        }
+
+        $userstohandle = array_merge($userstoadd, $userstocreate);
+        if (!empty($userstohandle)) {
+            $this->add_members_to_room($userstohandle);
+        } else {
+            // Now we should go through the power level update if there is no users to handle.
+            // This call will ensure if anything has been changed and need to be updated.
+            $this->set_matrix_power_levels();
+        }
+    }
+
+    public function ensure_synchronised_room_info(): void {
+        // TODO: MDL-79832 Create sync for room information.
     }
 }
