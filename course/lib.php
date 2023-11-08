@@ -24,7 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-use core_course\external\course_summary_exporter;
 use core_courseformat\base as course_format;
 use core\output\local\action_menu\subpanel as action_menu_subpanel;
 
@@ -2275,32 +2274,10 @@ function create_course($data, $editoroptions = NULL) {
     if (isset($data->tags)) {
         core_tag_tag::set_item_tags('core', 'course', $course->id, $context, $data->tags);
     }
+
     // Set up communication.
-    if (core_communication\api::is_available()) {
-        // Check for default provider config setting.
-        $defaultprovider = get_config('moodlecourse', 'coursecommunicationprovider');
-        $provider = (isset($data->selectedcommunication)) ? $data->selectedcommunication : $defaultprovider;
-
-        if (!empty($provider)) {
-            // Prepare the communication api data.
-            $courseimage = course_get_courseimage($course);
-            $communicationroomname = !empty($data->communicationroomname) ? $data->communicationroomname : $data->fullname;
-
-            // Communication api call.
-            $communication = \core_communication\api::load_by_instance(
-                context: $context,
-                component: 'core_course',
-                instancetype: 'coursecommunication',
-                instanceid: $course->id,
-                provider: $provider,
-            );
-            $communication->create_and_configure_room(
-                $communicationroomname,
-                $courseimage ?: null,
-                $data,
-            );
-        }
-    }
+    $data->id = $course->id;
+    core_course\communication\communication_helper::create_course_communication_instance($data);
 
     // Save custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
@@ -2423,137 +2400,139 @@ function update_course($data, $editoroptions = NULL) {
         $data->showcompletionconditions = null;
     }
 
-    // Check if provider is selected.
-    $provider = $data->selectedcommunication ?? null;
-    // If the course moved to hidden category, set provider to none.
-    if ($changesincoursecat && empty($data->visible)) {
-        $provider = 'none';
-    }
 
-    // Attempt to get the communication provider if it wasn't provided in the data.
-    if (empty($provider) && core_communication\api::is_available()) {
-        $provider = \core_communication\api::load_by_instance(
-            context: $context,
-            component: 'core_course',
-            instancetype: 'coursecommunication',
-            instanceid: $data->id,
-        )->get_provider();
-    }
-
-    // Communication api call.
-    if (!empty($provider) && core_communication\api::is_available()) {
-        // Prepare the communication api data.
-        $courseimage = course_get_courseimage($data);
-
-        // This nasty logic is here because of hide course doesn't pass anything in the data object.
-        if (!empty($data->communicationroomname)) {
-            $communicationroomname = $data->communicationroomname;
-        } else {
-            $communicationroomname = $data->fullname ?? $oldcourse->fullname;
-        }
-
-        // Update communication room membership of enrolled users.
-        require_once($CFG->libdir . '/enrollib.php');
-        $courseusers = enrol_get_course_users($data->id);
-        $enrolledusers = [];
-
-        foreach ($courseusers as $user) {
-            $enrolledusers[] = $user->id;
-        }
-
-        // Existing communication provider.
-        $communication = \core_communication\api::load_by_instance(
-            context: $context,
-            component: 'core_course',
-            instancetype: 'coursecommunication',
-            instanceid: $data->id,
-        );
-        $existingprovider = $communication->get_provider();
-        $addusersrequired = false;
-        $enablenewprovider = false;
-        $instanceexists = true;
-
-        // Action required changes if provider has changed.
-        if ($provider !== $existingprovider) {
-            // Provider changed, flag new one to be enabled.
-            $enablenewprovider = true;
-
-            // If provider set to none, remove all the members from previous provider.
-            if ($provider === 'none' && $existingprovider !== '') {
-                $communication->remove_members_from_room($enrolledusers);
-            } else if (
-                // If previous provider was not none and current provider is not none,
-                // remove members from previous provider.
-                $existingprovider !== '' &&
-                $existingprovider !== 'none'
-            ) {
-                $communication->remove_members_from_room($enrolledusers);
-                $addusersrequired = true;
-            } else if (
-                // If previous provider was none and current provider is not none,
-                // remove members from previous provider.
-                ($existingprovider === '' || $existingprovider === 'none')
-            ) {
-                $addusersrequired = true;
-            }
-
-            // Disable previous provider, if one was enabled.
-            if ($existingprovider !== '' && $existingprovider !== 'none') {
-                $communication->update_room(
-                    active: \core_communication\processor::PROVIDER_INACTIVE,
-                );
-            }
-
-            // Switch to the newly selected provider so it can be updated.
-            if ($provider !== 'none') {
-                $communication = \core_communication\api::load_by_instance(
-                    context: $context,
-                    component: 'core_course',
-                    instancetype: 'coursecommunication',
-                    instanceid: $data->id,
-                    provider: $provider,
-                );
-
-                // Create it if it does not exist.
-                if ($communication->get_provider() === '') {
-                    $communication->create_and_configure_room(
-                        communicationroomname: $communicationroomname,
-                        avatar: $courseimage,
-                        instance: $data
-                    );
-
-                    $communication = \core_communication\api::load_by_instance(
-                        context: $context,
-                        component: 'core_course',
-                        instancetype: 'coursecommunication',
-                        instanceid: $data->id,
-                        provider: $provider,
-                    );
-
-                    $addusersrequired = true;
-                    $instanceexists = false;
-                }
-            }
-        }
-
-        if ($provider !== 'none' && $instanceexists) {
-            // Update the currently enabled provider's room data.
-            // Newly created providers do not need to run this, the create process handles it.
-            $communication->update_room(
-                active: $enablenewprovider ? \core_communication\processor::PROVIDER_ACTIVE : null,
-                communicationroomname: $communicationroomname,
-                avatar: $courseimage,
-                instance: $data,
-            );
-        }
-
-        // Complete room membership tasks if required.
-        // Newly created providers complete the user mapping but do not queue the task
-        // (it will be handled by the room creation task).
-        if ($addusersrequired) {
-            $communication->add_members_to_room($enrolledusers, $instanceexists);
-        }
-    }
+    // TODO MDl-78551 review part for regression or possible need of logic transfer.
+    // // Check if provider is selected.
+    // $provider = $data->selectedcommunication ?? null;
+    // // If the course moved to hidden category, set provider to none.
+    // if ($changesincoursecat && empty($data->visible)) {
+    //     $provider = 'none';
+    // }
+    //
+    // // Attempt to get the communication provider if it wasn't provided in the data.
+    // if (empty($provider) && core_communication\api::is_available()) {
+    //     $provider = \core_communication\api::load_by_instance(
+    //         context: $context,
+    //         component: 'core_course',
+    //         instancetype: 'coursecommunication',
+    //         instanceid: $data->id,
+    //     )->get_provider();
+    // }
+    //
+    // // Communication api call.
+    // if (!empty($provider) && core_communication\api::is_available()) {
+    //     // Prepare the communication api data.
+    //     $courseimage = course_get_courseimage($data);
+    //
+    //     // This nasty logic is here because of hide course doesn't pass anything in the data object.
+    //     if (!empty($data->communicationroomname)) {
+    //         $communicationroomname = $data->communicationroomname;
+    //     } else {
+    //         $communicationroomname = $data->fullname ?? $oldcourse->fullname;
+    //     }
+    //
+    //     // Update communication room membership of enrolled users.
+    //     require_once($CFG->libdir . '/enrollib.php');
+    //     $courseusers = enrol_get_course_users($data->id);
+    //     $enrolledusers = [];
+    //
+    //     foreach ($courseusers as $user) {
+    //         $enrolledusers[] = $user->id;
+    //     }
+    //
+    //     // Existing communication provider.
+    //     $communication = \core_communication\api::load_by_instance(
+    //         context: $context,
+    //         component: 'core_course',
+    //         instancetype: 'coursecommunication',
+    //         instanceid: $data->id,
+    //     );
+    //     $existingprovider = $communication->get_provider();
+    //     $addusersrequired = false;
+    //     $enablenewprovider = false;
+    //     $instanceexists = true;
+    //
+    //     // Action required changes if provider has changed.
+    //     if ($provider !== $existingprovider) {
+    //         // Provider changed, flag new one to be enabled.
+    //         $enablenewprovider = true;
+    //
+    //         // If provider set to none, remove all the members from previous provider.
+    //         if ($provider === 'none' && $existingprovider !== '') {
+    //             $communication->remove_members_from_room($enrolledusers);
+    //         } else if (
+    //             // If previous provider was not none and current provider is not none,
+    //             // remove members from previous provider.
+    //             $existingprovider !== '' &&
+    //             $existingprovider !== 'none'
+    //         ) {
+    //             $communication->remove_members_from_room($enrolledusers);
+    //             $addusersrequired = true;
+    //         } else if (
+    //             // If previous provider was none and current provider is not none,
+    //             // remove members from previous provider.
+    //             ($existingprovider === '' || $existingprovider === 'none')
+    //         ) {
+    //             $addusersrequired = true;
+    //         }
+    //
+    //         // Disable previous provider, if one was enabled.
+    //         if ($existingprovider !== '' && $existingprovider !== 'none') {
+    //             $communication->update_room(
+    //                 active: \core_communication\processor::PROVIDER_INACTIVE,
+    //             );
+    //         }
+    //
+    //         // Switch to the newly selected provider so it can be updated.
+    //         if ($provider !== 'none') {
+    //             $communication = \core_communication\api::load_by_instance(
+    //                 context: $context,
+    //                 component: 'core_course',
+    //                 instancetype: 'coursecommunication',
+    //                 instanceid: $data->id,
+    //                 provider: $provider,
+    //             );
+    //
+    //             // Create it if it does not exist.
+    //             if ($communication->get_provider() === '') {
+    //                 $communication->create_and_configure_room(
+    //                     communicationroomname: $communicationroomname,
+    //                     avatar: $courseimage,
+    //                     instance: $data
+    //                 );
+    //
+    //                 $communication = \core_communication\api::load_by_instance(
+    //                     context: $context,
+    //                     component: 'core_course',
+    //                     instancetype: 'coursecommunication',
+    //                     instanceid: $data->id,
+    //                     provider: $provider,
+    //                 );
+    //
+    //                 $addusersrequired = true;
+    //                 $instanceexists = false;
+    //             }
+    //         }
+    //     }
+    //
+    //     if ($provider !== 'none' && $instanceexists) {
+    //         // Update the currently enabled provider's room data.
+    //         // Newly created providers do not need to run this, the create process handles it.
+    //         $communication->update_room(
+    //             active: $enablenewprovider ? \core_communication\processor::PROVIDER_ACTIVE : null,
+    //             communicationroomname: $communicationroomname,
+    //             avatar: $courseimage,
+    //             instance: $data,
+    //         );
+    //     }
+    //
+    //     // Complete room membership tasks if required.
+    //     // Newly created providers complete the user mapping but do not queue the task
+    //     // (it will be handled by the room creation task).
+    //     if ($addusersrequired) {
+    //         $communication->add_members_to_room($enrolledusers, $instanceexists);
+    //     }
+    // }
 
     // Update custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
@@ -2566,6 +2545,19 @@ function update_course($data, $editoroptions = NULL) {
 
     // Purge course image cache in case if course image has been updated.
     \cache::make('core', 'course_image')->delete($data->id);
+
+    // Update the communication instance for the course.
+    if (core_course\communication\communication_helper::is_communication_instance_update_required(
+        course: $data,
+        oldcourse: $oldcourse,
+        changesincoursecat: $changesincoursecat,
+    )) {
+        core_course\communication\communication_helper::update_course_communication(
+            course: $data,
+            oldcourse: $oldcourse,
+            changesincoursecat: $changesincoursecat,
+        );
+    }
 
     // update course format options with full course data
     course_get_format($data->id)->update_course_format_options($data, $oldcourse);
@@ -5213,5 +5205,11 @@ function course_get_communication_instance_data(int $courseid): array {
  */
 function course_update_communication_instance_data(stdClass $data): void {
     $data->id = $data->instanceid; // For correct use in update_course.
-    update_course($data);
+    $oldcourse = get_course($data->id);
+    core_course\communication\communication_helper::update_course_communication(
+        course: $data,
+        oldcourse: $oldcourse,
+        changesincoursecat: false,
+    );
+    // update_course($data);
 }

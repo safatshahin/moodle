@@ -290,6 +290,7 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
 // Show communication room status notification.
+<<<<<<< HEAD
 if (core_communication\api::is_available() && has_capability('moodle/course:update', $context)) {
     $communication = \core_communication\api::load_by_instance(
         $context,
@@ -298,6 +299,10 @@ if (core_communication\api::is_available() && has_capability('moodle/course:upda
         $course->id
     );
     $communication->show_communication_room_status_notification();
+=======
+if (has_capability('moodle/course:update', $context)) {
+    core_course\communication\communication_helper::get_course_communication_status_notification($course);
+>>>>>>> 3c3db95f545 (MDL-78551 core_course: Group support & move to helper class)
 }
 
 if ($USER->editing == 1) {
