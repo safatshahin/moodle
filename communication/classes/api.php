@@ -117,9 +117,9 @@ class api {
     /**
      * Return the underlying communication processor object.
      *
-     * @return processor
+     * @return ?processor
      */
-    public function get_processor(): processor {
+    public function get_processor(): ?processor {
         return $this->communication;
     }
 
@@ -411,11 +411,13 @@ class api {
      * @param string $communicationroomname The communication room name
      * @param null|\stored_file $avatar The stored file for the avatar
      * @param \stdClass|null $instance The actual instance object
+     * @param bool $queue Whether to queue the task or not
      */
     public function create_and_configure_room(
         string $communicationroomname,
         ?\stored_file $avatar = null,
         ?\stdClass $instance = null,
+        bool $queue = true,
     ): void {
         if ($this->provider === processor::PROVIDER_NONE || $this->provider === '') {
             return;
@@ -441,6 +443,11 @@ class api {
             $this->set_avatar($avatar);
         }
 
+        // Nothing else to do if the queue is false.
+        if (!$queue) {
+            return;
+        }
+
         // Add ad-hoc task to create the provider room.
         create_and_configure_room_task::queue(
             $this->communication,
@@ -455,12 +462,14 @@ class api {
      * @param null|string $communicationroomname The communication room name
      * @param null|\stored_file $avatar The stored file for the avatar
      * @param \stdClass|null $instance The actual instance object
+     * @param bool $queue Whether to queue the task or not
      */
     public function update_room(
         ?int $active = null,
         ?string $communicationroomname = null,
         ?\stored_file $avatar = null,
         ?\stdClass $instance = null,
+        bool $queue = true,
     ): void {
         // If the provider is none, we don't need to do anything from room point of view.
         if ($this->communication->get_provider() === processor::PROVIDER_NONE) {
@@ -501,6 +510,11 @@ class api {
         // Update the avatar.
         // If the value is `null`, then unset the avatar.
         $this->set_avatar($avatar);
+
+        // Nothing else to do if the queue is false.
+        if (!$queue) {
+            return;
+        }
 
         // Always queue a room update, even if none of the above standard fields have changed.
         // It is possible for providers to have custom fields that have been updated.
@@ -613,6 +627,30 @@ class api {
     }
 
     /**
+     * Remove all users from the room.
+     *
+     * @param bool $queue Whether to queue the task or not
+     */
+    public function remove_all_members_from_room(bool $queue = true): void {
+        // No communication object? something not done right.
+        if (!$this->communication) {
+            return;
+        }
+
+        if ($this->communication->get_provider() === processor::PROVIDER_NONE) {
+            return;
+        }
+
+        $this->communication->add_delete_user_flag($this->communication->get_all_userids_for_instance());
+
+        if ($queue) {
+            remove_members_from_room::queue(
+                $this->communication
+            );
+        }
+    }
+
+    /**
      * Display the communication room status notification.
      */
     public function show_communication_room_status_notification(): void {
@@ -629,16 +667,17 @@ class api {
         $pluginname = get_string('pluginname', $this->get_provider());
         $message = get_string('communicationroom' . $roomstatus, 'communication', $pluginname);
 
+        // We only show the ready notification once per user.
+        // We check this with a custom user preference.
+        $roomreadypreference = "{$this->component}_{$this->instancetype}_{$this->instanceid}_room_ready";
+
         switch ($roomstatus) {
             case 'pending':
                 \core\notification::add($message, \core\notification::INFO);
+                unset_user_preference($roomreadypreference);
                 break;
 
             case 'ready':
-                // We only show the ready notification once per user.
-                // We check this with a custom user preference.
-                $roomreadypreference = "{$this->component}_{$this->instancetype}_{$this->instanceid}_room_ready";
-
                 if (empty(get_user_preferences($roomreadypreference))) {
                     \core\notification::add($message, \core\notification::SUCCESS);
                     set_user_preference($roomreadypreference, true);

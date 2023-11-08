@@ -331,4 +331,32 @@ class api_test extends \advanced_testcase {
         $adhoctask = reset($adhoctask);
         $this->assertInstanceOf('\\core_communication\\task\\update_room_membership_task', $adhoctask);
     }
+
+    /**
+     * Test the removal of all members from the room.
+     *
+     * @covers ::remove_all_members_from_room
+     */
+    public function test_remove_all_members_from_room(): void {
+        $course = $this->get_course();
+        $userid = $this->get_user()->id;
+        $communication = \core_communication\api::load_by_instance(
+            context: \core\context\course::instance($course->id),
+            component: 'core_course',
+            instancetype: 'coursecommunication',
+            instanceid: $course->id,
+        );
+        $communication->add_members_to_room([$userid]);
+
+        // Test the tasks added.
+        $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\add_members_to_room_task');
+        $this->assertCount(1, $adhoctask);
+
+        // Now test the removing members from a room.
+        $communication->remove_all_members_from_room();
+
+        // Test the tasks added.
+        $adhoctask = \core\task\manager::get_adhoc_tasks('\\core_communication\\task\\remove_members_from_room');
+        $this->assertCount(1, $adhoctask);
+    }
 }
