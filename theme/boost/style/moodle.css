@@ -9,6 +9,10 @@
   --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
 }
 
+.something{
+  font-style: normal;
+}
+
 @font-face {
   font-family: "Font Awesome 6 Brands";
   font-style: normal;
