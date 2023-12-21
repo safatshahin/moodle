@@ -4438,7 +4438,7 @@ EOD;
      */
     public function communication_url(): string {
         global $COURSE;
-        return core_course\communication\communication_helper::get_course_communication_url($COURSE);
+        return \core_communication\helper::get_course_communication_url($COURSE);
     }
 
     /**
