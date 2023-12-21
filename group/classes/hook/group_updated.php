@@ -27,6 +27,11 @@ use stdClass;
  */
 class group_updated implements \core\hook\described_hook {
 
+    /**
+     * Constructor for the hook.
+     *
+     * @param stdClass $groupinstance The group instance.
+     */
     public function __construct(
         protected stdClass $groupinstance,
     ) {}

@@ -17,6 +17,7 @@
 namespace core_communication;
 
 use context;
+use core\hook\described_hook;
 use stdClass;
 
 /**
@@ -34,6 +35,12 @@ class helper {
     /** @var string GROUP_COMMUNICATION_COMPONENT The group communication component. */
     public const GROUP_COMMUNICATION_COMPONENT = 'core_group';
 
+    /** @var string COURSE_COMMUNICATION_INSTANCETYPE The course communication instance type. */
+    public const COURSE_COMMUNICATION_INSTANCETYPE = 'coursecommunication';
+
+    /** @var string COURSE_COMMUNICATION_COMPONENT The course communication component. */
+    public const COURSE_COMMUNICATION_COMPONENT = 'core_course';
+
     /**
      * Load the communication instance for group id.
      *
@@ -47,6 +54,28 @@ class helper {
             component: self::GROUP_COMMUNICATION_COMPONENT,
             instancetype: self::GROUP_COMMUNICATION_INSTANCETYPE,
             instanceid: $groupid,
+        );
+    }
+
+    /**
+     * Load the communication instance for course id.
+     *
+     * @param int $courseid The course id
+     * @param \context $context The context
+     * @param string|null $provider The provider name
+     * @return api The communication instance
+     */
+    public static function load_by_course(
+        int $courseid,
+        \context $context,
+        ?string $provider = null,
+    ): api {
+        return \core_communication\api::load_by_instance(
+            context: $context,
+            component: self::COURSE_COMMUNICATION_COMPONENT,
+            instancetype: self::COURSE_COMMUNICATION_INSTANCETYPE,
+            instanceid: $courseid,
+            provider: $provider,
         );
     }
 
@@ -72,7 +101,187 @@ class helper {
      * @param stdClass $course The course object
      */
     public static function is_group_mode_enabled_for_course(stdClass $course): bool {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return false;
+        }
+
         $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
         return (int)$groupmode !== NOGROUPS;
+    }
+
+    /**
+     * Get the course and group object for the group hook.
+     *
+     * @param described_hook $hook The hook object.
+     * @return array
+     */
+    public static function get_group_and_course_data_for_group_hook(described_hook $hook): array {
+        $group = $hook->get_instance();
+        $course = \core_communication\helper::get_course(
+            courseid: $group->courseid,
+        );
+
+        return [
+            'group' => $group,
+            'course' => $course,
+        ];
+    }
+
+    /**
+     * Helper to update room membership according to action passed.
+     * This method will help reduce a large amount of duplications of code in different places in core.
+     *
+     * @param \stdClass $course The course object.
+     * @param array $userids The user ids to add to the communication room.
+     * @param string $memberaction The action to perform on the communication room.
+     */
+    public static function update_course_communication_room_membership(
+        \stdClass $course,
+        array $userids,
+        string $memberaction,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        // Validate communication api action.
+        $roomuserprovider = new \ReflectionClass(room_user_provider::class);
+        if (!$roomuserprovider->hasMethod($memberaction)) {
+            throw new \coding_exception('Invalid action provided.');
+        }
+
+        // Get the group mode for this course.
+        $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
+        $coursecontext = \context_course::instance(courseid: $course->id);
+
+        // If group mode is not set, then just handle the update normally for these users.
+        if ((int)$groupmode === NOGROUPS) {
+            $communication = self::load_by_course(
+                courseid: $course->id,
+                context: $coursecontext,
+            );
+            $communication->$memberaction($userids);
+        } else {
+            // If group mode is set, then handle the update for these users with repect to the group they are in.
+            $coursegroups = groups_get_all_groups(courseid: $course->id);
+
+            $usershandled = [];
+
+            // Filter all the users that have the capability to access all groups.
+            $allaccessgroupusers = self::get_users_has_access_to_all_groups(
+                userids: $userids,
+                courseid: $course->id,
+            );
+
+            foreach ($coursegroups as $coursegroup) {
+
+                // Get all group members.
+                $groupmembers = groups_get_members(groupid: $coursegroup->id, fields: 'u.id');
+                $groupmembers = array_column($groupmembers, 'id');
+
+                // Find the common user ids between the group members and incoming userids.
+                $groupuserstohandle = array_intersect(
+                    $groupmembers,
+                    $userids,
+                );
+
+                // Add users who have the capability to access this group (and haven't been added already).
+                foreach ($allaccessgroupusers as $allaccessgroupuser) {
+                    if (!in_array($allaccessgroupuser, $groupuserstohandle, true)) {
+                        $groupuserstohandle[] = $allaccessgroupuser;
+                    }
+                }
+
+                // Keep track of the users we have handled already.
+                $usershandled = array_merge($usershandled, $groupuserstohandle);
+
+                // Let's check if we need to add/remove members from room because of a role change.
+                // First, get all the instance users for this group.
+                $communication = self::load_by_group(
+                    groupid: $coursegroup->id,
+                    context: $coursecontext,
+                );
+                $instanceusers = $communication->get_processor()->get_all_userids_for_instance();
+
+                // The difference between the instance users and the group members are the ones we want to check.
+                $roomuserstocheck = array_diff(
+                    $instanceusers,
+                    $groupmembers
+                );
+
+                if (!empty($roomuserstocheck)) {
+                    // Check if they still have the capability to keep their access in the room.
+                    $userslostcaps = array_diff(
+                        $roomuserstocheck,
+                        self::get_users_has_access_to_all_groups(
+                            userids: $roomuserstocheck,
+                            courseid: $course->id,
+                        ),
+                    );
+                    // Remove users who no longer have the capability.
+                    if(!empty($userslostcaps)) {
+                        $communication->remove_members_from_room(userids: $userslostcaps);
+                    }
+                }
+
+                // Check if we have to add any room members who have gained the capability.
+                $usersgainedcaps = array_diff(
+                    $allaccessgroupusers,
+                    $instanceusers,
+                );
+
+                // If we have users, add them to the room.
+                if(!empty($usersgainedcaps)) {
+                    $communication->add_members_to_room(userids: $usersgainedcaps);
+                }
+
+                // Finally, trigger the update task for the users who need to be handled.
+                $communication->$memberaction($groupuserstohandle);
+            }
+
+            // If the user was not in any group, but an update/remove action was requested for the user,
+            // then the user must have had a role with the capablity, but made a regular user.
+            $usersnothandled = array_diff($userids, $usershandled);
+
+            // These users are not handled and not in any group, so logically these users lost their permission to stay in the room.
+            foreach ($coursegroups as $coursegroup) {
+                $communication = self::load_by_group(
+                    groupid: $coursegroup->id,
+                    context: $coursecontext,
+                );
+                $communication->remove_members_from_room(userids: $usersnothandled);
+            }
+        }
+    }
+
+    /**
+     * Get users with the capability to access all groups.
+     *
+     * @param array $userids user ids to check the permission
+     * @param int $courseid course id
+     * @return array of userids
+     */
+    public static function get_users_has_access_to_all_groups(
+        array $userids,
+        int $courseid
+    ): array {
+        $allgroupsusers = [];
+        $context = \context_course::instance(courseid: $courseid);
+
+        foreach ($userids as $userid) {
+            if (
+                has_capability(
+                    capability: 'moodle/site:accessallgroups',
+                    context: $context,
+                    user: $userid,
+                )
+            ) {
+                $allgroupsusers[] = $userid;
+            }
+        }
+
+        return $allgroupsusers;
     }
 }

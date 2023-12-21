@@ -19,20 +19,27 @@ namespace core_group\hook;
 use stdClass;
 
 /**
- * Hook before group creation.
+ * Hook after a member added to the group.
  *
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class group_created_pre implements \core\hook\described_hook {
+class group_membership_added implements \core\hook\described_hook {
 
+    /**
+     * Constructor for the hook.
+     *
+     * @param stdClass $groupinstance The group instance.
+     * @param array $userids The user id.
+     */
     public function __construct(
         protected stdClass $groupinstance,
+        protected array $userids,
     ) {}
 
     public static function get_hook_description(): string {
-        return 'Hook dispatched before a group is created.';
+        return 'Hook dispatched after a user is added to the group.';
     }
 
     public static function get_hook_tags(): array {
@@ -46,5 +53,14 @@ class group_created_pre implements \core\hook\described_hook {
      */
     public function get_instance(): stdClass {
         return $this->groupinstance;
+    }
+
+    /**
+     * Get the user id.
+     *
+     * @return array
+     */
+    public function get_userids(): array {
+        return $this->userids;
     }
 }

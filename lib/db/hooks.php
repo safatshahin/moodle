@@ -37,4 +37,12 @@ $callbacks = [
         'hook' => \core_group\hook\group_deleted_post::class,
         'callback' => \core_communication\hook_listener::class . '::delete_group_communication',
     ],
+    [
+        'hook' => \core_group\hook\group_membership_added::class,
+        'callback' => \core_communication\hook_listener::class . '::add_members_to_group_room',
+    ],
+    [
+        'hook' => \core_group\hook\group_membership_removed::class,
+        'callback' => \core_communication\hook_listener::class . '::remove_members_from_group_room',
+    ],
 ];

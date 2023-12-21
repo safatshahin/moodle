@@ -20,6 +20,7 @@ use stdClass;
 
 /**
  * Hook after group creation.
+ * This hook will be dispatched after the group is created and events are fired.
  *
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
@@ -27,6 +28,11 @@ use stdClass;
  */
 class group_created_post implements \core\hook\described_hook {
 
+    /**
+     * Constructor for the hook.
+     *
+     * @param stdClass $groupinstance The group instance.
+     */
     public function __construct(
         protected stdClass $groupinstance,
     ) {}

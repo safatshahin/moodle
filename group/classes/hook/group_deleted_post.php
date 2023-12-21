@@ -27,6 +27,11 @@ use stdClass;
  */
 class group_deleted_post implements \core\hook\described_hook {
 
+    /**
+     * Constructor for the hook.
+     *
+     * @param stdClass $groupinstance The group instance.
+     */
     public function __construct(
         protected stdClass $groupinstance,
     ) {}

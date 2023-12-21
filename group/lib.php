@@ -126,6 +126,12 @@ function groups_add_member($grouporid, $userorid, $component=null, $itemid=0) {
     $event->add_record_snapshot('groups', $group);
     $event->trigger();
 
+    // Dispatch the hook for a user added to the group.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_membership_added(
+        groupinstance: $group,
+        userids: [$userid],
+    ));
+
     return true;
 }
 
@@ -232,6 +238,12 @@ function groups_remove_member($grouporid, $userorid) {
     $event->add_record_snapshot('groups', $group);
     $event->trigger();
 
+    // Dispatch the hook for a user removed from the group.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_membership_removed(
+        groupinstance: $group,
+        userids: [$userid],
+    ));
+
     return true;
 }
 
@@ -272,9 +284,6 @@ function groups_create_group($data, $editform = false, $editoroptions = false) {
         $data->description = $data->description_editor['text'];
         $data->descriptionformat = $data->description_editor['format'];
     }
-
-    // Dispatch the hook for pre group creation actions.
-    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_created_pre($data));
 
     $data->id = $DB->insert_record('groups', $data);
 
@@ -584,11 +593,6 @@ function groups_delete_group($grouporid) {
             return true;
         }
     }
-
-    // Dispatch the hook for pre group delete actions.
-    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_deleted_pre($group));
-
-    $context = context_course::instance($group->courseid);
     // delete group calendar events
     $DB->delete_records('event', array('groupid'=>$groupid));
     //first delete usage in groupings_groups
