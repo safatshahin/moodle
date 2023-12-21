@@ -155,5 +155,74 @@ class hook_listener_test extends \advanced_testcase {
         $adhoctask = \core\task\manager::get_adhoc_tasks(delete_room_task::class);
         $this->assertCount(1, $adhoctask);
     }
+
+    /**
+     * Test add_members_to_group_room.
+     *
+     * @covers ::add_members_to_group_room
+     */
+    public function test_add_members_to_group_room(): void {
+        global $DB;
+
+        $course = $this->get_course(
+            extrafields: ['groupmode' => SEPARATEGROUPS],
+        );
+        $coursecontext = \context_course::instance(courseid: $course->id);
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        // Enrol user1 as teacher.
+        $teacherrole = $DB->get_record(
+            table: 'role',
+            conditions: ['shortname' => 'manager'],
+        );
+        $this->getDataGenerator()->enrol_user(
+            userid: $user1->id,
+            courseid: $course->id,
+        );
+        role_assign(
+            roleid: $teacherrole->id,
+            userid: $user1->id,
+            contextid: $coursecontext->id,
+        );
+
+        // Enrol user2 as student.
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        $this->getDataGenerator()->enrol_user(
+            userid: $user2->id,
+            courseid: $course->id,
+        );
+        role_assign(
+            roleid: $studentrole->id,
+            userid: $user2->id,
+            contextid: $coursecontext->id,
+        );
+
+        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
+
+        // Now check if the teacher is added to the group room as the teacher has access to all groups.
+        $context = \context_course::instance($course->id);
+        $groupcommunication = helper::load_by_group(
+            groupid: $group->id,
+            context: $context,
+        );
+
+        // Now the communication instance should not have the student added yet.
+        $this->assertNotContains(
+            needle: $user2->id,
+            haystack: $groupcommunication->get_processor()->get_all_userids_for_instance(),
+        );
+
+        groups_add_member(
+            grouporid: $group,
+            userorid: $user2,
+        );
+
+        // Now it should have the student.
+        $this->assertContains(
+            needle: $user2->id,
+            haystack: $groupcommunication->get_processor()->get_all_userids_for_instance(),
+        );
+    }
 }
 

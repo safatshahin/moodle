@@ -17,6 +17,7 @@
 namespace core_communication;
 
 use context_course;
+use core\hook\described_hook;
 use core_course\communication\communication_helper as course_communication_helper;
 use core_group\hook\group_created_post;
 use core_group\hook\group_deleted_post;
@@ -35,6 +36,24 @@ use stdClass;
 class hook_listener {
 
     /**
+     * Get the course and group object for the group hook.
+     *
+     * @param described_hook $hook The hook object.
+     * @return array
+     */
+    protected static function get_group_and_course_data_for_group_hook(described_hook $hook): array {
+        $group = $hook->get_instance();
+        $course = helper::get_course(
+            courseid: $group->courseid,
+        );
+
+        return [
+            $group,
+            $course,
+        ];
+    }
+
+    /**
      * Communication api call to create room for a group if course has group mode enabled.
      *
      * @param group_created_post $hook The group created hook.
@@ -42,7 +61,7 @@ class hook_listener {
     public static function create_group_communication(
         group_created_post $hook,
     ): void {
-        [$group, $course] = helper::get_group_and_course_data_for_group_hook(
+        [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
         );
 
@@ -91,7 +110,7 @@ class hook_listener {
     public static function update_group_communication(
         group_updated $hook,
     ): void {
-        [$group, $course] = helper::get_group_and_course_data_for_group_hook(
+        [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
         );
 
@@ -126,7 +145,7 @@ class hook_listener {
     public static function delete_group_communication(
         group_deleted_post $hook
     ): void {
-        [$group, $course] = helper::get_group_and_course_data_for_group_hook(
+        [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
         );
 
@@ -151,7 +170,7 @@ class hook_listener {
     public static function add_members_to_group_room(
         group_membership_added $hook,
     ): void {
-        [$group, $course] = helper::get_group_and_course_data_for_group_hook(
+        [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
         );
 
@@ -178,7 +197,7 @@ class hook_listener {
     public static function remove_members_from_group_room(
         group_membership_removed $hook,
     ): void {
-        [$group, $course] = helper::get_group_and_course_data_for_group_hook(
+        [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
         );
 

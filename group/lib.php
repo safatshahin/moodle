@@ -593,6 +593,9 @@ function groups_delete_group($grouporid) {
             return true;
         }
     }
+
+    $context = context_course::instance($group->courseid);
+
     // delete group calendar events
     $DB->delete_records('event', array('groupid'=>$groupid));
     //first delete usage in groupings_groups

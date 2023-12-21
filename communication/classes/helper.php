@@ -111,24 +111,6 @@ class helper {
     }
 
     /**
-     * Get the course and group object for the group hook.
-     *
-     * @param described_hook $hook The hook object.
-     * @return array
-     */
-    public static function get_group_and_course_data_for_group_hook(described_hook $hook): array {
-        $group = $hook->get_instance();
-        $course = \core_communication\helper::get_course(
-            courseid: $group->courseid,
-        );
-
-        return [
-            'group' => $group,
-            'course' => $course,
-        ];
-    }
-
-    /**
      * Helper to update room membership according to action passed.
      * This method will help reduce a large amount of duplications of code in different places in core.
      *
