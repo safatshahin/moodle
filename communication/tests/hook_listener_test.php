@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_group\communication;
+namespace core_communication;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -22,24 +22,22 @@ require_once(__DIR__ . '/../../../communication/tests/communication_test_helper_
 require_once(__DIR__ . '/../../../communication/provider/matrix/tests/matrix_test_helper_trait.php');
 
 use communication_matrix\matrix_test_helper_trait;
-use core_communication\communication_test_helper_trait;
 use core_communication\task\add_members_to_room_task;
 use core_communication\task\create_and_configure_room_task;
 use core_communication\task\delete_room_task;
-use core_communication\task\remove_members_from_room;
 use core_communication\task\update_room_task;
 use core_group\communication\communication_helper as group_communication_helper;
 use core_communication\processor as communication_processor;
 
 /**
- * Test communication helper and related methods for groups.
+ * Test communication hook listeners.
  *
- * @package    core_group
+ * @package    core_communication
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_group\communication\communication_helper
+ * @coversDefaultClass \core_communication\hook_listener
  */
-class group_communication_helper_test extends \advanced_testcase {
+class hook_listener_test extends \advanced_testcase {
 
     use communication_test_helper_trait;
     use matrix_test_helper_trait;
@@ -49,30 +47,6 @@ class group_communication_helper_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->setup_communication_configs();
         $this->initialise_mock_server();
-    }
-
-    /**
-     * Test load_by_group.
-     *
-     * @covers ::load_by_group
-     */
-    public function test_load_by_group(): void {
-
-        // As communication is created by default.
-        $course = $this->get_course(
-            extrafields: ['groupmode' => SEPARATEGROUPS],
-        );
-        $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
-        $context = \context_course::instance(courseid: $course->id);
-
-        $groupcommunication = group_communication_helper::load_by_group(
-            groupid: $group->id,
-            context: $context,
-        );
-        $this->assertInstanceOf(
-            expected: communication_processor::class,
-            actual: $groupcommunication->get_processor(),
-        );
     }
 
     /**
@@ -183,3 +157,4 @@ class group_communication_helper_test extends \advanced_testcase {
         $this->assertCount(1, $adhoctask);
     }
 }
+
