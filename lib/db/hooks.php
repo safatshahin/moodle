@@ -45,4 +45,24 @@ $callbacks = [
         'hook' => \core_group\hook\group_membership_removed::class,
         'callback' => \core_communication\hook_listener::class . '::remove_members_from_group_room',
     ],
+    [
+        'hook' => \core_course\hook\course_created_post::class,
+        'callback' => \core_communication\hook_listener::class . '::create_course_communication',
+    ],
+    [
+        'hook' => \core_course\hook\course_updated::class,
+        'callback' => \core_communication\hook_listener::class . '::update_course_communication',
+    ],
+    [
+        'hook' => \core_course\hook\course_deleted_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::delete_course_communication',
+    ],
+    [
+        'hook' => \core_user\hook\user_updated_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::update_user_room_memberships',
+    ],
+    [
+        'hook' => \core_user\hook\user_deleted_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::delete_user_room_memberships',
+    ],
 ];

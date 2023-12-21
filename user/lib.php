@@ -157,8 +157,13 @@ function user_update_user($user, $updatepassword = true, $triggerevent = true) {
         $user = (object) $user;
     }
 
-    // Communication api update for user.
-    core_user\communication\communication_helper::update_user_room_memberships($user);
+    // Dispatch the hook for pre user update actions.
+    \core\hook\manager::get_instance()->dispatch(
+        new \core_user\hook\user_updated_pre(
+            user: $user,
+            currentuserdata: $DB->get_record('user', ['id' => $user->id]),
+        )
+    );
 
     // Check username.
     if (isset($user->username)) {

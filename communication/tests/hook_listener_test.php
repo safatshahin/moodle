@@ -224,5 +224,216 @@ class hook_listener_test extends \advanced_testcase {
             haystack: $groupcommunication->get_processor()->get_all_userids_for_instance(),
         );
     }
+
+    /**
+     * Test if the course instances are created properly for course default provider.
+     *
+     * @covers ::create_course_communication
+     */
+    public function test_course_default_provider(): void {
+        $defaultprovider = 'communication_matrix';
+        // Set the default communication for course.
+        set_config(
+            name: 'coursecommunicationprovider',
+            value: $defaultprovider,
+            plugin: 'moodlecourse',
+        );
+
+        // Test that the default communication is created for course mode.
+        $course = $this->get_course();
+        $coursecontext = \context_course::instance(courseid: $course->id);
+        $coursecommunication = helper::load_by_course(
+            courseid: $course->id,
+            context: $coursecontext,
+        );
+        $this->assertEquals(
+            expected: $defaultprovider,
+            actual: $coursecommunication->get_provider(),
+        );
+        $this->assertEquals(
+            expected: 'core_course',
+            actual: $coursecommunication->get_processor()->get_component(),
+        );
+        $this->assertEquals(
+            expected: $course->id,
+            actual: $coursecommunication->get_processor()->get_instance_id(),
+        );
+    }
+
+    /**
+     * Test update_course_communication.
+     *
+     * @covers ::update_course_communication
+     * @covers ::update_group_communication_instances
+     * @covers ::get_enrolled_users_for_course
+     * @covers ::create_course_communication
+     */
+    public function test_update_course_communication(): void {
+        global $DB;
+
+        // Set up the data with course, group, user etc.
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->get_course();
+        $group = $this->getDataGenerator()->create_group(record: ['courseid' => $course->id]);
+        $coursecontext = \context_course::instance(courseid: $course->id);
+        $teacherrole = $DB->get_record(
+            table: 'role',
+            conditions: ['shortname' => 'teacher'],
+        );
+        $this->getDataGenerator()->enrol_user(
+            userid: $user->id,
+            courseid: $course->id,
+        );
+        role_assign(
+            roleid: $teacherrole->id,
+            userid: $user->id,
+            contextid: $coursecontext->id,
+        );
+        groups_add_member(
+            grouporid: $group->id,
+            userorid: $user->id,
+        );
+
+        // Now test that there is communication instances for the course and the user added for that instance.
+        $coursecommunication = helper::load_by_course(
+            courseid: $course->id,
+            context: $coursecontext,
+        );
+        $this->assertInstanceOf(
+            expected: communication_processor::class,
+            actual: $coursecommunication->get_processor(),
+        );
+
+        // Check the user is added for course communication instance.
+        $courseusers = $coursecommunication->get_processor()->get_all_userids_for_instance();
+        $courseusers = reset($courseusers);
+        $this->assertEquals(
+            expected: $user->id,
+            actual: $courseusers,
+        );
+
+        // Group should not have any instance yet.
+        $groupcommunication = helper::load_by_group(
+            groupid: $group->id,
+            context: $coursecontext,
+        );
+        $this->assertNull(actual: $groupcommunication->get_processor());
+
+        // Now update the course.
+        $course->groupmode = SEPARATEGROUPS;
+        $course->selectedcommunication = 'communication_matrix';
+        update_course(data: $course);
+
+        // Now there should be a group communication instance.
+        $groupcommunication->reload();
+        $this->assertInstanceOf(
+            expected: communication_processor::class,
+            actual: $groupcommunication->get_processor(),
+        );
+
+        // The course communication instance must be active.
+        $coursecommunication->reload();
+        $this->assertInstanceOf(
+            expected: communication_processor::class,
+            actual: $coursecommunication->get_processor(),
+        );
+
+        // All the course instance users must be marked as deleted.
+        $coursecommunication->reload();
+        $courseusers = $coursecommunication->get_processor()->get_all_delete_flagged_userids();
+        $courseusers = reset($courseusers);
+        $this->assertEquals(
+            expected: $user->id,
+            actual: $courseusers,
+        );
+
+        // Group instance should have the user.
+        $groupusers = $groupcommunication->get_processor()->get_all_userids_for_instance();
+        $groupusers = reset($groupusers);
+        $this->assertEquals(
+            expected: $user->id,
+            actual: $groupusers,
+        );
+
+        // Now disable the communication instance for the course.
+        $course->selectedcommunication = communication_processor::PROVIDER_NONE;
+        update_course(data: $course);
+
+        // Now both course and group instance should be disabled.
+        $coursecommunication->reload();
+        $this->assertNull(actual: $coursecommunication->get_processor());
+
+        $groupcommunication->reload();
+        $this->assertNull(actual: $groupcommunication->get_processor());
+    }
+
+    /**
+     * Test create_course_communication_instance.
+     *
+     * @covers ::create_course_communication_instance
+     */
+    public function test_create_course_communication_instance(): void {
+        $course = $this->get_course();
+        $coursecontext = \context_course::instance(courseid: $course->id);
+        $coursecommunication = helper::load_by_course(
+            courseid: $course->id,
+            context: $coursecontext,
+        );
+
+        $processor = $coursecommunication->get_processor();
+        $this->assertEquals(
+            expected: 'communication_matrix',
+            actual: $processor->get_provider(),
+        );
+        $this->assertEquals(
+            expected: 'Sampleroom',
+            actual: $processor->get_room_name(),
+        );
+    }
+
+    /**
+     * Test delete_course_communication.
+     *
+     * @covers ::delete_course_communication
+     */
+    public function test_delete_course_communication(): void {
+        $course = $this->get_course();
+        delete_course(
+            courseorid: $course,
+            showfeedback: false,
+        );
+
+        $adhoctask = \core\task\manager::get_adhoc_tasks(delete_room_task::class);
+        $this->assertCount(1, $adhoctask);
+    }
+
+    /**
+     * Test update of room membership when user changes occur.
+     *
+     * @covers ::update_user_room_memberships
+     */
+    public function test_update_user_room_memberships(): void{
+        global $DB;
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->get_course();
+        $coursecontext = \context_course::instance($course->id);
+        $teacherrole = $DB->get_record('role', array('shortname' => 'teacher'));
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        role_assign($teacherrole->id, $user->id, $coursecontext->id);
+
+        $coursecommunication = helper::load_by_course($course->id, $coursecontext);
+        $courseusers = $coursecommunication->get_processor()->get_all_userids_for_instance();
+        $courseusers = reset($courseusers);
+        $this->assertEquals($user->id, $courseusers);
+
+        $user->suspended = 1;
+        user_update_user($user);
+
+        $coursecommunication->reload();
+        $courseusers = $coursecommunication->get_processor()->get_all_delete_flagged_userids();
+        $courseusers = reset($courseusers);
+        $this->assertEquals($user->id, $courseusers);
+    }
 }
 

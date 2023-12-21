@@ -2262,6 +2262,14 @@ function create_course($data, $editoroptions = NULL) {
 
     $event->trigger();
 
+    $data->id = $newcourseid;
+    // Dispatch the hook for post course create actions.
+    \core\hook\manager::get_instance()->dispatch(
+        new \core_course\hook\course_created_post(
+            course: $data,
+        )
+    );
+
     // Setup the blocks
     blocks_add_default_course_blocks($course);
 
@@ -2284,11 +2292,6 @@ function create_course($data, $editoroptions = NULL) {
     if (isset($data->tags)) {
         core_tag_tag::set_item_tags('core', 'course', $course->id, $context, $data->tags);
     }
-
-    // Set up communication.
-    $data->id = $newcourseid;
-    core_course\communication\communication_helper::create_course_communication_instance($data);
-
     // Save custom fields if there are any of them in the form.
     $handler = core_course\customfield\course_handler::create();
     // Make sure to set the handler's parent context first.
@@ -2421,16 +2424,6 @@ function update_course($data, $editoroptions = NULL) {
     // Purge course image cache in case if course image has been updated.
     \cache::make('core', 'course_image')->delete($data->id);
 
-    // Update the communication instance for the course.
-    $groupmode = $data->groupmode ?? get_course($data->id)->groupmode;
-    if ($changesincoursecat || $groupmode !== $oldcourse->groupmode) {
-        core_course\communication\communication_helper::update_course_communication(
-            course: $data,
-            oldcourse: $oldcourse,
-            changesincoursecat: $changesincoursecat,
-        );
-    }
-
     // update course format options with full course data
     course_get_format($data->id)->update_course_format_options($data, $oldcourse);
 
@@ -2475,6 +2468,15 @@ function update_course($data, $editoroptions = NULL) {
     ));
 
     $event->trigger();
+
+    // Dispatch the hook for post course update actions.
+    \core\hook\manager::get_instance()->dispatch(
+        new \core_course\hook\course_updated(
+            course: $data,
+            oldcourse: $oldcourse,
+            changeincoursecat: $changesincoursecat,
+        )
+    );
 
     if ($oldcourse->format !== $course->format) {
         // Remove all options stored for the previous format
@@ -5078,7 +5080,7 @@ function course_get_communication_instance_data(int $courseid): array {
 function course_update_communication_instance_data(stdClass $data): void {
     $data->id = $data->instanceid; // For correct use in update_course.
     $oldcourse = get_course($data->id);
-    core_course\communication\communication_helper::update_course_communication(
+    core_communication\helper::update_course_communication_instance(
         course: $data,
         oldcourse: $oldcourse,
         changesincoursecat: false,

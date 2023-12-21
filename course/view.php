@@ -291,7 +291,7 @@ echo $OUTPUT->header();
 
 // Show communication room status notification.
 if (has_capability('moodle/course:update', $context)) {
-    core_course\communication\communication_helper::get_course_communication_status_notification($course);
+    core_communication\helper::get_course_communication_status_notification($course);
 }
 
 if ($USER->editing == 1) {

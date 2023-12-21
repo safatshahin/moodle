@@ -19,11 +19,16 @@ namespace core_communication;
 use context_course;
 use core\hook\described_hook;
 use core_course\communication\communication_helper as course_communication_helper;
+use core_course\hook\course_created_post;
+use core_course\hook\course_deleted_pre;
+use core_course\hook\course_updated;
 use core_group\hook\group_created_post;
 use core_group\hook\group_deleted_post;
 use core_group\hook\group_membership_added;
 use core_group\hook\group_membership_removed;
 use core_group\hook\group_updated;
+use core_user\hook\user_deleted_pre;
+use core_user\hook\user_updated_pre;
 use stdClass;
 
 /**
@@ -217,211 +222,19 @@ class hook_listener {
     }
 
     /**
-     * Update course communication according to course data.
-     * Course can have course or group rooms. Group mode enabling will create rooms for groups.
+     * Create course communication instance.
      *
-     * @param stdClass $course The course data
-     * @param stdClass $oldcourse The old course data before the update
-     * @param bool $changesincoursecat Whether the course moved to a different category
+     * @param course_created_post $hook The course created hook.
      */
-    public static function update_course_communication(
-        stdClass $course,
-        stdClass $oldcourse,
-        bool $changesincoursecat
+    public static function create_course_communication(
+        course_created_post $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
             return;
         }
 
-        // Check if provider is selected.
-        $provider = $course->selectedcommunication ?? null;
-        // If the course moved to hidden category, set provider to none.
-        if ($changesincoursecat && empty($course->visible)) {
-            $provider = processor::PROVIDER_NONE;
-        }
-
-        // Get the course context.
-        $coursecontext = \context_course::instance(courseid: $course->id);
-        // Get the course image.
-        $courseimage = course_get_courseimage(course: $course);
-        // Get the course communication instance.
-        $coursecommunication = self::load_by_course(
-            courseid: $course->id,
-            context: $coursecontext,
-        );
-
-        // Attempt to get the communication provider if it wasn't provided in the data.
-        if (empty($provider)) {
-            $provider = $coursecommunication->get_provider();
-        }
-
-        // This nasty logic is here because of hide course doesn't pass anything in the data object.
-        if (!empty($course->communicationroomname)) {
-            $coursecommunicationroomname = $course->communicationroomname;
-        } else {
-            $coursecommunicationroomname = $course->fullname ?? $oldcourse->fullname;
-        }
-
-        // List of enrolled users for course communication.
-        $enrolledusers = self::get_enrolled_users_for_course(course: $course);
-
-        // Check for group mode, we will have to get the course data again as the group info is not always in the object.
-        $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
-
-        // If group mode is disabled, get the communication information for creating room for a course.
-        if ((int)$groupmode === NOGROUPS) {
-            // Remove all the members from active group rooms if there is any.
-            $coursegroups = groups_get_all_groups(courseid: $course->id);
-            foreach ($coursegroups as $coursegroup) {
-                $communication = groupcommunication_helper::load_by_group(
-                    groupid: $coursegroup->id,
-                    context: $coursecontext,
-                );
-                // Remove the members from the group room.
-                $communication->remove_all_members_from_room();
-                // Now delete the group room.
-                $communication->update_room(active: processor::PROVIDER_INACTIVE);
-            }
-
-            // Now create/update the course room.
-            $communication = self::load_by_course(
-                courseid: $course->id,
-                context: $coursecontext,
-            );
-            $communication->configure_room_and_membership_by_provider(
-                provider: $provider,
-                instance: $course,
-                communicationroomname: $coursecommunicationroomname,
-                users: $enrolledusers,
-                instanceimage: $courseimage,
-            );
-        } else {
-            // Update the group communication instances.
-            self::update_group_communication_instances(
-                course: $course,
-                provider: $provider,
-            );
-
-            // Remove all the members for the course room if instance available.
-            $communication = self::load_by_course(
-                courseid: $course->id,
-                context: $coursecontext,
-                provider: $provider === processor::PROVIDER_NONE ? null : $provider,
-            );
-            $communication->remove_all_members_from_room();
-            // Now update the course communication instance with the latest changes.
-            // We are not making room for this instance as it is a group mode enabled course.
-            // If provider is none, then we will make the room inactive, otherwise always active in group mode.
-            $communication->update_room(
-                active: $provider === processor::PROVIDER_NONE ? processor::PROVIDER_INACTIVE : processor::PROVIDER_ACTIVE,
-                communicationroomname: $coursecommunicationroomname,
-                avatar: $courseimage,
-                instance: $course,
-                queue: false,
-            );
-        }
-    }
-
-    /**
-     * Get the course communication status notification for course.
-     *
-     * @param \stdClass $course The course object.
-     */
-    public static function get_course_communication_status_notification(\stdClass $course): void {
-        // If the communication subsystem is not enabled then just ignore.
-        if (!api::is_available()) {
-            return;
-        }
-
-        // Get the group mode for this course.
-        $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
-        $coursecontext = \context_course::instance(courseid: $course->id);
-
-        // If group mode is not set then just handle the course communication for these users.
-        if ((int)$groupmode === NOGROUPS) {
-            $communication = self::load_by_course(
-                courseid: $course->id,
-                context: $coursecontext,
-            );
-            $communication->show_communication_room_status_notification();
-        } else {
-            // If group mode is set then handle the group communication rooms for these users.
-            $coursegroups = groups_get_all_groups(courseid: $course->id);
-            $numberofgroups = count($coursegroups);
-
-            // If no groups available, nothing to show.
-            if ($numberofgroups === 0) {
-                return;
-            }
-
-            $numberofreadygroups = 0;
-
-            foreach ($coursegroups as $coursegroup) {
-                $communication = groupcommunication_helper::load_by_group(
-                    groupid: $coursegroup->id,
-                    context: $coursecontext,
-                );
-                $roomstatus = $communication->get_communication_room_url() ? 'ready' : 'pending';
-                switch ($roomstatus) {
-                    case 'ready':
-                        $numberofreadygroups ++;
-                        break;
-                    case 'pending':
-                        $pendincommunicationobject = $communication;
-                        break;
-                }
-            }
-
-            if ($numberofgroups === $numberofreadygroups) {
-                $communication->show_communication_room_status_notification();
-            } else {
-                $pendincommunicationobject->show_communication_room_status_notification();
-            }
-        }
-    }
-
-    /**
-     * Delete course communication data and remove members.
-     * Course can have communication data if it is a group or a course.
-     * This action is important to perform even if the experimental feature is disabled.
-     *
-     * @param stdclass $course The course object.
-     */
-    public static function delete_course_communication(stdclass $course): void {
-        $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
-        $coursecontext = \context_course::instance(courseid: $course->id);
-
-        // If group mode is not set then just handle the course communication room.
-        if ((int)$groupmode === NOGROUPS) {
-            $communication = self::load_by_course(
-                courseid: $course->id,
-                context: $coursecontext,
-            );
-            $communication->delete_room();
-        } else {
-            // If group mode is set then handle the group communication rooms.
-            $coursegroups = groups_get_all_groups(courseid: $course->id);
-            foreach ($coursegroups as $coursegroup) {
-                $communication = \core_group\communication\communication_helper::load_by_group(
-                    groupid: $coursegroup->id,
-                    context: $coursecontext,
-                );
-                $communication->delete_room();
-            }
-        }
-    }
-
-    /**
-     * Create course communication instance.
-     *
-     * @param stdClass $course The course object.
-     */
-    public static function create_course_communication_instance(stdClass $course): void {
-        // If the communication subsystem is not enabled then just ignore.
-        if (!api::is_available()) {
-            return;
-        }
+        $course = $hook->get_instance();
 
         // Check for default provider config setting.
         $defaultprovider = get_config(
@@ -451,8 +264,8 @@ class hook_listener {
         // Communication api call for course communication.
         $communication = \core_communication\api::load_by_instance(
             context: $coursecontext,
-            component: self::COURSE_COMMUNICATION_COMPONENT,
-            instancetype: self::COURSE_COMMUNICATION_INSTANCETYPE,
+            component: helper::COURSE_COMMUNICATION_COMPONENT,
+            instancetype: helper::COURSE_COMMUNICATION_INSTANCETYPE,
             instanceid: $course->id,
             provider: $provider,
         );
@@ -465,12 +278,12 @@ class hook_listener {
 
         // Communication api call for group communication.
         if ($creategrouprooms) {
-            self::update_group_communication_instances(
+            helper::update_group_communication_instances_for_course(
                 course: $course,
                 provider: $provider,
             );
         } else {
-            $enrolledusers = self::get_enrolled_users_for_course(course: $course);
+            $enrolledusers = helper::get_enrolled_users_for_course(course: $course);
             $communication->add_members_to_room(
                 userids: $enrolledusers,
                 queue: false,
@@ -479,45 +292,140 @@ class hook_listener {
     }
 
     /**
-     * Update the group communication instances.
+     * Update the course communication instance.
      *
-     * @param stdClass $course The course object.
-     * @param string $provider The provider name.
+     * @param course_updated $hook The course updated hook.
      */
-    public static function update_group_communication_instances(
-        stdClass $course,
-        string $provider,
+    public static function update_course_communication(
+        course_updated $hook,
     ): void {
-        $coursegroups = groups_get_all_groups(courseid: $course->id);
-        $coursecontext = \context_course::instance(courseid: $course->id);
-        $allaccessgroupusers = self::get_users_has_access_to_all_groups(
-            userids: self::get_enrolled_users_for_course(course: $course),
-            courseid: $course->id,
-        );
-
-        foreach ($coursegroups as $coursegroup) {
-            $groupuserstoadd = array_column(
-                groups_get_members(groupid: $coursegroup->id),
-                'id',
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+        $course = $hook->get_instance();
+        $oldcourse = $hook->get_old_instance();
+        $changeincoursecat = $hook->is_course_category_changed();
+        $groupmode = $course->groupmode ?? get_course($course->id)->groupmode;
+        if ($changeincoursecat || $groupmode !== $oldcourse->groupmode) {
+            helper::update_course_communication_instance(
+                course: $course,
+                oldcourse: $oldcourse,
+                changesincoursecat: $changeincoursecat,
             );
+        }
+    }
 
-            foreach ($allaccessgroupusers as $allaccessgroupuser) {
-                if (!in_array($allaccessgroupuser, $groupuserstoadd, true)) {
-                    $groupuserstoadd[] = $allaccessgroupuser;
-                }
-            }
+    /**
+     * Delete course communication data and remove members.
+     * Course can have communication data if it is a group or a course.
+     * This action is important to perform even if the experimental feature is disabled.
+     *
+     * @param course_deleted_pre $hook The course deleted hook.
+     */
+    public static function delete_course_communication(
+        course_deleted_pre $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
 
-            // Now create/update the group room.
-            $communication = groupcommunication_helper::load_by_group(
-                groupid: $coursegroup->id,
+        $course = $hook->get_instance();
+        $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
+        $coursecontext = \context_course::instance(courseid: $course->id);
+
+        // If group mode is not set then just handle the course communication room.
+        if ((int)$groupmode === NOGROUPS) {
+            $communication = helper::load_by_course(
+                courseid: $course->id,
                 context: $coursecontext,
             );
-            $communication->configure_room_and_membership_by_provider(
-                provider: $provider,
-                instance: $course,
-                communicationroomname: $coursegroup->name,
-                users: $groupuserstoadd,
-            );
+            $communication->delete_room();
+        } else {
+            // If group mode is set then handle the group communication rooms.
+            $coursegroups = groups_get_all_groups(courseid: $course->id);
+            foreach ($coursegroups as $coursegroup) {
+                $communication = helper::load_by_group(
+                    groupid: $coursegroup->id,
+                    context: $coursecontext,
+                );
+                $communication->delete_room();
+            }
+        }
+    }
+
+    /**
+     * Update the room membership for the user updates.
+     *
+     * @param user_updated_pre $hook The user updated hook.
+     */
+    public static function update_user_room_memberships(
+        user_updated_pre $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $user = $hook->get_instance();
+        $currentuserrecord = $hook->get_old_instance();
+
+        // Get the user courses.
+        $usercourses = enrol_get_users_courses(userid: $user->id);
+
+        // If the user is suspended then remove the user from all the rooms.
+        // Otherwise add the user to all the rooms for the courses the user enrolled in.
+        if (!empty($currentuserrecord) && isset($user->suspended) && $currentuserrecord->suspended !== $user->suspended) {
+            // Decide the action for the communication api for the user.
+            $memberaction = ($user->suspended === 0) ? 'add_members_to_room' : 'remove_members_from_room';
+            foreach ($usercourses as $usercourse) {
+                helper::update_course_communication_room_membership(
+                    course: $usercourse,
+                    userids: [$user->id],
+                    memberaction: $memberaction,
+                );
+            }
+        }
+    }
+
+    /**
+     * Delete all room memberships for a user.
+     *
+     * @param user_deleted_pre $hook The user deleted hook.
+     */
+    public static function delete_user_room_memberships(
+        user_deleted_pre $hook,
+    ): void {
+        if (!api::is_available()) {
+            return;
+        }
+
+        $user = $hook->get_instance();
+
+        foreach (enrol_get_users_courses(userid: $user->id) as $course) {
+            $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
+            $coursecontext = \context_course::instance(courseid: $course->id);
+
+            if ((int)$groupmode === NOGROUPS) {
+                $communication = helper::load_by_course(
+                    courseid: $course->id,
+                    context: $coursecontext,
+                );
+                $communication->get_room_user_provider()->remove_members_from_room(userids: [$user->id]);
+                $communication->get_processor()->delete_instance_user_mapping(userids: [$user->id]);
+            } else {
+                // If group mode is set then handle the group communication rooms.
+                $coursegroups = groups_get_all_groups(courseid: $course->id);
+                foreach ($coursegroups as $coursegroup) {
+                    $communication = helper::load_by_group(
+                        groupid: $coursegroup->id,
+                        context: $coursecontext,
+                    );
+                    $communication->get_room_user_provider()->remove_members_from_room(userids: [$user->id]);
+                    $communication->get_processor()->delete_instance_user_mapping(userids: [$user->id]);
+                }
+            }
         }
     }
 }

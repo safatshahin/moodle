@@ -4089,6 +4089,13 @@ function delete_user(stdClass $user) {
         return false;
     }
 
+    // Dispatch the hook for pre user update actions.
+    \core\hook\manager::get_instance()->dispatch(
+        new \core_user\hook\user_deleted_pre(
+            user: $user,
+        )
+    );
+
     // Allow plugins to use this user object before we completely delete it.
     if ($pluginsfunction = get_plugins_with_function('pre_user_delete')) {
         foreach ($pluginsfunction as $plugintype => $plugins) {
@@ -4103,9 +4110,6 @@ function delete_user(stdClass $user) {
 
     // Keep a copy of user context, we need it for event.
     $usercontext = context_user::instance($user->id);
-
-    // Remove user from communication rooms immediately.
-    \core_user\communication\communication_helper::delete_user_room_memberships($user);
 
     // Delete all grades - backup is kept in grade_grades_history table.
     grade_user_delete($user->id);
@@ -5119,8 +5123,12 @@ function delete_course($courseorid, $showfeedback = true) {
         return false;
     }
 
-    // Remove communication related data, membership etc.
-    core_course\communication\communication_helper::delete_course_communication($course);
+    // Dispatch the hook for pre course delete actions.
+    \core\hook\manager::get_instance()->dispatch(
+        new \core_course\hook\course_deleted_pre(
+            course: $course,
+        )
+    );
 
     // Allow plugins to use this course before we completely delete it.
     if ($pluginsfunction = get_plugins_with_function('pre_course_delete')) {
