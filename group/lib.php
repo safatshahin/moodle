@@ -273,13 +273,13 @@ function groups_create_group($data, $editform = false, $editoroptions = false) {
         $data->descriptionformat = $data->description_editor['format'];
     }
 
+    // Dispatch the hook for pre group creation actions.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_created_pre($data));
+
     $data->id = $DB->insert_record('groups', $data);
 
     $handler = \core_group\customfield\group_handler::create();
     $handler->instance_form_save($data, true);
-
-    // Communication api call for group.
-    core_group\communication\communication_helper::create_group_communication(course: $course, group: $data);
 
     if ($editform and $editoroptions) {
         // Update description from editor with fixed files
@@ -325,6 +325,9 @@ function groups_create_group($data, $editform = false, $editoroptions = false) {
     $event = \core\event\group_created::create($params);
     $event->add_record_snapshot('groups', $group);
     $event->trigger();
+
+    // Dispatch the hook for post group creation actions.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_created_post($group));
 
     return $group->id;
 }
@@ -451,15 +454,6 @@ function groups_update_group($data, $editform = false, $editoroptions = false) {
     if ($editform and $editoroptions) {
         $data = file_postupdate_standard_editor($data, 'description', $editoroptions, $context, 'group', 'description', $data->id);
     }
-
-    $olddata = $DB->get_record('groups', ['id' => $data->id]);
-    // Communication api call for group.
-    core_group\communication\communication_helper::update_group_communication(
-        course: get_course($data->courseid),
-        group: $data,
-        oldgroup: $olddata,
-    );
-
     $DB->update_record('groups', $data);
 
     $handler = \core_group\customfield\group_handler::create();
@@ -521,6 +515,9 @@ function groups_update_group($data, $editform = false, $editoroptions = false) {
     $event = \core\event\group_updated::create($params);
     $event->add_record_snapshot('groups', $group);
     $event->trigger();
+
+    // Dispatch the hook for post group update actions.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_updated($group));
 
     return true;
 }
@@ -588,13 +585,10 @@ function groups_delete_group($grouporid) {
         }
     }
 
-    $context = context_course::instance($group->courseid);
+    // Dispatch the hook for pre group delete actions.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_deleted_pre($group));
 
-    // Communication api call to remove the group members from the room as well as potentially remove the room.
-    \core_group\communication\communication_helper::delete_group_communication(
-        course: get_course($group->courseid),
-        group: $group,
-    );
+    $context = context_course::instance($group->courseid);
     // delete group calendar events
     $DB->delete_records('event', array('groupid'=>$groupid));
     //first delete usage in groupings_groups
@@ -631,6 +625,9 @@ function groups_delete_group($grouporid) {
     $event = \core\event\group_deleted::create($params);
     $event->add_record_snapshot('groups', $group);
     $event->trigger();
+
+    // Dispatch the hook for post group delete actions.
+    \core\hook\manager::get_instance()->dispatch(new \core_group\hook\group_deleted_post($group));
 
     return true;
 }
