@@ -58,7 +58,7 @@ class group_membership_removed implements \core\hook\described_hook {
     /**
      * Get the user ids.
      *
-     * @return int
+     * @return array
      */
     public function get_userids(): array {
         return $this->userids;
