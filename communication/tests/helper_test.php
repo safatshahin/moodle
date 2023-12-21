@@ -16,14 +16,15 @@
 
 namespace core_communication;
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once(__DIR__ . '/../../../communication/tests/communication_test_helper_trait.php');
-require_once(__DIR__ . '/../../../communication/provider/matrix/tests/matrix_test_helper_trait.php');
-
 use communication_matrix\matrix_test_helper_trait;
 use core_communication\processor as communication_processor;
-use core_group\communication\communication_helper as group_communication_helper;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once(__DIR__ . '/../provider/matrix/tests/matrix_test_helper_trait.php');
+require_once(__DIR__ . '/communication_test_helper_trait.php');
+
+
 
 /**
  * Test communication helper methods.
@@ -58,7 +59,7 @@ class helper_test extends \advanced_testcase {
         $group = $this->getDataGenerator()->create_group(['courseid' => $course->id]);
         $context = \context_course::instance(courseid: $course->id);
 
-        $groupcommunication = group_communication_helper::load_by_group(
+        $groupcommunication = helper::load_by_group(
             groupid: $group->id,
             context: $context,
         );
