@@ -14,42 +14,51 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_user\hook;
+namespace core\hook\access;
 
-use stdClass;
+use context;
 
 /**
- * Hook before user deletion.
+ * Hook after a role is unassigned.
  *
- * @package    core_user
+ * @package    core
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_deleted_pre implements \core\hook\described_hook {
+class role_unassigned_post implements \core\hook\described_hook {
 
     /**
      * Constructor for the hook.
      *
-     * @param stdClass $user The user instance
      */
     public function __construct(
-        protected stdClass $user,
+        protected context $context,
+        protected int $userid,
     ) {}
 
     public static function get_hook_description(): string {
-        return 'Hook dispatched after a user is deleted.';
+        return 'Hook dispatched after a role is assigned.';
     }
 
     public static function get_hook_tags(): array {
-        return ['user'];
+        return ['role'];
     }
 
     /**
-     * Get the user instance.
+     * Get the context of the role assignment.
      *
-     * @return stdClass
+     * @return context
      */
-    public function get_instance(): stdClass {
-        return $this->user;
+    public function get_context(): context {
+        return $this->context;
+    }
+
+    /**
+     * Get the user id of the user.
+     *
+     * @return int
+     */
+    public function get_userid(): int {
+        return $this->userid;
     }
 }

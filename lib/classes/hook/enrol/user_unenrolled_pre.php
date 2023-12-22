@@ -14,42 +14,62 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_user\hook;
+namespace core\hook\enrol;
 
 use stdClass;
 
 /**
- * Hook before user deletion.
+ * Hook before a user is unenrolled from a course for an enrolment instance.
  *
- * @package    core_user
+ * @package    core
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_deleted_pre implements \core\hook\described_hook {
+class user_unenrolled_pre implements \core\hook\described_hook {
 
     /**
      * Constructor for the hook.
      *
-     * @param stdClass $user The user instance
+     * @param stdClass $enrolinstance The enrol instance.
+     * @param stdClass $userenrolmentinstance The user enrolment instance.
      */
     public function __construct(
-        protected stdClass $user,
+        protected stdClass $enrolinstance,
+        protected stdClass $userenrolmentinstance,
     ) {}
 
     public static function get_hook_description(): string {
-        return 'Hook dispatched after a user is deleted.';
+        return 'Hook dispatched before a user is unenrolled from a course.';
     }
 
     public static function get_hook_tags(): array {
-        return ['user'];
+        return ['enrol', 'user'];
     }
 
     /**
-     * Get the user instance.
+     * Get the group instance.
      *
      * @return stdClass
      */
     public function get_instance(): stdClass {
-        return $this->user;
+        return $this->enrolinstance;
+    }
+
+    /**
+     * Get user enrolment instance.
+     *
+     * @return stdClass
+     */
+    public function get_user_enrolment_instance(): stdClass {
+        return $this->userenrolmentinstance;
+    }
+
+    /**
+     * Get the user id.
+     *
+     * @return int
+     */
+    public function get_userid(): int {
+        return $this->userenrolmentinstance->userid;
     }
 }

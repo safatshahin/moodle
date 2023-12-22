@@ -2144,6 +2144,14 @@ abstract class enrol_plugin {
                     $ue->status, $ue->timestart, $ue->timeend);
         }
 
+        // Dispatch the hook for post enrol user actions.
+        \core\hook\manager::get_instance()->dispatch(
+            new \core\hook\enrol\user_enrolled_post(
+                enrolinstance: $instance,
+                userenrolmentinstance: $ue,
+            )
+        );
+
         if ($roleid) {
             // this must be done after the enrolment event so that the role_assigned event is triggered afterwards
             if ($this->roles_protected()) {
@@ -2158,13 +2166,6 @@ abstract class enrol_plugin {
             require_once("$CFG->libdir/gradelib.php");
             grade_recover_history_grades($userid, $courseid);
         }
-
-        // Add users to a communication room.
-        \core_course\communication\communication_helper::update_communication_room_membership(
-            course: get_course($courseid),
-            userids: [$userid],
-            memberaction: 'add_members_to_room'
-        );
 
         // reset current user enrolment caching
         if ($userid == $USER->id) {
@@ -2225,20 +2226,15 @@ abstract class enrol_plugin {
             return;
         }
 
-        // Add/remove users to/from communication room.
-        if (core_communication\api::is_available()) {
-            if (($statusmodified && ((int) $ue->status === 1)) ||
-                    ($timeendmodified && $ue->timeend !== 0 && (time() > $ue->timeend))) {
-                $communicationmemberaction = 'remove_members_from_room';
-            } else {
-                $communicationmemberaction = 'add_members_to_room';
-            }
-            \core_course\communication\communication_helper::update_communication_room_membership(
-                course: enrol_get_course_by_user_enrolment_id($ue->id),
-                userids: [$userid],
-                memberaction: $communicationmemberaction,
-            );
-        }
+        // Dispatch the hook for pre user enrolment update actions.
+        \core\hook\manager::get_instance()->dispatch(
+            new \core\hook\enrol\user_enrolment_updated_pre(
+                enrolinstance: $instance,
+                userenrolmentinstance: $ue,
+                statusmodified: $statusmodified,
+                timeendmodified: $timeendmodified,
+            )
+        );
 
         $ue->modifierid = $USER->id;
         $ue->timemodified = time();
@@ -2291,11 +2287,12 @@ abstract class enrol_plugin {
             return;
         }
 
-        // Remove users from a communication room.
-        \core_course\communication\communication_helper::update_communication_room_membership(
-            course: get_course($courseid),
-            userids: [$userid],
-            memberaction: 'remove_members_from_room',
+        // Dispatch the hook for pre user unenrolment actions.
+        \core\hook\manager::get_instance()->dispatch(
+            new \core\hook\enrol\user_unenrolled_pre(
+                enrolinstance: $instance,
+                userenrolmentinstance: $ue,
+            )
         );
 
         // Remove all users groups linked to this enrolment instance.
@@ -2349,14 +2346,6 @@ abstract class enrol_plugin {
                     )
                 );
         $event->trigger();
-
-        // Remove users from a communication room.
-        \core_course\communication\communication_helper::update_communication_room_membership(
-            course: get_course($courseid),
-            userids: [$userid],
-            memberaction: 'remove_members_from_room'
-        );
-
         // User enrolments have changed, so mark user as dirty.
         mark_user_dirty($userid);
 
@@ -2712,6 +2701,14 @@ abstract class enrol_plugin {
         $instance->status = $newstatus;
         $DB->update_record('enrol', $instance);
 
+        // Dispatch the hook for post enrol status update actions.
+        \core\hook\manager::get_instance()->dispatch(
+            new \core\hook\enrol\enrol_instance_status_updated_post(
+                enrolinstance: $instance,
+                newstatus: $newstatus,
+            )
+        );
+
         $context = context_course::instance($instance->courseid);
         \core\event\enrol_instance_updated::create_from_record($instance)->trigger();
 
@@ -2728,22 +2725,17 @@ abstract class enrol_plugin {
      * @param string $action The update action being performed
      * @param stdClass $course The course object
      * @return void
+     * @deprecated Since Moodle 4.4.0.
+     * @see \core_communication\hook_listener::update_communication_memberships_for_enrol_status_change()
+     * @todo final deprecation. To be removed in Moodle 4.8.
+     *
      */
     public function update_communication(int $enrolmentinstanceid, string $action, stdClass $course): void {
-        global $DB;
-        // Get enrolled instance users.
-        $instanceusers = $DB->get_records('user_enrolments', ['enrolid' => $enrolmentinstanceid, 'status' => 0]);
-        $enrolledusers = [];
-
-        foreach ($instanceusers as $user) {
-            $enrolledusers[] = $user->userid;
-        }
-
-        \core_course\communication\communication_helper::update_communication_room_membership(
-            course: $course,
-            userids: $enrolledusers,
-            memberaction: $action,
-        );
+        debugging('Use of method update_communication is deprecated. This feature has been moved to
+        core_communication as a part of hooks api implementation so that plugins or core does not need to call this method anymore.
+        Method update_communication_memberships_for_enrol_status_change method in communication/classes/hook_listener.php
+        now handles all the operations related to this method using hooks callback recorded in lib/db/hooks.php.', DEBUG_DEVELOPER);
+        return;
     }
 
     /**
@@ -2758,6 +2750,13 @@ abstract class enrol_plugin {
         if ($instance->enrol !== $name) {
             throw new coding_exception('invalid enrol instance!');
         }
+
+        // Dispatch the hook for pre enrol instance delete actions.
+        \core\hook\manager::get_instance()->dispatch(
+            new \core\hook\enrol\enrol_instance_deleted_pre(
+                enrolinstance: $instance,
+            )
+        );
 
         //first unenrol all users
         $participants = $DB->get_recordset('user_enrolments', array('enrolid'=>$instance->id));

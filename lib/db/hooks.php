@@ -65,4 +65,32 @@ $callbacks = [
         'hook' => \core_user\hook\user_deleted_pre::class,
         'callback' => \core_communication\hook_listener::class . '::delete_user_room_memberships',
     ],
+    [
+        'hook' => \core\hook\access\role_assigned_post::class,
+        'callback' => \core_communication\hook_listener::class . '::update_user_membership_for_role_changes',
+    ],
+    [
+        'hook' => \core\hook\access\role_unassigned_post::class,
+        'callback' => \core_communication\hook_listener::class . '::update_user_membership_for_role_changes',
+    ],
+    [
+        'hook' => \core\hook\enrol\enrol_instance_status_updated_post::class,
+        'callback' => \core_communication\hook_listener::class . '::update_communication_memberships_for_enrol_status_change',
+    ],
+    [
+        'hook' => \core\hook\enrol\enrol_instance_deleted_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::remove_communication_memberships_for_enrol_instance_deletion',
+    ],
+    [
+        'hook' => \core\hook\enrol\user_enrolled_post::class,
+        'callback' => \core_communication\hook_listener::class . '::add_communication_membership_for_enrolled_user',
+    ],
+    [
+        'hook' => \core\hook\enrol\user_enrolment_updated_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::update_communication_membership_for_updated_user_enrolment',
+    ],
+    [
+        'hook' => \core\hook\enrol\user_unenrolled_pre::class,
+        'callback' => \core_communication\hook_listener::class . '::remove_communication_membership_for_unenrolled_user',
+    ],
 ];

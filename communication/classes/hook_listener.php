@@ -17,7 +17,14 @@
 namespace core_communication;
 
 use context_course;
+use core\hook\access\role_assigned_post;
 use core\hook\described_hook;
+use core\hook\enrol\enrol_instance_deleted_pre;
+use core\hook\enrol\enrol_instance_status_updated_post;
+use core\hook\enrol\enrol_status_updated_post;
+use core\hook\enrol\user_enrolled_post;
+use core\hook\enrol\user_enrolment_updated_pre;
+use core\hook\enrol\user_unenrolled_pre;
 use core_course\communication\communication_helper as course_communication_helper;
 use core_course\hook\course_created_post;
 use core_course\hook\course_deleted_pre;
@@ -29,7 +36,7 @@ use core_group\hook\group_membership_removed;
 use core_group\hook\group_updated;
 use core_user\hook\user_deleted_pre;
 use core_user\hook\user_updated_pre;
-use stdClass;
+use mod_assign\external\start_submission;
 
 /**
  * Hook listener for communication.
@@ -397,6 +404,7 @@ class hook_listener {
     public static function delete_user_room_memberships(
         user_deleted_pre $hook,
     ): void {
+        // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
             return;
         }
@@ -427,5 +435,204 @@ class hook_listener {
                 }
             }
         }
+    }
+
+    /**
+     * Update the room membership of the user for role assigned in a course.
+     *
+     * @param role_assigned_post $hook
+     */
+    public static function update_user_membership_for_role_changes(
+        role_assigned_post $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $context = $hook->get_context();
+        if ($coursecontext = $context->get_course_context(strict: false)) {
+            helper::update_course_communication_room_membership(
+                course: get_course(courseid: $coursecontext->instanceid),
+                userids: [$hook->get_userid()],
+                memberaction: 'update_room_membership',
+            );
+        }
+    }
+
+    /**
+     * Update the communication memberships for enrol status change.
+     *
+     * @param enrol_instance_status_updated_post $hook The enrol status updated hook.
+     */
+    public static function update_communication_memberships_for_enrol_status_change(
+        enrol_instance_status_updated_post $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $enrolinstance = $hook->get_instance();
+        // No need to do anything for guest instances.
+        if ($enrolinstance->enrol === 'guest') {
+            return;
+        }
+
+        $newstatus = $hook->get_new_enrol_status();
+        // Check if a valid status is given.
+        if (
+            $newstatus !== ENROL_INSTANCE_ENABLED ||
+            $newstatus !== ENROL_INSTANCE_DISABLED
+        ) {
+            return;
+        }
+
+        // Check if the status provided is valid.
+        switch ($newstatus) {
+            case ENROL_INSTANCE_ENABLED:
+                $action = 'add_members_to_room';
+                break;
+            case ENROL_INSTANCE_DISABLED:
+                $action = 'remove_members_from_room';
+                break;
+            default:
+                return;
+        }
+
+        global $DB;
+        $instanceusers = $DB->get_records(
+            table: 'user_enrolments',
+            conditions: ['enrolid' => $enrolinstance->id,'status' => ENROL_USER_ACTIVE],
+        );
+        $enrolledusers = array_column($instanceusers, 'userid');
+        helper::update_course_communication_room_membership(
+            course: get_course(courseid: $enrolinstance->courseid),
+            userids: $enrolledusers,
+            memberaction: $action,
+        );
+    }
+
+    /**
+     * Remove the communication instance memberships when an enrolment instance is deleted.
+     *
+     * @param enrol_instance_deleted_pre $hook The enrol instance deleted hook.
+     */
+    public static function remove_communication_memberships_for_enrol_instance_deletion(
+        enrol_instance_deleted_pre $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $enrolinstance = $hook->get_instance();
+        // No need to do anything for guest instances.
+        if ($enrolinstance->enrol === 'guest') {
+            return;
+        }
+
+        global $DB;
+        $instanceusers = $DB->get_records(
+            table: 'user_enrolments',
+            conditions: ['enrolid' => $enrolinstance->id,'status' => ENROL_USER_ACTIVE],
+        );
+        $enrolledusers = array_column($instanceusers, 'userid');
+        helper::update_course_communication_room_membership(
+            course: get_course(courseid: $enrolinstance->courseid),
+            userids: $enrolledusers,
+            memberaction: 'remove_members_from_room',
+        );
+    }
+
+    /**
+     * Add communication instance membership for an enrolled user.
+     *
+     * @param user_enrolled_post $hook The user enrolled hook.
+     */
+    public static function add_communication_membership_for_enrolled_user(
+        user_enrolled_post $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $enrolinstance = $hook->get_instance();
+        // No need to do anything for guest instances.
+        if ($enrolinstance->enrol === 'guest') {
+            return;
+        }
+
+        helper::update_course_communication_room_membership(
+            course: get_course($enrolinstance->courseid),
+            userids: [$hook->get_userid()],
+            memberaction: 'add_members_to_room',
+        );
+    }
+
+    /**
+     * Update the communication instance membership for the user enrolment updates.
+     *
+     * @param user_enrolment_updated_pre $hook The user enrolment updated hook.
+     */
+    public static function update_communication_membership_for_updated_user_enrolment(
+        user_enrolment_updated_pre $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $enrolinstance = $hook->get_instance();
+        // No need to do anything for guest instances.
+        if ($enrolinstance->enrol === 'guest') {
+            return;
+        }
+
+        $userenrolmentinstance = $hook->get_user_enrolment_instance();
+        $statusmodified = $hook->is_status_modified();
+        $timeendmodified = $hook->is_timeend_modified();
+
+        if (
+            ($statusmodified && ((int) $userenrolmentinstance->status === 1)) ||
+            ($timeendmodified && $userenrolmentinstance->timeend !== 0 && (time() > $userenrolmentinstance->timeend))
+        ) {
+            $action = 'remove_members_from_room';
+        } else {
+            $action = 'add_members_to_room';
+        }
+
+        helper::update_course_communication_room_membership(
+            course: get_course($enrolinstance->courseid),
+            userids: [$hook->get_userid()],
+            memberaction: $action,
+        );
+    }
+
+    /**
+     * Remove communication instance membership for an enrolled user.
+     *
+     * @param user_unenrolled_pre $hook The user unenrolled hook.
+     */
+    public static function remove_communication_membership_for_unenrolled_user(
+        user_unenrolled_pre $hook,
+    ): void {
+        // If the communication subsystem is not enabled then just ignore.
+        if (!api::is_available()) {
+            return;
+        }
+
+        $enrolinstance = $hook->get_instance();
+        // No need to do anything for guest instances.
+        if ($enrolinstance->enrol === 'guest') {
+            return;
+        }
+
+        helper::update_course_communication_room_membership(
+            course: get_course($enrolinstance->courseid),
+            userids: [$hook->get_userid()],
+            memberaction: 'remove_members_from_room',
+        );
     }
 }

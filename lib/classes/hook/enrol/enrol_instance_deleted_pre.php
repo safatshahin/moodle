@@ -14,42 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_user\hook;
+namespace core\hook\enrol;
 
 use stdClass;
 
 /**
- * Hook before user deletion.
+ * Hook before enrolment instance is deleted.
  *
- * @package    core_user
+ * @package    core
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_deleted_pre implements \core\hook\described_hook {
+class enrol_instance_deleted_pre implements \core\hook\described_hook {
 
     /**
      * Constructor for the hook.
      *
-     * @param stdClass $user The user instance
+     * @param stdClass $enrolinstance The enrol instance.
      */
     public function __construct(
-        protected stdClass $user,
+        protected stdClass $enrolinstance,
     ) {}
 
     public static function get_hook_description(): string {
-        return 'Hook dispatched after a user is deleted.';
+        return 'Hook dispatched after an enrolment instance is deleted.';
     }
 
     public static function get_hook_tags(): array {
-        return ['user'];
+        return ['enrol'];
     }
 
     /**
-     * Get the user instance.
+     * Get the group instance.
      *
      * @return stdClass
      */
     public function get_instance(): stdClass {
-        return $this->user;
+        return $this->enrolinstance;
     }
 }

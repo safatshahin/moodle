@@ -43,7 +43,7 @@ class user_updated_pre implements \core\hook\described_hook {
     }
 
     public static function get_hook_tags(): array {
-        return ['course'];
+        return ['user'];
     }
 
     /**
