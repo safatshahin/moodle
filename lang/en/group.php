@@ -139,6 +139,11 @@ $string['groupspreview'] = 'Groups preview';
 $string['groupsseparate'] = 'Separate groups';
 $string['groupsvisible'] = 'Visible groups';
 $string['grouptemplate'] = 'Group @';
+$string['hook_group_created_post'] = 'Hook dispatched after a group is created.';
+$string['hook_group_deleted_post'] = 'Hook dispatched after a group is deleted.';
+$string['hook_group_member_added'] = 'Hook dispatched after a group member is added.';
+$string['hook_group_member_removed'] = 'Hook dispatched after a group member is removed.';
+$string['hook_group_updated_post'] = 'Hook dispatched after a group is updated.';
 $string['importgroups'] = 'Import groups';
 $string['importgroups_help'] = 'Groups may be imported via text file. The format of the file should be as follows:
 
