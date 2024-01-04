@@ -23,6 +23,8 @@
  */
 
 $string['countparticipantsfound'] = '{$a} participants found';
+$string['hook_user_deleted_pre'] = 'Hook dispatched before a user is deleted.';
+$string['hook_user_updated_pre'] = 'Hook dispatched before a user is updated.';
 $string['moodlenetprofile'] = 'MoodleNet profile ID';
 $string['moodlenetprofile_help'] = 'Your MoodleNet profile ID links your MoodleNet profile with this site.';
 $string['placeholdertype'] = 'Type...';
