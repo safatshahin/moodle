@@ -599,10 +599,10 @@ class communication_feature implements
         $currentuserpowerlevels = (array) $currentpowerlevels->users ?? [];
 
         // Ensure each user entry is an array.
-        $currentuserpowerlevels = array_map(
-            fn ($user) => (array) $user,
-            $currentuserpowerlevels,
-        );
+        // $currentuserpowerlevels = array_map(
+        //     static fn ($user) => (array) $user,
+        //     $currentuserpowerlevels,
+        // );
 
         // Get all the current users who need to be in the room.
         $userlist = $this->processor->get_all_userids_for_instance();
@@ -647,6 +647,7 @@ class communication_feature implements
 
 
         // Update the power levels for the room.
+        var_dump($newuserpowerlevels);
         $this->matrixapi->update_room_power_levels(
             roomid: $this->get_room_id(),
             users: $newuserpowerlevels,
@@ -662,10 +663,7 @@ class communication_feature implements
     private function get_users_with_custom_power_level(array $users): array {
         return array_filter(
             $users,
-            function ($user): bool {
-                // Isolate the level value.
-                $level = array_values($user);
-                $level = reset($level);
+            function ($level): bool {
                 switch ($level) {
                     case matrix_constants::POWER_LEVEL_DEFAULT:
                     case matrix_constants::POWER_LEVEL_MOODLE_SITE_ADMIN:
