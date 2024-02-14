@@ -608,6 +608,7 @@ $string['notavailabletostudents'] = 'Note: This quiz is currently not available 
 $string['notenoughrandomquestions'] = 'There are not enough questions in category {$a->category} to create the question {$a->name} ({$a->id}).';
 $string['notenoughsubquestions'] = 'Not enough sub-questions have been defined!<br />Do you want to go back and fix this question?';
 $string['notifyattemptsgradedtask'] = 'Send quiz attempt graded notifications';
+$string['notify_upcoming_quiz_open'] = 'Send upcoming quiz open notifications';
 $string['notimedependentitems'] = 'Time dependent items are not currently supported by the quiz module. As a work around, set a time limit for the whole quiz. Do you wish to choose a different item (or use the current item regardless)?';
 $string['notyetgraded'] = 'Not yet graded';
 $string['notyetviewed'] = 'Not yet viewed';

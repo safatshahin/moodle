@@ -12,6 +12,7 @@
         <FIELD NAME="intro" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Quiz introduction text."/>
         <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Quiz intro text format."/>
         <FIELD NAME="timeopen" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz opens. (0 = no restriction.)"/>
+        <FIELD NAME="timeopennotificationsent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time notification is sent to users or not."/>
         <FIELD NAME="timeclose" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time when this quiz closes. (0 = no restriction.)"/>
         <FIELD NAME="timelimit" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The time limit for quiz attempts, in seconds."/>
         <FIELD NAME="overduehandling" TYPE="char" LENGTH="16" NOTNULL="true" DEFAULT="autoabandon" SEQUENCE="false" COMMENT="The method used to handle overdue attempts. 'autosubmit', 'graceperiod' or 'autoabandon'."/>
