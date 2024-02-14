@@ -77,5 +77,25 @@ function xmldb_quiz_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2023112300, 'quiz');
     }
 
+    if ($oldversion < 2024021400) {
+        $table = new xmldb_table('quiz');
+        $field = new xmldb_field(
+            'timeopennotificationsent',
+            XMLDB_TYPE_INTEGER,
+            '10',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            '0',
+            'timeopen',
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Quiz savepoint reached.
+        upgrade_mod_savepoint(true, 2024021400, 'quiz');
+    }
+
     return true;
 }
