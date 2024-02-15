@@ -2122,7 +2122,7 @@ function create_course($data, $editoroptions = NULL) {
     $data->id = $newcourseid;
 
     // Dispatch the hook for post course create actions.
-    $hook = new \core_course\hook\course_created_post(
+    $hook = new \core_course\hook\after_course_created(
         course: $data,
     );
     \core\hook\manager::get_instance()->dispatch(
@@ -2329,7 +2329,7 @@ function update_course($data, $editoroptions = NULL) {
     $event->trigger();
 
     // Dispatch the hook for post course update actions.
-    $hook = new \core_course\hook\course_updated_post(
+    $hook = new \core_course\hook\after_course_updated(
         course: $data,
         oldcourse: $oldcourse,
         changeincoursecat: $changesincoursecat,

@@ -28,7 +28,7 @@ use stdClass;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class course_created_post implements described_hook {
+class after_course_created implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -41,7 +41,7 @@ class course_created_post implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_course_created_post', 'course');
+        return 'Hook after a course is created.';
     }
 
     public static function get_hook_tags(): array {

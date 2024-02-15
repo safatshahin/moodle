@@ -18,48 +18,36 @@ namespace core_course\hook;
 
 use core\hook\described_hook;
 use stdClass;
-use Psr\EventDispatcher\StoppableEventInterface;
 
 /**
- * Hook before course deletion.
+ * Hook after course updates.
  *
  * @package    core_course
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class course_delete_pre implements
-    described_hook,
-    StoppableEventInterface {
+class after_course_updated implements described_hook {
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $course The course instance.
-     * @param bool $stopped Whether the propagation of this event has been stopped.
+     * @param stdClass $oldcourse The old course instance.
+     * @param bool $changeincoursecat Whether the course category has changed.
      */
     public function __construct(
         protected stdClass $course,
-        protected bool $stopped = false,
+        protected stdClass $oldcourse,
+        protected bool $changeincoursecat = false,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_course_deleted_pre', 'course');
+        return "This hook is dispatched after a course is updated.";
     }
 
     public static function get_hook_tags(): array {
         return ['course'];
-    }
-
-    public function isPropagationStopped(): bool {
-        return $this->stopped;
-    }
-
-    /**
-     * Stop the propagation of this event.
-     */
-    public function stop(): void {
-        $this->stopped = true;
     }
 
     /**
@@ -69,5 +57,23 @@ class course_delete_pre implements
      */
     public function get_instance(): stdClass {
         return $this->course;
+    }
+
+    /**
+     * Get the old course instance.
+     *
+     * @return stdClass
+     */
+    public function get_old_instance(): stdClass {
+        return $this->oldcourse;
+    }
+
+    /**
+     * Is the course category changed.
+     *
+     * @return bool
+     */
+    public function is_course_category_changed(): bool {
+        return $this->changeincoursecat;
     }
 }

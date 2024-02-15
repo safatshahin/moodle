@@ -17,14 +17,14 @@
 namespace core_course\hook;
 
 /**
- * Test post course update hook.
+ * Test pre course deletion hook.
  *
  * @package    core_course
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_course\hook\course_updated_post
+ * @coversDefaultClass \core_course\hook\before_course_delete
  */
-class course_updated_post_test extends \advanced_testcase {
+class before_course_delete_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class course_updated_post_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: course_updated_post::get_hook_description(),
+            actual: before_course_delete::get_hook_description(),
         );
     }
 
@@ -44,13 +44,10 @@ class course_updated_post_test extends \advanced_testcase {
      */
     public function test_constructor(): void {
         $this->resetAfterTest();
-        $oldcourse = $this->getDataGenerator()->create_course();
-        $course = $oldcourse;
-        $course->fullname = 'New course name';
+        $course = $this->getDataGenerator()->create_course();
 
-        $hook = new course_updated_post(
+        $hook = new before_course_delete(
             course: $course,
-            oldcourse: $oldcourse,
         );
         $this->assertSame(
             expected: $course,
@@ -65,16 +62,16 @@ class course_updated_post_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: course_updated_post::get_hook_tags(),
+            actual: before_course_delete::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['course'],
-            actual: course_updated_post::get_hook_tags(),
+            actual: before_course_delete::get_hook_tags(),
         );
     }
 
     /**
-     * Test hook is dispatched while updating a course.
+     * Test hook is dispatched while deleting a course.
      */
     public function test_hook_dispatch(): void {
         $this->resetAfterTest();
@@ -84,25 +81,25 @@ class course_updated_post_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(course_updated_post $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(before_course_delete $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: course_updated_post::class,
+            hookname: before_course_delete::class,
             callback:$testcallback,
         );
-        $course1->fullname = 'New course name';
-        update_course(
-            data: $course1,
+        delete_course(
+            courseorid: $course1,
+            showfeedback: false,
         );
         $this->assertSame(
             expected: 1,
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: course_updated_post::class,
+            expected: before_course_delete::class,
             actual: $receivedhook,
         );
         $this->assertSame(
@@ -112,9 +109,9 @@ class course_updated_post_test extends \advanced_testcase {
 
         // Now stop the redirection and check that the hook is not dispatched.
         $this->stopHookRedirections();
-        $course1->fullname = 'New course name2';
-        update_course(
-            data: $course2,
+        delete_course(
+            courseorid: $course2,
+            showfeedback: false,
         );
         $this->assertSame(
             expected: 1,

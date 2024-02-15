@@ -17,14 +17,14 @@
 namespace core_course\hook;
 
 /**
- * Test pre course deletion hook.
+ * Test post course creation hook.
  *
  * @package    core_course
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_course\hook\course_delete_pre
+ * @coversDefaultClass \core_course\hook\after_course_created
  */
-class course_delete_pre_test extends \advanced_testcase {
+class after_course_created_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class course_delete_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: course_delete_pre::get_hook_description(),
+            actual: after_course_created::get_hook_description(),
         );
     }
 
@@ -46,7 +46,7 @@ class course_delete_pre_test extends \advanced_testcase {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
 
-        $hook = new course_delete_pre(
+        $hook = new after_course_created(
             course: $course,
         );
         $this->assertSame(
@@ -62,45 +62,39 @@ class course_delete_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: course_delete_pre::get_hook_tags(),
+            actual: after_course_created::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['course'],
-            actual: course_delete_pre::get_hook_tags(),
+            actual: after_course_created::get_hook_tags(),
         );
     }
 
     /**
-     * Test hook is dispatched while deleting a course.
+     * Test hook is dispatched while creating a course.
      */
     public function test_hook_dispatch(): void {
         $this->resetAfterTest();
 
-        $course1 = $this->getDataGenerator()->create_course();
-        $course2 = $this->getDataGenerator()->create_course();
-
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(course_delete_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_course_created $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: course_delete_pre::class,
-            callback:$testcallback,
+            hookname: after_course_created::class,
+            callback: $testcallback,
         );
-        delete_course(
-            courseorid: $course1,
-            showfeedback: false,
-        );
+        $course1 = $this->getDataGenerator()->create_course();
         $this->assertSame(
             expected: 1,
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: course_delete_pre::class,
-            actual: $receivedhook,
+            expected: after_course_created::class,
+            actual:$receivedhook,
         );
         $this->assertSame(
             expected: $course1->id,
@@ -109,10 +103,7 @@ class course_delete_pre_test extends \advanced_testcase {
 
         // Now stop the redirection and check that the hook is not dispatched.
         $this->stopHookRedirections();
-        delete_course(
-            courseorid: $course2,
-            showfeedback: false,
-        );
+        $this->getDataGenerator()->create_course();
         $this->assertSame(
             expected: 1,
             actual: $count,

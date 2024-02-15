@@ -25,9 +25,9 @@ use core_enrol\hook\enrol_instance_status_updated_post;
 use core_enrol\hook\user_enrolled_post;
 use core_enrol\hook\user_enrolment_updated_pre;
 use core_enrol\hook\user_unenrolled_pre;
-use core_course\hook\course_created_post;
-use core_course\hook\course_delete_pre;
-use core_course\hook\course_updated_post;
+use core_course\hook\after_course_created;
+use core_course\hook\before_course_delete;
+use core_course\hook\after_course_updated;
 use core_group\hook\group_created_post;
 use core_group\hook\group_deleted_post;
 use core_group\hook\group_membership_added;
@@ -229,10 +229,10 @@ class hook_listener {
     /**
      * Create course communication instance.
      *
-     * @param course_created_post $hook The course created hook.
+     * @param after_course_created $hook The course created hook.
      */
     public static function create_course_communication(
-        course_created_post $hook,
+        after_course_created $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -299,10 +299,10 @@ class hook_listener {
     /**
      * Update the course communication instance.
      *
-     * @param course_updated_post $hook The course updated hook.
+     * @param after_course_updated $hook The course updated hook.
      */
     public static function update_course_communication(
-        course_updated_post $hook,
+        after_course_updated $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -325,10 +325,10 @@ class hook_listener {
      * Course can have communication data if it is a group or a course.
      * This action is important to perform even if the experimental feature is disabled.
      *
-     * @param course_delete_pre $hook The course deleted hook.
+     * @param before_course_delete $hook The course deleted hook.
      */
     public static function delete_course_communication(
-        course_delete_pre $hook,
+        before_course_delete $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {

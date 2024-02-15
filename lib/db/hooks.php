@@ -46,15 +46,15 @@ $callbacks = [
         'callback' => \core_communication\hook_listener::class . '::remove_members_from_group_room',
     ],
     [
-        'hook' => \core_course\hook\course_created_post::class,
+        'hook' => \core_course\hook\after_course_created::class,
         'callback' => \core_communication\hook_listener::class . '::create_course_communication',
     ],
     [
-        'hook' => \core_course\hook\course_updated_post::class,
+        'hook' => \core_course\hook\after_course_updated::class,
         'callback' => \core_communication\hook_listener::class . '::update_course_communication',
     ],
     [
-        'hook' => \core_course\hook\course_delete_pre::class,
+        'hook' => \core_course\hook\before_course_delete::class,
         'callback' => \core_communication\hook_listener::class . '::delete_course_communication',
     ],
     [
