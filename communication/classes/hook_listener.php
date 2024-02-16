@@ -33,8 +33,8 @@ use core_group\hook\group_deleted_post;
 use core_group\hook\group_membership_added;
 use core_group\hook\group_membership_removed;
 use core_group\hook\group_updated_post;
-use core_user\hook\user_deleted_pre;
-use core_user\hook\user_updated_pre;
+use core_user\hook\before_user_deleted;
+use core_user\hook\before_user_update;
 
 /**
  * Hook listener for communication api.
@@ -362,10 +362,10 @@ class hook_listener {
     /**
      * Update the room membership for the user updates.
      *
-     * @param user_updated_pre $hook The user updated hook.
+     * @param before_user_update $hook The user updated hook.
      */
     public static function update_user_room_memberships(
-        user_updated_pre $hook,
+        before_user_update $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -396,10 +396,10 @@ class hook_listener {
     /**
      * Delete all room memberships for a user.
      *
-     * @param user_deleted_pre $hook The user deleted hook.
+     * @param before_user_deleted $hook The user deleted hook.
      */
     public static function delete_user_room_memberships(
-        user_deleted_pre $hook,
+        before_user_deleted $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {

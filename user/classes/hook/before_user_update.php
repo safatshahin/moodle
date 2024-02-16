@@ -18,48 +18,34 @@ namespace core_user\hook;
 
 use core\hook\described_hook;
 use stdClass;
-use Psr\EventDispatcher\StoppableEventInterface;
 
 /**
- * Hook before user deletion.
+ * Hook before user information and data updates.
  *
  * @package    core_user
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_deleted_pre implements
-    described_hook,
-    StoppableEventInterface {
+class before_user_update implements described_hook {
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $user The user instance
-     * @param bool $stopped Whether the propagation of this event has been stopped.
+     * @param stdClass $currentuserdata The old user instance
      */
     public function __construct(
         protected stdClass $user,
-        protected bool $stopped = false,
+        protected stdClass $currentuserdata,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_user_updated_pre', 'user');
+        return "Hook before user information and data updates.";
     }
 
     public static function get_hook_tags(): array {
         return ['user'];
-    }
-
-    public function isPropagationStopped(): bool {
-        return $this->stopped;
-    }
-
-    /**
-     * Stop the propagation of this event.
-     */
-    public function stop(): void {
-        $this->stopped = true;
     }
 
     /**
@@ -69,5 +55,14 @@ class user_deleted_pre implements
      */
     public function get_instance(): stdClass {
         return $this->user;
+    }
+
+    /**
+     * Get the old user instance.
+     *
+     * @return stdClass
+     */
+    public function get_old_instance(): stdClass {
+        return $this->currentuserdata;
     }
 }

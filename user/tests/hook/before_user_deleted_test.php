@@ -22,9 +22,9 @@ namespace core_user\hook;
  * @package    core_user
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_user\hook\user_deleted_pre
+ * @coversDefaultClass \core_user\hook\before_user_deleted
  */
-class user_deleted_pre_test extends \advanced_testcase {
+class before_user_deleted_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class user_deleted_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: user_deleted_pre::get_hook_description(),
+            actual: before_user_deleted::get_hook_description(),
         );
     }
 
@@ -45,7 +45,7 @@ class user_deleted_pre_test extends \advanced_testcase {
     public function test_constructor(): void {
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
-        $hook = new user_deleted_pre(
+        $hook = new before_user_deleted(
             user: $user,
         );
         $this->assertSame(
@@ -61,11 +61,11 @@ class user_deleted_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: user_deleted_pre::get_hook_tags(),
+            actual: before_user_deleted::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['user'],
-            actual: user_deleted_pre::get_hook_tags(),
+            actual: before_user_deleted::get_hook_tags(),
         );
     }
 
@@ -77,13 +77,13 @@ class user_deleted_pre_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(user_deleted_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(before_user_deleted $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: user_deleted_pre::class,
+            hookname: before_user_deleted::class,
             callback: $testcallback,
         );
         $user1 = $this->getDataGenerator()->create_user();
@@ -93,7 +93,7 @@ class user_deleted_pre_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: user_deleted_pre::class,
+            expected: before_user_deleted::class,
             actual:$receivedhook,
         );
         $this->assertSame(

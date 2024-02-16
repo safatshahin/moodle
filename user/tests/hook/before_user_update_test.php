@@ -22,9 +22,9 @@ namespace core_user\hook;
  * @package    core_user
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_user\hook\user_updated_pre
+ * @coversDefaultClass \core_user\hook\before_user_update
  */
-class user_updated_pre_test extends \advanced_testcase {
+class before_user_update_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class user_updated_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: user_updated_pre::get_hook_description(),
+            actual: before_user_update::get_hook_description(),
         );
     }
 
@@ -48,7 +48,7 @@ class user_updated_pre_test extends \advanced_testcase {
         $user = $olduser;
         $user->suspended = 1;
 
-        $hook = new user_updated_pre(
+        $hook = new before_user_update(
             user: $user,
             currentuserdata: $olduser,
         );
@@ -70,11 +70,11 @@ class user_updated_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: user_updated_pre::get_hook_tags(),
+            actual: before_user_update::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['user'],
-            actual: user_updated_pre::get_hook_tags(),
+            actual: before_user_update::get_hook_tags(),
         );
     }
 
@@ -86,13 +86,13 @@ class user_updated_pre_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(user_updated_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(before_user_update $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: user_updated_pre::class,
+            hookname: before_user_update::class,
             callback: $testcallback,
         );
         $user1 = $this->getDataGenerator()->create_user();
@@ -106,7 +106,7 @@ class user_updated_pre_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: user_updated_pre::class,
+            expected: before_user_update::class,
             actual:$receivedhook,
         );
         $this->assertSame(

@@ -58,11 +58,11 @@ $callbacks = [
         'callback' => \core_communication\hook_listener::class . '::delete_course_communication',
     ],
     [
-        'hook' => \core_user\hook\user_updated_pre::class,
+        'hook' => \core_user\hook\before_user_update::class,
         'callback' => \core_communication\hook_listener::class . '::update_user_room_memberships',
     ],
     [
-        'hook' => \core_user\hook\user_deleted_pre::class,
+        'hook' => \core_user\hook\before_user_deleted::class,
         'callback' => \core_communication\hook_listener::class . '::delete_user_room_memberships',
     ],
     [

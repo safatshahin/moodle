@@ -3553,7 +3553,7 @@ function delete_user(stdClass $user) {
     }
 
     // Dispatch the hook for pre user update actions.
-    $hook = new \core_user\hook\user_deleted_pre(
+    $hook = new \core_user\hook\before_user_deleted(
         user: $user,
     );
     \core\hook\manager::get_instance()->dispatch(
