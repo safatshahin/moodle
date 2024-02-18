@@ -17,22 +17,22 @@
 namespace core_communication;
 
 use context_course;
-use core\hook\access\role_assigned_post;
-use core\hook\access\role_unassigned_post;
+use core\hook\access\after_role_assigned;
+use core\hook\access\after_role_unassigned;
 use core\hook\described_hook;
-use core_enrol\hook\enrol_instance_deleted_pre;
-use core_enrol\hook\enrol_instance_status_updated_post;
-use core_enrol\hook\user_enrolled_post;
-use core_enrol\hook\user_enrolment_updated_pre;
-use core_enrol\hook\user_unenrolled_pre;
+use core_enrol\hook\before_enrol_instance_delete;
+use core_enrol\hook\after_enrol_instance_status_updated;
+use core_enrol\hook\after_user_enrolled;
+use core_enrol\hook\before_user_enrolment_update;
+use core_enrol\hook\before_user_enrolment_remove;
 use core_course\hook\after_course_created;
 use core_course\hook\before_course_delete;
 use core_course\hook\after_course_updated;
-use core_group\hook\group_created_post;
-use core_group\hook\group_deleted_post;
-use core_group\hook\group_membership_added;
-use core_group\hook\group_membership_removed;
-use core_group\hook\group_updated_post;
+use core_group\hook\after_group_created;
+use core_group\hook\after_group_deleted;
+use core_group\hook\after_group_membership_added;
+use core_group\hook\after_group_membership_removed;
+use core_group\hook\after_group_updated;
 use core_user\hook\before_user_deleted;
 use core_user\hook\before_user_update;
 
@@ -66,10 +66,10 @@ class hook_listener {
     /**
      * Communication api call to create room for a group if course has group mode enabled.
      *
-     * @param group_created_post $hook The group created hook.
+     * @param after_group_created $hook The group created hook.
      */
     public static function create_group_communication(
-        group_created_post $hook,
+        after_group_created $hook,
     ): void {
         [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
@@ -115,10 +115,10 @@ class hook_listener {
     /**
      * Communication api call to update room for a group if course has group mode enabled.
      *
-     * @param group_updated_post $hook The group updated hook.
+     * @param after_group_updated $hook The group updated hook.
      */
     public static function update_group_communication(
-        group_updated_post $hook,
+        after_group_updated $hook,
     ): void {
         [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
@@ -150,10 +150,10 @@ class hook_listener {
     /**
      * Delete the communication room for a group if course has group mode enabled.
      *
-     * @param group_deleted_post $hook The group deleted hook.
+     * @param after_group_deleted $hook The group deleted hook.
      */
     public static function delete_group_communication(
-        group_deleted_post $hook
+        after_group_deleted $hook
     ): void {
         [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
@@ -175,10 +175,10 @@ class hook_listener {
     /**
      * Add members to group room when a new member is added to the group.
      *
-     * @param group_membership_added $hook The group membership added hook.
+     * @param after_group_membership_added $hook The group membership added hook.
      */
     public static function add_members_to_group_room(
-        group_membership_added $hook,
+        after_group_membership_added $hook,
     ): void {
         [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
@@ -202,10 +202,10 @@ class hook_listener {
     /**
      * Remove members from the room when a member is removed from group room.
      *
-     * @param group_membership_removed $hook The group membership removed hook.
+     * @param after_group_membership_removed $hook The group membership removed hook.
      */
     public static function remove_members_from_group_room(
-        group_membership_removed $hook,
+        after_group_membership_removed $hook,
     ): void {
         [$group, $course] = self::get_group_and_course_data_for_group_hook(
             hook: $hook,
@@ -437,10 +437,10 @@ class hook_listener {
     /**
      * Update the room membership of the user for role assigned in a course.
      *
-     * @param role_assigned_post|role_unassigned_post $hook
+     * @param after_role_assigned|after_role_unassigned $hook
      */
     public static function update_user_membership_for_role_changes(
-        role_assigned_post|role_unassigned_post $hook,
+        after_role_assigned|after_role_unassigned $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -460,10 +460,10 @@ class hook_listener {
     /**
      * Update the communication memberships for enrol status change.
      *
-     * @param enrol_instance_status_updated_post $hook The enrol status updated hook.
+     * @param after_enrol_instance_status_updated $hook The enrol status updated hook.
      */
     public static function update_communication_memberships_for_enrol_status_change(
-        enrol_instance_status_updated_post $hook,
+        after_enrol_instance_status_updated $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -513,10 +513,10 @@ class hook_listener {
     /**
      * Remove the communication instance memberships when an enrolment instance is deleted.
      *
-     * @param enrol_instance_deleted_pre $hook The enrol instance deleted hook.
+     * @param before_enrol_instance_delete $hook The enrol instance deleted hook.
      */
     public static function remove_communication_memberships_for_enrol_instance_deletion(
-        enrol_instance_deleted_pre $hook,
+        before_enrol_instance_delete $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -545,10 +545,10 @@ class hook_listener {
     /**
      * Add communication instance membership for an enrolled user.
      *
-     * @param user_enrolled_post $hook The user enrolled hook.
+     * @param after_user_enrolled $hook The user enrolled hook.
      */
     public static function add_communication_membership_for_enrolled_user(
-        user_enrolled_post $hook,
+        after_user_enrolled $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -571,10 +571,10 @@ class hook_listener {
     /**
      * Update the communication instance membership for the user enrolment updates.
      *
-     * @param user_enrolment_updated_pre $hook The user enrolment updated hook.
+     * @param before_user_enrolment_update $hook The user enrolment updated hook.
      */
     public static function update_communication_membership_for_updated_user_enrolment(
-        user_enrolment_updated_pre $hook,
+        before_user_enrolment_update $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
@@ -610,10 +610,10 @@ class hook_listener {
     /**
      * Remove communication instance membership for an enrolled user.
      *
-     * @param user_unenrolled_pre $hook The user unenrolled hook.
+     * @param before_user_enrolment_remove $hook The user unenrolled hook.
      */
     public static function remove_communication_membership_for_unenrolled_user(
-        user_unenrolled_pre $hook,
+        before_user_enrolment_remove $hook,
     ): void {
         // If the communication subsystem is not enabled then just ignore.
         if (!api::is_available()) {
