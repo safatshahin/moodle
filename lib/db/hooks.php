@@ -26,23 +26,23 @@ defined('MOODLE_INTERNAL') || die();
 
 $callbacks = [
     [
-        'hook' => \core_group\hook\group_created_post::class,
+        'hook' => \core_group\hook\after_group_created::class,
         'callback' => \core_communication\hook_listener::class . '::create_group_communication',
     ],
     [
-        'hook' => \core_group\hook\group_updated_post::class,
+        'hook' => \core_group\hook\after_group_updated::class,
         'callback' => \core_communication\hook_listener::class . '::update_group_communication',
     ],
     [
-        'hook' => \core_group\hook\group_deleted_post::class,
+        'hook' => \core_group\hook\after_group_deleted::class,
         'callback' => \core_communication\hook_listener::class . '::delete_group_communication',
     ],
     [
-        'hook' => \core_group\hook\group_membership_added::class,
+        'hook' => \core_group\hook\after_group_membership_added::class,
         'callback' => \core_communication\hook_listener::class . '::add_members_to_group_room',
     ],
     [
-        'hook' => \core_group\hook\group_membership_removed::class,
+        'hook' => \core_group\hook\after_group_membership_removed::class,
         'callback' => \core_communication\hook_listener::class . '::remove_members_from_group_room',
     ],
     [
@@ -66,31 +66,31 @@ $callbacks = [
         'callback' => \core_communication\hook_listener::class . '::delete_user_room_memberships',
     ],
     [
-        'hook' => \core\hook\access\role_assigned_post::class,
+        'hook' => \core\hook\access\after_role_assigned::class,
         'callback' => \core_communication\hook_listener::class . '::update_user_membership_for_role_changes',
     ],
     [
-        'hook' => \core\hook\access\role_unassigned_post::class,
+        'hook' => \core\hook\access\after_role_unassigned::class,
         'callback' => \core_communication\hook_listener::class . '::update_user_membership_for_role_changes',
     ],
     [
-        'hook' => \core_enrol\hook\enrol_instance_status_updated_post::class,
+        'hook' => \core_enrol\hook\after_enrol_instance_status_updated::class,
         'callback' => \core_communication\hook_listener::class . '::update_communication_memberships_for_enrol_status_change',
     ],
     [
-        'hook' => \core_enrol\hook\enrol_instance_deleted_pre::class,
+        'hook' => \core_enrol\hook\before_enrol_instance_delete::class,
         'callback' => \core_communication\hook_listener::class . '::remove_communication_memberships_for_enrol_instance_deletion',
     ],
     [
-        'hook' => \core_enrol\hook\user_enrolled_post::class,
+        'hook' => \core_enrol\hook\after_user_enrolled::class,
         'callback' => \core_communication\hook_listener::class . '::add_communication_membership_for_enrolled_user',
     ],
     [
-        'hook' => \core_enrol\hook\user_enrolment_updated_pre::class,
+        'hook' => \core_enrol\hook\before_user_enrolment_update::class,
         'callback' => \core_communication\hook_listener::class . '::update_communication_membership_for_updated_user_enrolment',
     ],
     [
-        'hook' => \core_enrol\hook\user_unenrolled_pre::class,
+        'hook' => \core_enrol\hook\before_user_enrolment_remove::class,
         'callback' => \core_communication\hook_listener::class . '::remove_communication_membership_for_unenrolled_user',
     ],
 ];
