@@ -1659,7 +1659,7 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
     $event->trigger();
 
     // Dispatch the hook for post role assignment actions.
-    $hook = new \core\hook\access\role_assigned_post(
+    $hook = new \core\hook\access\after_role_assigned(
         context: $context,
         userid: $userid,
     );
@@ -1761,7 +1761,7 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
             core_course_category::role_assignment_changed($ra->roleid, $context);
 
             // Dispatch the hook for post role assignment actions.
-            $hook = new \core\hook\access\role_unassigned_post(
+            $hook = new \core\hook\access\after_role_unassigned(
                 context: $context,
                 userid: $ra->userid,
             );

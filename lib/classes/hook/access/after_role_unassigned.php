@@ -26,7 +26,7 @@ use context;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class role_unassigned_post implements described_hook {
+class after_role_unassigned implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -42,7 +42,7 @@ class role_unassigned_post implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_role_unassigned_post', 'access');
+        return "This hook is dispatched after a role is unassigned.";
     }
 
     public static function get_hook_tags(): array {
