@@ -20,32 +20,28 @@ use core\hook\described_hook;
 use stdClass;
 
 /**
- * Hook before a user enrolment is updated.
+ * Hook after a user is enrolled in a course for an enrolment instance.
  *
- * @package    core
+ * @package    core_enrol
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_enrolment_updated_pre implements described_hook {
+class after_user_enrolled implements described_hook {
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $enrolinstance The enrol instance.
      * @param stdClass $userenrolmentinstance The user enrolment instance.
-     * @param bool $statusmodified Whether the status of the enrolment has been modified.
-     * @param bool $timeendmodified Whether the time end of the enrolment has been modified.
      */
     public function __construct(
         protected stdClass $enrolinstance,
         protected stdClass $userenrolmentinstance,
-        protected bool $statusmodified,
-        protected bool $timeendmodified,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_user_enrolment_updated_pre', 'enrol');
+        return "This hook is called after a user is enrolled in a course for an enrolment instance.";
     }
 
     public static function get_hook_tags(): array {
@@ -77,23 +73,5 @@ class user_enrolment_updated_pre implements described_hook {
      */
     public function get_userid(): int {
         return $this->userenrolmentinstance->userid;
-    }
-
-    /**
-     * Is status modified for the user enrol instance.
-     *
-     * @return bool
-     */
-    public function is_status_modified(): bool {
-        return $this->statusmodified;
-    }
-
-    /**
-     * Is the time end for the user enrol instance modified.
-     *
-     * @return bool
-     */
-    public function is_timeend_modified(): bool {
-        return $this->timeendmodified;
     }
 }

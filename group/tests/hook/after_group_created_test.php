@@ -17,14 +17,14 @@
 namespace core_group\hook;
 
 /**
- * Test post group deletion hook.
+ * Test post group creation hook.
  *
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_group\hook\group_deleted_post
+ * @coversDefaultClass \core_group\hook\afterGroup_created_
  */
-class group_deleted_post_test extends \advanced_testcase {
+class group_created_post_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class group_deleted_post_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: group_deleted_post::get_hook_description(),
+            actual: afterGroup_created_::get_hook_description(),
         );
     }
 
@@ -49,7 +49,7 @@ class group_deleted_post_test extends \advanced_testcase {
             record: ['courseid' => $course->id],
         );
 
-        $hook = new group_deleted_post(
+        $hook = new afterGroup_created_(
             groupinstance: $group,
         );
         $this->assertSame(
@@ -65,11 +65,11 @@ class group_deleted_post_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: group_deleted_post::get_hook_tags(),
+            actual: afterGroup_created_::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['group'],
-            actual: group_deleted_post::get_hook_tags(),
+            actual: afterGroup_created_::get_hook_tags(),
         );
     }
 
@@ -81,28 +81,25 @@ class group_deleted_post_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(group_deleted_post $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(afterGroup_created_ $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: group_deleted_post::class,
+            hookname: afterGroup_created_::class,
             callback: $testcallback,
         );
         $course1 = $this->getDataGenerator()->create_course();
         $group1 = $this->getDataGenerator()->create_group(
             record: ['courseid' => $course1->id],
         );
-        groups_delete_group(
-            grouporid: $group1,
-        );
         $this->assertSame(
             expected: 1,
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: group_deleted_post::class,
+            expected: afterGroup_created_::class,
             actual:$receivedhook,
         );
         $this->assertSame(
@@ -110,13 +107,11 @@ class group_deleted_post_test extends \advanced_testcase {
             actual: $receivedhook->get_instance()->id,
         );
 
+        // Now stop the redirection and check that the hook is not dispatched.
         $this->stopHookRedirections();
         $course2 = $this->getDataGenerator()->create_course();
-        $group2 = $this->getDataGenerator()->create_group(
+        $this->getDataGenerator()->create_group(
             record: ['courseid' => $course2->id],
-        );
-        groups_delete_group(
-            grouporid: $group2,
         );
         $this->assertSame(
             expected: 1,

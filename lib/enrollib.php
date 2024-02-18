@@ -2157,7 +2157,7 @@ abstract class enrol_plugin {
         }
 
         // Dispatch the hook for post enrol user actions.
-        $hook = new \core_enrol\hook\user_enrolled_post(
+        $hook = new \core_enrol\hook\after_user_enrolled(
             enrolinstance: $instance,
             userenrolmentinstance: $ue,
         );
@@ -2240,7 +2240,7 @@ abstract class enrol_plugin {
         }
 
         // Dispatch the hook for pre user enrolment update actions.
-        $hook = new \core_enrol\hook\user_enrolment_updated_pre(
+        $hook = new \core_enrol\hook\before_user_enrolment_update(
             enrolinstance: $instance,
             userenrolmentinstance: $ue,
             statusmodified: $statusmodified,
@@ -2302,7 +2302,7 @@ abstract class enrol_plugin {
         }
 
         // Dispatch the hook for pre user unenrolment actions.
-        $hook = new \core_enrol\hook\user_unenrolled_pre(
+        $hook = new \core_enrol\hook\before_user_enrolment_remove(
             enrolinstance: $instance,
             userenrolmentinstance: $ue,
         );
@@ -2720,7 +2720,7 @@ abstract class enrol_plugin {
         $DB->update_record('enrol', $instance);
 
         // Dispatch the hook for post enrol status update actions.
-        $hook = new \core_enrol\hook\enrol_instance_status_updated_post(
+        $hook = new \core_enrol\hook\after_enrol_instance_status_updated(
             enrolinstance: $instance,
             newstatus: $newstatus,
         );
@@ -2771,7 +2771,7 @@ abstract class enrol_plugin {
         }
 
         // Dispatch the hook for pre enrol instance delete actions.
-        $hook = new \core_enrol\hook\enrol_instance_deleted_pre(
+        $hook = new \core_enrol\hook\before_enrol_instance_delete(
             enrolinstance: $instance,
         );
         \core\hook\manager::get_instance()->dispatch(

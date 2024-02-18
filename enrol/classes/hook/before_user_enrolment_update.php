@@ -20,36 +20,40 @@ use core\hook\described_hook;
 use stdClass;
 
 /**
- * Hook after enrolment status is changed.
+ * Hook before a user enrolment is updated.
  *
  * @package    core
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_instance_status_updated_post implements described_hook {
+class before_user_enrolment_update implements described_hook {
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $enrolinstance The enrol instance.
-     * @param int $newstatus The new status.
+     * @param stdClass $userenrolmentinstance The user enrolment instance.
+     * @param bool $statusmodified Whether the status of the enrolment has been modified.
+     * @param bool $timeendmodified Whether the time end of the enrolment has been modified.
      */
     public function __construct(
         protected stdClass $enrolinstance,
-        protected int $newstatus,
+        protected stdClass $userenrolmentinstance,
+        protected bool $statusmodified,
+        protected bool $timeendmodified,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_enrol_instance_status_updated_post', 'enrol');
+        return "This hook is triggered before a user enrolment is updated.";
     }
 
     public static function get_hook_tags(): array {
-        return ['enrol'];
+        return ['enrol', 'user'];
     }
 
     /**
-     * Get the group instance.
+     * Get the enrol instance.
      *
      * @return stdClass
      */
@@ -58,11 +62,38 @@ class enrol_instance_status_updated_post implements described_hook {
     }
 
     /**
-     * Get the new status for the enrolment instance.
+     * Get user enrolment instance.
+     *
+     * @return stdClass
+     */
+    public function get_user_enrolment_instance(): stdClass {
+        return $this->userenrolmentinstance;
+    }
+
+    /**
+     * Get the user id.
      *
      * @return int
      */
-    public function get_new_enrol_status(): int {
-        return $this->newstatus;
+    public function get_userid(): int {
+        return $this->userenrolmentinstance->userid;
+    }
+
+    /**
+     * Is status modified for the user enrol instance.
+     *
+     * @return bool
+     */
+    public function is_status_modified(): bool {
+        return $this->statusmodified;
+    }
+
+    /**
+     * Is the time end for the user enrol instance modified.
+     *
+     * @return bool
+     */
+    public function is_timeend_modified(): bool {
+        return $this->timeendmodified;
     }
 }

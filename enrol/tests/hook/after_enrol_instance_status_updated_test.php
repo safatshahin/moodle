@@ -17,14 +17,14 @@
 namespace core_enrol\hook;
 
 /**
- * Test pre user un-enrolled hook.
+ * Test post enrolment instance status updated hook.
  *
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_enrol\hook\user_unenrolled_pre
+ * @coversDefaultClass \core_enrol\hook\after_enrol_instance_status_updated
  */
-class user_unenrolled_pre_test extends \advanced_testcase {
+class after_enrol_instance_status_updated_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class user_unenrolled_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: user_unenrolled_pre::get_hook_description(),
+            actual: after_enrol_instance_status_updated::get_hook_description(),
         );
     }
 
@@ -46,49 +46,26 @@ class user_unenrolled_pre_test extends \advanced_testcase {
         $this->resetAfterTest();
         global $DB;
         $course = $this->getDataGenerator()->create_course();
-        $user = $this->getDataGenerator()->create_user();
-        $studentrole = $DB->get_record(
-            table: 'role',
-            conditions: [
-                'shortname' => 'student',
-            ],
-        );
-        $manual = enrol_get_plugin(
-            name: 'manual',
-        );
-        $manualinstance = $DB->get_record(
+        $instance = $DB->get_record(
             table: 'enrol',
             conditions: [
                 'courseid' => $course->id,
-                'enrol' => 'manual',
+                'enrol' => 'self',
             ],
             strictness: MUST_EXIST,
         );
-        // Enrol user1 as a student in the course using manual enrolment.
-        $manual->enrol_user(
-            instance: $manualinstance,
-            userid: $user->id,
-            roleid: $studentrole->id,
-        );
-        $user1enrolment = $DB->get_record(
-            table:'user_enrolments',
-            conditions: [
-                'enrolid' => $manualinstance->id,
-                'userid' => $user->id,
-            ],
-        );
 
-        $hook = new user_unenrolled_pre(
-            enrolinstance: $manualinstance,
-            userenrolmentinstance: $user1enrolment,
+        $hook = new after_enrol_instance_status_updated(
+            enrolinstance: $instance,
+            newstatus: ENROL_INSTANCE_DISABLED,
         );
         $this->assertSame(
-            expected: $manualinstance,
+            expected: $instance,
             actual: $hook->get_instance(),
         );
         $this->assertSame(
-            expected: $user1enrolment,
-            actual: $hook->get_user_enrolment_instance(),
+            expected: ENROL_INSTANCE_DISABLED,
+            actual: $hook->get_new_enrol_status(),
         );
     }
 
@@ -99,11 +76,11 @@ class user_unenrolled_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: user_unenrolled_pre::get_hook_tags(),
+            actual: after_enrol_instance_status_updated::get_hook_tags(),
         );
         $this->assertSame(
-            expected: ['enrol', 'user'],
-            actual: user_unenrolled_pre::get_hook_tags(),
+            expected: ['enrol'],
+            actual: after_enrol_instance_status_updated::get_hook_tags(),
         );
     }
 
@@ -116,13 +93,13 @@ class user_unenrolled_pre_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(user_unenrolled_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_enrol_instance_status_updated $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: user_unenrolled_pre::class,
+            hookname: after_enrol_instance_status_updated::class,
             callback: $testcallback,
         );
 
@@ -132,7 +109,6 @@ class user_unenrolled_pre_test extends \advanced_testcase {
             conditions: ['shortname' => 'student'],
         );
         $course1 = $this->getDataGenerator()->create_course();
-        $user1 = $this->getDataGenerator()->create_user();
         // Creating enrol instance.
         $instanceid = $selfplugin->add_instance(
             course: $course1,
@@ -149,14 +125,9 @@ class user_unenrolled_pre_test extends \advanced_testcase {
             table: 'enrol',
             conditions: ['id' => $instanceid],
         );
-        $selfplugin->enrol_user(
+        $selfplugin->update_status(
             instance: $instance,
-            userid: $user1->id,
-            roleid: $studentrole->id,
-        );
-        $selfplugin->unenrol_user(
-            instance: $instance,
-            userid: $user1->id,
+            newstatus: ENROL_INSTANCE_DISABLED,
         );
 
         $this->assertSame(
@@ -164,7 +135,7 @@ class user_unenrolled_pre_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: user_unenrolled_pre::class,
+            expected: after_enrol_instance_status_updated::class,
             actual:$receivedhook,
         );
         $this->assertSame(
@@ -175,7 +146,6 @@ class user_unenrolled_pre_test extends \advanced_testcase {
         // Now stop the redirection and check that the hook is not dispatched.
         $this->stopHookRedirections();
         $course2 = $this->getDataGenerator()->create_course();
-        $user2 = $this->getDataGenerator()->create_user();
         // Creating enrol instance.
         $instanceid = $selfplugin->add_instance(
             course: $course2,
@@ -192,14 +162,9 @@ class user_unenrolled_pre_test extends \advanced_testcase {
             table: 'enrol',
             conditions: ['id' => $instanceid],
         );
-        $selfplugin->enrol_user(
+        $selfplugin->update_status(
             instance: $instance,
-            userid: $user2->id,
-            roleid: $studentrole->id,
-        );
-        $selfplugin->unenrol_user(
-            instance: $instance,
-            userid: $user2->id,
+            newstatus: ENROL_INSTANCE_DISABLED,
         );
         $this->assertSame(
             expected: 1,

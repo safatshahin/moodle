@@ -22,9 +22,9 @@ namespace core_enrol\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_enrol\hook\user_enrolment_updated_pre
+ * @coversDefaultClass \core_enrol\hook\before_user_enrolment_update
  */
-class user_enrolment_updated_pre_test extends \advanced_testcase {
+class before_user_enrolment_update_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class user_enrolment_updated_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: user_enrolment_updated_pre::get_hook_description(),
+            actual: before_user_enrolment_update::get_hook_description(),
         );
     }
 
@@ -78,7 +78,7 @@ class user_enrolment_updated_pre_test extends \advanced_testcase {
             ],
         );
 
-        $hook = new user_enrolment_updated_pre(
+        $hook = new before_user_enrolment_update(
             enrolinstance: $manualinstance,
             userenrolmentinstance: $user1enrolment,
             statusmodified: false,
@@ -107,11 +107,11 @@ class user_enrolment_updated_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: user_enrolment_updated_pre::get_hook_tags(),
+            actual: before_user_enrolment_update::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['enrol', 'user'],
-            actual: user_enrolment_updated_pre::get_hook_tags(),
+            actual: before_user_enrolment_update::get_hook_tags(),
         );
     }
 
@@ -124,13 +124,13 @@ class user_enrolment_updated_pre_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(user_enrolment_updated_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(before_user_enrolment_update $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: user_enrolment_updated_pre::class,
+            hookname: before_user_enrolment_update::class,
             callback: $testcallback,
         );
 
@@ -173,7 +173,7 @@ class user_enrolment_updated_pre_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: user_enrolment_updated_pre::class,
+            expected: before_user_enrolment_update::class,
             actual:$receivedhook,
         );
         $this->assertSame(

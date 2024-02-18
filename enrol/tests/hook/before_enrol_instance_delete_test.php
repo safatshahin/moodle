@@ -22,9 +22,9 @@ namespace core_enrol\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_enrol\hook\enrol_instance_deleted_pre
+ * @coversDefaultClass \core_enrol\hook\before_enrol_instance_delete
  */
-class enrol_instance_deleted_pre_test extends \advanced_testcase {
+class before_enrol_instance_delete_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class enrol_instance_deleted_pre_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: enrol_instance_deleted_pre::get_hook_description(),
+            actual: before_enrol_instance_delete::get_hook_description(),
         );
     }
 
@@ -51,11 +51,11 @@ class enrol_instance_deleted_pre_test extends \advanced_testcase {
             conditions: [
                 'courseid' => $course->id,
                 'enrol' => 'self',
-                ],
+            ],
             strictness: MUST_EXIST,
         );
 
-        $hook = new enrol_instance_deleted_pre(
+        $hook = new before_enrol_instance_delete(
             enrolinstance: $instance,
         );
         $this->assertSame(
@@ -71,11 +71,11 @@ class enrol_instance_deleted_pre_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: enrol_instance_deleted_pre::get_hook_tags(),
+            actual: before_enrol_instance_delete::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['enrol'],
-            actual: enrol_instance_deleted_pre::get_hook_tags(),
+            actual: before_enrol_instance_delete::get_hook_tags(),
         );
     }
 
@@ -88,13 +88,13 @@ class enrol_instance_deleted_pre_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(enrol_instance_deleted_pre $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(before_enrol_instance_delete $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: enrol_instance_deleted_pre::class,
+            hookname: before_enrol_instance_delete::class,
             callback: $testcallback,
         );
 
@@ -129,7 +129,7 @@ class enrol_instance_deleted_pre_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: enrol_instance_deleted_pre::class,
+            expected: before_enrol_instance_delete::class,
             actual:$receivedhook,
         );
         $this->assertSame(

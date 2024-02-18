@@ -20,13 +20,13 @@ use core\hook\described_hook;
 use stdClass;
 
 /**
- * Hook after a user is enrolled in a course for an enrolment instance.
+ * Hook before a user is un-enrolled from a course for an enrolment instance.
  *
  * @package    core
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_enrolled_post implements described_hook {
+class before_user_enrolment_remove implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -41,7 +41,7 @@ class user_enrolled_post implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_user_enrolled_post', 'enrol');
+        return "This hook is called before a user is un-enrolled from a course for an enrolment instance.";
     }
 
     public static function get_hook_tags(): array {

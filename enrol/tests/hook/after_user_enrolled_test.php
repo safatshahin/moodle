@@ -22,9 +22,9 @@ namespace core_enrol\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_enrol\hook\user_enrolled_post
+ * @coversDefaultClass \core_enrol\hook\after_user_enrolled
  */
-class user_enrolled_post_test extends \advanced_testcase {
+class after_user_enrolled_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class user_enrolled_post_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: user_enrolled_post::get_hook_description(),
+            actual: after_user_enrolled::get_hook_description(),
         );
     }
 
@@ -51,7 +51,7 @@ class user_enrolled_post_test extends \advanced_testcase {
             table: 'role',
             conditions: [
                 'shortname' => 'student',
-                ],
+            ],
         );
         $manual = enrol_get_plugin(
             name: 'manual',
@@ -61,7 +61,7 @@ class user_enrolled_post_test extends \advanced_testcase {
             conditions: [
                 'courseid' => $course->id,
                 'enrol' => 'manual',
-                ],
+            ],
             strictness: MUST_EXIST,
         );
         // Enrol user1 as a student in the course using manual enrolment.
@@ -75,10 +75,10 @@ class user_enrolled_post_test extends \advanced_testcase {
             conditions: [
                 'enrolid' => $manualinstance->id,
                 'userid' => $user->id,
-                ],
+            ],
         );
 
-        $hook = new user_enrolled_post(
+        $hook = new after_user_enrolled(
             enrolinstance: $manualinstance,
             userenrolmentinstance: $user1enrolment,
         );
@@ -99,11 +99,11 @@ class user_enrolled_post_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: user_enrolled_post::get_hook_tags(),
+            actual: after_user_enrolled::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['enrol', 'user'],
-            actual: user_enrolled_post::get_hook_tags(),
+            actual: after_user_enrolled::get_hook_tags(),
         );
     }
 
@@ -116,13 +116,13 @@ class user_enrolled_post_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(user_enrolled_post $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_user_enrolled $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: user_enrolled_post::class,
+            hookname: after_user_enrolled::class,
             callback: $testcallback,
         );
 
@@ -159,7 +159,7 @@ class user_enrolled_post_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: user_enrolled_post::class,
+            expected: after_user_enrolled::class,
             actual:$receivedhook,
         );
         $this->assertSame(

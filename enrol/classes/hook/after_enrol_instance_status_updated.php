@@ -20,36 +20,36 @@ use core\hook\described_hook;
 use stdClass;
 
 /**
- * Hook before a user is un-enrolled from a course for an enrolment instance.
+ * Hook after enrolment status is changed.
  *
- * @package    core
+ * @package    core_enrol
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class user_unenrolled_pre implements described_hook {
+class after_enrol_instance_status_updated implements described_hook {
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $enrolinstance The enrol instance.
-     * @param stdClass $userenrolmentinstance The user enrolment instance.
+     * @param int $newstatus The new status.
      */
     public function __construct(
         protected stdClass $enrolinstance,
-        protected stdClass $userenrolmentinstance,
+        protected int $newstatus,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_user_unenrolled_pre', 'enrol');
+        return "This hook is called after the enrolment status is changed.";
     }
 
     public static function get_hook_tags(): array {
-        return ['enrol', 'user'];
+        return ['enrol'];
     }
 
     /**
-     * Get the enrol instance.
+     * Get the group instance.
      *
      * @return stdClass
      */
@@ -58,20 +58,11 @@ class user_unenrolled_pre implements described_hook {
     }
 
     /**
-     * Get user enrolment instance.
-     *
-     * @return stdClass
-     */
-    public function get_user_enrolment_instance(): stdClass {
-        return $this->userenrolmentinstance;
-    }
-
-    /**
-     * Get the user id.
+     * Get the new status for the enrolment instance.
      *
      * @return int
      */
-    public function get_userid(): int {
-        return $this->userenrolmentinstance->userid;
+    public function get_new_enrol_status(): int {
+        return $this->newstatus;
     }
 }

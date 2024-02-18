@@ -23,28 +23,31 @@ use Psr\EventDispatcher\StoppableEventInterface;
 /**
  * Hook before enrolment instance is deleted.
  *
- * @package    core
+ * @package    core_enrol
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_instance_deleted_pre implements
+class before_enrol_instance_delete implements
     described_hook,
     StoppableEventInterface {
+
+    /**
+     * @var bool Whether the propagation of this event has been stopped.
+     */
+    protected bool $stopped = false;
 
     /**
      * Constructor for the hook.
      *
      * @param stdClass $enrolinstance The enrol instance.
-     * @param bool $stopped Whether the propagation of this event has been stopped.
      */
     public function __construct(
         protected stdClass $enrolinstance,
-        protected bool $stopped = false,
     ) {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_enrol_instance_deleted_pre', 'enrol');
+        return "This hook is dispatched before an enrolment instance is deleted.";
     }
 
     public static function get_hook_tags(): array {
