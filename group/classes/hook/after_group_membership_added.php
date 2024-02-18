@@ -26,7 +26,7 @@ use stdClass;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class group_membership_added implements described_hook {
+class after_group_membership_added implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -41,7 +41,7 @@ class group_membership_added implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_group_member_added', 'group');
+        return "This hook is dispatched after a member added to the group.";
     }
 
     public static function get_hook_tags(): array {

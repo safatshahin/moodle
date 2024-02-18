@@ -28,7 +28,7 @@ use stdClass;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class group_created_post implements described_hook {
+class after_group_created implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -41,7 +41,7 @@ class group_created_post implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_group_created_post', 'group');
+        return "This hook will be dispatched after the group is created and events are fired.";
     }
 
     public static function get_hook_tags(): array {

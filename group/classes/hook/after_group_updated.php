@@ -26,7 +26,7 @@ use stdClass;
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class group_updated_post implements described_hook {
+class after_group_updated implements described_hook {
 
     /**
      * Constructor for the hook.
@@ -39,7 +39,7 @@ class group_updated_post implements described_hook {
     }
 
     public static function get_hook_description(): string {
-        return get_string('hook_group_updated_post', 'group');
+        return "This hook is dispatched after a group is updated.";
     }
 
     public static function get_hook_tags(): array {

@@ -22,9 +22,9 @@ namespace core_group\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_group\hook\afterGroup_deleted_
+ * @coversDefaultClass \core_group\hook\after_group_deleted
  */
-class group_deleted_post_test extends \advanced_testcase {
+class after_group_deleted_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class group_deleted_post_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: afterGroup_deleted_::get_hook_description(),
+            actual: after_group_deleted::get_hook_description(),
         );
     }
 
@@ -49,7 +49,7 @@ class group_deleted_post_test extends \advanced_testcase {
             record: ['courseid' => $course->id],
         );
 
-        $hook = new afterGroup_deleted_(
+        $hook = new after_group_deleted(
             groupinstance: $group,
         );
         $this->assertSame(
@@ -65,11 +65,11 @@ class group_deleted_post_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: afterGroup_deleted_::get_hook_tags(),
+            actual: after_group_deleted::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['group'],
-            actual: afterGroup_deleted_::get_hook_tags(),
+            actual: after_group_deleted::get_hook_tags(),
         );
     }
 
@@ -81,13 +81,13 @@ class group_deleted_post_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(afterGroup_deleted_ $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_group_deleted $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: afterGroup_deleted_::class,
+            hookname: after_group_deleted::class,
             callback: $testcallback,
         );
         $course1 = $this->getDataGenerator()->create_course();
@@ -102,7 +102,7 @@ class group_deleted_post_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: afterGroup_deleted_::class,
+            expected: after_group_deleted::class,
             actual:$receivedhook,
         );
         $this->assertSame(

@@ -22,9 +22,9 @@ namespace core_group\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_group\hook\group_updated_post
+ * @coversDefaultClass \core_group\hook\after_group_updated
  */
-class group_updated_post_test extends \advanced_testcase {
+class after_group_updated_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class group_updated_post_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: group_updated_post::get_hook_description(),
+            actual: after_group_updated::get_hook_description(),
         );
     }
 
@@ -49,7 +49,7 @@ class group_updated_post_test extends \advanced_testcase {
             record: ['courseid' => $course->id],
         );
 
-        $hook = new group_updated_post(
+        $hook = new after_group_updated(
             groupinstance: $group,
         );
         $this->assertSame(
@@ -65,11 +65,11 @@ class group_updated_post_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: group_updated_post::get_hook_tags(),
+            actual: after_group_updated::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['group'],
-            actual: group_updated_post::get_hook_tags(),
+            actual: after_group_updated::get_hook_tags(),
         );
     }
 
@@ -81,13 +81,13 @@ class group_updated_post_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(group_updated_post $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_group_updated $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: group_updated_post::class,
+            hookname: after_group_updated::class,
             callback: $testcallback,
         );
         $course1 = $this->getDataGenerator()->create_course();
@@ -103,7 +103,7 @@ class group_updated_post_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: group_updated_post::class,
+            expected: after_group_updated::class,
             actual:$receivedhook,
         );
         $this->assertSame(

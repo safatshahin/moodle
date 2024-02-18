@@ -22,9 +22,9 @@ namespace core_group\hook;
  * @package    core_group
  * @copyright  2023 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \core_group\hook\group_membership_added
+ * @coversDefaultClass \core_group\hook\after_group_membership_added
  */
-class group_membership_added_test extends \advanced_testcase {
+class after_group_membership_added_test extends \advanced_testcase {
 
     /**
      * Test get description.
@@ -33,7 +33,7 @@ class group_membership_added_test extends \advanced_testcase {
      */
     public function test_get_hook_description(): void {
         $this->assertIsString(
-            actual: group_membership_added::get_hook_description(),
+            actual: after_group_membership_added::get_hook_description(),
         );
     }
 
@@ -50,7 +50,7 @@ class group_membership_added_test extends \advanced_testcase {
         );
         $user = $this->getDataGenerator()->create_user();
 
-        $hook = new group_membership_added(
+        $hook = new after_group_membership_added(
             groupinstance: $group,
             userids: [$user->id],
         );
@@ -71,11 +71,11 @@ class group_membership_added_test extends \advanced_testcase {
      */
     public function test_hook_tags(): void {
         $this->assertIsArray(
-            actual: group_membership_added::get_hook_tags(),
+            actual: after_group_membership_added::get_hook_tags(),
         );
         $this->assertSame(
             expected: ['group'],
-            actual: group_membership_added::get_hook_tags(),
+            actual: after_group_membership_added::get_hook_tags(),
         );
     }
 
@@ -87,13 +87,13 @@ class group_membership_added_test extends \advanced_testcase {
 
         $count = 0;
         $receivedhook = null;
-        $testcallback = function(group_membership_added $hook) use (&$receivedhook, &$count): void {
+        $testcallback = function(after_group_membership_added $hook) use (&$receivedhook, &$count): void {
             $count++;
             $receivedhook = $hook;
         };
 
         $this->redirectHook(
-            hookname: group_membership_added::class,
+            hookname: after_group_membership_added::class,
             callback: $testcallback,
         );
         $course1 = $this->getDataGenerator()->create_course();
@@ -116,7 +116,7 @@ class group_membership_added_test extends \advanced_testcase {
             actual: $count,
         );
         $this->assertInstanceOf(
-            expected: group_membership_added::class,
+            expected: after_group_membership_added::class,
             actual:$receivedhook,
         );
         $this->assertSame(
