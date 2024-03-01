@@ -35,9 +35,18 @@ abstract class gateway {
     /** @var \stdClass The configuration for this instance */
     public readonly ?\stdClass $config;
 
+    /**
+     * Create a new gateway.
+     *
+     * @param bool $enabled Whether the gateway is enabled
+     * @param string $config The configuration for this instance
+     * @param int|null $id The id of the gateway in the database
+     */
     public function __construct(
+        /** @var bool Whether the gateway is enabled */
         public readonly bool $enabled,
         string $config,
+        /** @var null|int The ID of the gateway in the database, or null if it has not been persisted yet */
         public readonly ?int $id = null,
     ) {
         $this->config = json_decode($config);

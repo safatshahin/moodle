@@ -19,7 +19,7 @@ namespace core_sms;
 use Generator;
 
 /**
- * Class manager
+ * SMS manager.
  *
  * @package    core_sms
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
@@ -29,7 +29,13 @@ class manager {
     /** @var int The maximum length of a message */
     const MESSAGE_LENGTH_LIMIT = 160 * 3;
 
+    /**
+     * Create a new SMS manager.
+     *
+     * @param \moodle_database $db
+     */
     public function __construct(
+        /** @var \moodle_database The database instance */
         protected readonly \moodle_database $db,
     ) {
     }

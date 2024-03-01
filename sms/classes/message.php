@@ -48,15 +48,38 @@ class message {
     /** @var int The time that the message was created */
     public readonly int $timecreated;
 
+    /**
+     * Create a new message.
+     *
+     * @param string $recipientnumber The phone number of the message recipient
+     * @param null|string $content The content of the message
+     * @param string $component The component that owns the message
+     * @param string $messagetype The type of message within the component
+     * @param int|null $recipientuserid The user id of the recipient if one exists
+     * @param bool $sensitive Whether this message contains sensitive information
+     * @param int|null $id The id of the message in the database
+     * @param message_status $status The status of the message
+     * @param int|null $gatewayid The id of the gateway that sent the message
+     * @param int|null $timecreated The time that the message was created
+     */
     public function __construct(
+        /** @var string The phone number of the message recipient */
         public readonly string $recipientnumber,
+        /** @var null|string The content of the message */
         public readonly ?string $content,
+        /** @var string The component that owns the message */
         public readonly string $component,
+        /** @var string The type of message within the component */
         public readonly string $messagetype,
+        /** @var int|null The user id of the recipient if one exists */
         public readonly ?int $recipientuserid,
+        /** @var bool Whether this message contains sensitive information */
         public readonly bool $sensitive,
+        /** @var null|int The id of the message in the database */
         public readonly ?int $id = null,
+        /** @var message_status The status of the message */
         public readonly message_status $status = message_status::UNKNOWN,
+        /** @var null|int The id of the gateway that sent the message */
         public readonly ?int $gatewayid = null,
         ?int $timecreated = null,
     ) {

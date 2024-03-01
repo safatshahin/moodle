@@ -26,12 +26,14 @@ use core_sms\message;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class gateway extends \core_sms\gateway {
-    public function send(message $message, bool $async = false): message {
+    #[\Override]
+    public function send(message $message): message {
         return $message->with(
             status: \core_sms\message_status::GATEWAY_SENT,
         );
     }
 
+    #[\Override]
     public function get_send_priority(message $message): int {
         if (!$this->config) {
             return 50;

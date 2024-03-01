@@ -103,6 +103,9 @@ final class manager_test extends \advanced_testcase {
         );
     }
 
+    /**
+     * Test that uninstalled gateways do not cause failures in the workflow.
+     */
     public function test_uninstalled_gateway(): void {
         // We should prevent removal of gateways which hold any data, but if one has been removed, we should not fail.
         $this->resetAfterTest();
@@ -113,7 +116,8 @@ final class manager_test extends \advanced_testcase {
                 'config' => '',
             ])
             ->onlyMethods(['get_send_priority', 'send'])
-            ->getMock();        $dummygw = get_class($dummy);
+            ->getMock();
+        $dummygw = get_class($dummy);
 
         $manager = \core\di::get(\core_sms\manager::class);
         $gateway = $manager->create_gateway_instance(
@@ -141,6 +145,9 @@ final class manager_test extends \advanced_testcase {
         $this->assertArrayNotHasKey($uninstalledgateway->id, $instances);
     }
 
+    /**
+     * Test that multiple instances of the same gateway can be created.
+     */
     public function test_multiple_gateway_instances(): void {
         $this->resetAfterTest();
 
@@ -201,6 +208,8 @@ final class manager_test extends \advanced_testcase {
     }
 
     /**
+     * Test that the manager can get gateways for a message.
+     *
      * @dataProvider gateway_priority_provider
      */
     public function test_get_gateways_for_message(
@@ -249,6 +258,11 @@ final class manager_test extends \advanced_testcase {
         }
     }
 
+    /**
+     * Data provider for test_get_gateways_for_message tests.
+     *
+     * @return array
+     */
     public static function gateway_priority_provider(): array {
         return [
             'uk' => [

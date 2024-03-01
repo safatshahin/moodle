@@ -28,10 +28,11 @@ use core_privacy\local\metadata\collection;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
+    \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\subsystem\provider,
-    \core_privacy\local\request\core_userlist_provider
+    \core_privacy\local\request\subsystem\provider
 {
+    #[\Override]
     public static function get_metadata(
         collection $collection,
     ): collection {
@@ -51,6 +52,7 @@ class provider implements
         return $collection;
     }
 
+    #[\Override]
     public static function get_contexts_for_userid(
         int $userid,
     ): \core_privacy\local\request\contextlist {
@@ -72,6 +74,7 @@ class provider implements
         return $contextlist;
     }
 
+    #[\Override]
     public static function export_user_data(
         \core_privacy\local\request\approved_contextlist $contextlist,
     ) {
@@ -113,6 +116,7 @@ class provider implements
         }
     }
 
+    #[\Override]
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
 
@@ -122,12 +126,14 @@ class provider implements
         $DB->delete_records('sms_messages', ['recipientuserid' => $context->instanceid]);
     }
 
+    #[\Override]
     public static function delete_data_for_user(\core_privacy\local\request\approved_contextlist $contextlist) {
         foreach ($contextlist as $context) {
             self::delete_data_for_all_users_in_context($context);
         }
     }
 
+    #[\Override]
     public static function get_users_in_context(userlist $userlist) {
         $context = $userlist->get_context();
         if ($context instanceof \core\context\user) {
@@ -135,6 +141,7 @@ class provider implements
         }
     }
 
+    #[\Override]
     public static function delete_data_for_users(approved_userlist $userlist) {
         $context = $userlist->get_context();
 

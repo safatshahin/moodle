@@ -16,13 +16,10 @@
 
 namespace core_sms;
 
-use InvalidArgumentException;
-use Psr\Container\NotFoundExceptionInterface;
-use Psr\Container\ContainerExceptionInterface;
 use ValueError;
 
 /**
- * Tests for sms
+ * Tests for SMS Messages.
  *
  * @package    core_sms
  * @category   test
@@ -109,6 +106,8 @@ final class message_test extends \advanced_testcase {
     }
 
     /**
+     * Test that get_region returns regions with valid numbers.
+     *
      * @dataProvider get_region_provider
      * @param string $recipient
      * @param string $expectedregion
@@ -129,7 +128,12 @@ final class message_test extends \advanced_testcase {
         $this->assertEquals($expectedregion, $message->get_region());
     }
 
-    public function get_region_provider(): array {
+    /**
+     * Data provider for test_get_region_valid.
+     *
+     * @return array
+     */
+    public static function get_region_provider(): array {
         return [
             // Authorised fictional numbers only.
             // Australia: https://www.acma.gov.au/phone-numbers-use-tv-shows-films-and-creative-works.
