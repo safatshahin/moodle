@@ -35,7 +35,7 @@ use ValueError;
  * @property-read string $component The component that owns the message
  * @property-read string $messagetype The type of message within the component
  * @property-read int|null $recipientuserid The user id of the recipient if one exists
- * @property-read bool $sensitive Whether this message contains sensitive information
+ * @property-read bool $issensitive Whether this message contains issensitive information
  * @property-read int|null $id The id of the message in the database
  * @property-read message_status $status The status of the message
  * @property-read int|null $gatewayid The id of the gateway that sent the message
@@ -56,7 +56,7 @@ class message {
      * @param string $component The component that owns the message
      * @param string $messagetype The type of message within the component
      * @param int|null $recipientuserid The user id of the recipient if one exists
-     * @param bool $sensitive Whether this message contains sensitive information
+     * @param bool $issensitive Whether this message contains issensitive information
      * @param int|null $id The id of the message in the database
      * @param message_status $status The status of the message
      * @param int|null $gatewayid The id of the gateway that sent the message
@@ -73,8 +73,8 @@ class message {
         public readonly string $messagetype,
         /** @var int|null The user id of the recipient if one exists */
         public readonly ?int $recipientuserid,
-        /** @var bool Whether this message contains sensitive information */
-        public readonly bool $sensitive,
+        /** @var bool Whether this message contains issensitive information */
+        public readonly bool $issensitive,
         /** @var null|int The id of the message in the database */
         public readonly ?int $id = null,
         /** @var message_status The status of the message */
@@ -102,7 +102,7 @@ class message {
             'component' => $this->component,
             'messagetype' => $this->messagetype,
             'recipientuserid' => $this->recipientuserid,
-            'sensitive' => $this->sensitive,
+            'issensitive' => $this->issensitive,
             'status' => $this->status->value,
             'gatewayid' => $this->gatewayid,
             'timecreated' => $this->timecreated,

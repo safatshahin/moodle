@@ -35,7 +35,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $this->assertInstanceOf(message::class, $message);
@@ -52,7 +52,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
             timecreated: $timecreated,
         );
 
@@ -65,7 +65,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $this->assertGreaterThan($starttime->getTimestamp(), $message->timecreated);
@@ -79,7 +79,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $this->assertFalse(isset($message->id));
@@ -98,7 +98,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $this->expectError(ValueError::class);
@@ -122,7 +122,7 @@ final class message_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $this->assertEquals($expectedregion, $message->get_region());

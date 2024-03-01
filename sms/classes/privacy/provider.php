@@ -89,7 +89,7 @@ class provider implements
                 function ($data) {
                     return [
                         'recipient' => $data->recipientnumber,
-                        'content' => $data->sensitive ? get_string('privacy:sms:sensitive_not_shown', 'core_sms') : $data->content,
+                        'content' => $data->issensitive ? get_string('privacy:sms:sensitive_not_shown', 'core_sms') : $data->content,
                         'messagetype' => $data->messagetype,
                         'status' => $data->status,
                         'timecreated' => $data->timecreated,

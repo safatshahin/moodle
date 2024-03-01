@@ -241,7 +241,7 @@ final class manager_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $gateways = $manager->get_possible_gateways_for_message($message);
@@ -293,7 +293,7 @@ final class manager_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
         );
 
         $saved = $manager->save_message($message);
@@ -312,7 +312,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertEquals($saved->component, $updatedmessage->component);
         $this->assertEquals($saved->messagetype, $updatedmessage->messagetype);
         $this->assertEquals($saved->recipientuserid, $updatedmessage->recipientuserid);
-        $this->assertEquals($saved->sensitive, $updatedmessage->sensitive);
+        $this->assertEquals($saved->issensitive, $updatedmessage->issensitive);
     }
 
     public function test_send(): void {
@@ -342,7 +342,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertEquals($message, $storedmessage);
     }
 
-    public function test_send_sensitive(): void {
+    public function test_send_issensitive(): void {
         $this->resetAfterTest();
 
         $manager = \core\di::get(\core_sms\manager::class);
@@ -354,7 +354,7 @@ final class manager_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: true,
+            issensitive: true,
             async: false,
         );
 
@@ -369,7 +369,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertEquals($message, $storedmessage);
     }
 
-    public function test_send_sensitive_async(): void {
+    public function test_send_issensitive_async(): void {
         $this->resetAfterTest();
 
         $manager = \core\di::get(\core_sms\manager::class);
@@ -382,7 +382,7 @@ final class manager_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: true,
+            issensitive: true,
             async: true,
         );
     }
@@ -435,7 +435,7 @@ final class manager_test extends \advanced_testcase {
                 'component' => 'core',
                 'messagetype' => 'test',
                 'recipientuserid' => null,
-                'sensitive' => false,
+                'issensitive' => false,
                 'status' => message_status::GATEWAY_SENT->value,
                 'gatewayid' => 1,
                 'timecreated' => time(),

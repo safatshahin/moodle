@@ -43,7 +43,7 @@ final class gateway_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
             gatewayid: $gw->id,
         );
         $message2 = new message(
@@ -52,7 +52,7 @@ final class gateway_test extends \advanced_testcase {
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            sensitive: false,
+            issensitive: false,
             gatewayid: $gw->id,
         );
 

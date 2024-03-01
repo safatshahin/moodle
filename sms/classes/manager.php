@@ -48,10 +48,10 @@ class manager {
      * @param string $component The owning component
      * @param string $messagetype The message type within the component
      * @param null|int $recipientuserid The user id of the recipient if one exists
-     * @param bool $sensitive Whether this SMS contains sensitive information
-     * @param bool $async Whether this SMS should be sent asynchronously. Note: Sensitive messages cannot be sent async
+     * @param bool $issensitive Whether this SMS contains issensitive information
+     * @param bool $async Whether this SMS should be sent asynchronously. Note: issensitive messages cannot be sent async
      * @return message
-     * @throws \coding_exception If a sensitive message is sent asynchronously
+     * @throws \coding_exception If a issensitive message is sent asynchronously
      */
     public function send(
         string $recipientnumber,
@@ -59,7 +59,7 @@ class manager {
         string $component,
         string $messagetype,
         ?int $recipientuserid,
-        bool $sensitive = false,
+        bool $issensitive = false,
         bool $async = true,
     ): message {
         $message = new message(
@@ -68,10 +68,10 @@ class manager {
             component: $component,
             messagetype: $messagetype,
             recipientuserid: $recipientuserid,
-            sensitive: $sensitive,
+            issensitive: $issensitive,
         );
 
-        if ($sensitive && $async) {
+        if ($issensitive && $async) {
             throw new \coding_exception('Sensitive messages cannot be sent asynchronously');
         }
 
@@ -183,7 +183,7 @@ class manager {
     public function save_message(
         message $message,
     ): message {
-        if ($message->sensitive) {
+        if ($message->issensitive) {
             // Sensitive messages should not store content.
             $message = $message->with(content: null);
         }
@@ -283,7 +283,7 @@ class manager {
                 component: $record->component,
                 messagetype: $record->messagetype,
                 recipientuserid: $record->recipientuserid,
-                sensitive: $record->sensitive,
+                issensitive: $record->issensitive,
                 status: message_status::from($record->status),
                 gatewayid: $record->gatewayid,
                 timecreated: $record->timecreated,
@@ -312,7 +312,7 @@ class manager {
             component: $record->component,
             messagetype: $record->messagetype,
             recipientuserid: $record->recipientuserid,
-            sensitive: $record->sensitive,
+            issensitive: $record->issensitive,
             status: message_status::from($record->status),
             gatewayid: $record->gatewayid,
             timecreated: $record->timecreated,
