@@ -8,7 +8,6 @@ information provided here is intended especially for developers.
 * The following previously deprecated methods have been removed and can no longer be used:
   - `renderer_base::should_display_main_logo`
 * Final deprecation of print_error(). Use moodle_exception instead.
-* A new \core_sms subsystem has been created
 
 === 4.4 ===
 
