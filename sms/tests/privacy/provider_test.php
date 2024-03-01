@@ -121,7 +121,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
         $this->export_all_data_for_user($user->id, 'core_sms');
         $this->assertTrue($writer->has_any_data_in_any_context());
         $data = $writer->get_data([get_string('sms', 'core_sms')]);
-        $this->assertObjectHasAttribute('messages', $data);
+        $this->assertObjectHasProperty('messages', $data);
         $this->assertCount(2, $data->messages);
 
         $message = reset($data->messages);

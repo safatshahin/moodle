@@ -101,7 +101,7 @@ final class message_test extends \advanced_testcase {
             issensitive: false,
         );
 
-        $this->expectError(ValueError::class);
+        $this->expectException(ValueError::class);
         $message->get_region();
     }
 
