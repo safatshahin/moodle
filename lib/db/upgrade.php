@@ -1192,19 +1192,19 @@ function xmldb_main_upgrade($oldversion) {
 
         // Adding fields to table sms_messages.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('recipient', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('recipientnumber', XMLDB_TYPE_CHAR, '30', null, XMLDB_NOTNULL, null, null);
         $table->add_field('content', XMLDB_TYPE_TEXT, null, null, null, null, null);
         $table->add_field('component', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
         $table->add_field('messagetype', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
         $table->add_field('recipientuserid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('sensitive', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
-        $table->add_field('gateway', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('gatewayid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('status', XMLDB_TYPE_CHAR, '100', null, null, null, null);
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table sms_messages.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
-        $table->add_key('gateway', XMLDB_KEY_FOREIGN, ['gateway'], 'sms_gateways', ['id']);
+        $table->add_key('gatewayid', XMLDB_KEY_FOREIGN, ['gatewayid'], 'sms_gateways', ['id']);
 
         // Conditionally launch create table for sms_messages.
         if (!$dbman->table_exists($table)) {

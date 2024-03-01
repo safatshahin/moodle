@@ -34,26 +34,26 @@ final class gateway_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $manager = \core\di::get(\core_sms\manager::class);
-        $gw = $manager->create_gateway_instance(\smsgw_dummy\gateway::class, true);
-        $othergw = $manager->create_gateway_instance(\smsgw_dummy\gateway::class, true);
+        $gw = $manager->create_gateway_instance(\smsgateway_dummy\gateway::class, true);
+        $othergw = $manager->create_gateway_instance(\smsgateway_dummy\gateway::class, true);
 
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
             sensitive: false,
-            gateway: $gw->id,
+            gatewayid: $gw->id,
         );
         $message2 = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
             recipientuserid: null,
             sensitive: false,
-            gateway: $gw->id,
+            gatewayid: $gw->id,
         );
 
         $updatedmessage = $gw->update_message_status($message);

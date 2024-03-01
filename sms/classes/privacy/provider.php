@@ -18,6 +18,7 @@ namespace core_sms\privacy;
 
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\metadata\collection;
 
 /**
  * Class provider
@@ -32,8 +33,8 @@ class provider implements
     \core_privacy\local\request\core_userlist_provider
 {
     public static function get_metadata(
-        \core_privacy\local\metadata\collection $collection,
-    ): \core_privacy\local\metadata\collection {
+        collection $collection,
+    ): collection {
         $collection->add_database_table(
             'sms_messages',
             [
@@ -61,11 +62,11 @@ class provider implements
                   JOIN {sms_messages} m
                     ON m.recipientuserid = ctx.instanceid AND ctx.contextlevel = :contextlevel
                  WHERE m.recipientuserid = :userid
-             EOF,
-             [
-                'userid' => $userid,
-                'contextlevel' => CONTEXT_USER,
-             ]
+            EOF,
+            [
+               'userid' => $userid,
+               'contextlevel' => CONTEXT_USER,
+            ]
         );
 
         return $contextlist;
@@ -84,7 +85,8 @@ class provider implements
             $messages = array_map(
                 function ($data) {
                     return [
-                        'content' => $data->sensitive ? get_string('privacy:sms:sensitive_not_shown', 'core_sms') :  $data->content,
+                        'recipient' => $data->recipientnumber,
+                        'content' => $data->sensitive ? get_string('privacy:sms:sensitive_not_shown', 'core_sms') : $data->content,
                         'messagetype' => $data->messagetype,
                         'status' => $data->status,
                         'timecreated' => $data->timecreated,
@@ -99,9 +101,9 @@ class provider implements
             );
 
             if (!empty($messages)) {
-                \core_privacy\local\request\writer::with_context($contextlist->current())->export_data(
+                \core_privacy\local\request\writer::with_context($context)->export_data(
                     [
-                        get_string('sms', 'core_sms')
+                        get_string('sms', 'core_sms'),
                     ],
                     (object) [
                         'messages' => $messages,
@@ -134,8 +136,12 @@ class provider implements
     }
 
     public static function delete_data_for_users(approved_userlist $userlist) {
-        foreach ($userlist->get_userids() as $userid) {
-            self::delete_data_for_all_users_in_context(\core\context\user::instance($userid));
+        $context = $userlist->get_context();
+
+        if (!$context instanceof \core\context\user) {
+            return;
         }
+
+        self::delete_data_for_all_users_in_context($context);
     }
 }

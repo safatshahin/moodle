@@ -42,7 +42,7 @@
         "local": "local",
         "h5plib": "h5p\/h5plib",
         "paygw": "payment\/gateway",
-        "smsgw": "sms/gateway"
+        "smsgateway": "sms/gateway"
     },
     "subsystems": {
         "access": null,

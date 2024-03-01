@@ -27,7 +27,12 @@ use core\attribute_helper;
  */
 enum message_status: string {
     #[description('status:unknown', 'core_sms')]
+    #[status()]
     case UNKNOWN = 'unknown';
+
+    #[description('status:message_over_size', 'core_sms')]
+    #[status(failed: true)]
+    case MESSAGE_OVER_SIZE = 'message_over_size';
 
     #[description('status:not_attempted', 'core_sms')]
     #[status(failed: true)]
@@ -38,6 +43,7 @@ enum message_status: string {
     case GATEWAY_NOT_AVAILABLE = 'gateway_not_available';
 
     #[description('status:gateway_queued', 'core_sms')]
+    #[status(inprogress: true)]
     case GATEWAY_QUEUED = 'gateway_queued';
 
     #[description('status:gateway_sent', 'core_sms')]
@@ -50,18 +56,28 @@ enum message_status: string {
      * @return bool
      */
     public function is_sent(): bool {
-        $status = attribute_helper::one_from($this, status::class);
-        return $status?->newInstance()->sent ?? false;
+        $status = attribute_helper::instance($this, status::class);
+        return $status?->sent ?? false;
     }
 
     /**
-     * Whether the message is in a state marked as failed..
+     * Whether the message is in a state marked as failed.
      *
      * @return bool
      */
     public function is_failed(): bool {
-        $status = attribute_helper::one_from($this, status::class);
-        return $status?->newInstance()->failed ?? false;
+        $status = attribute_helper::instance($this, status::class);
+        return $status?->failed ?? false;
+    }
+
+    /**
+     * Whether the message is in an in-progress state.
+     *
+     * @return bool
+     */
+    public function is_in_progress(): bool {
+        $status = attribute_helper::instance($this, status::class);
+        return $status?->inprogress ?? false;
     }
 
     /**
@@ -70,7 +86,6 @@ enum message_status: string {
      * @return null|\lang_string
      */
     public function description(): ?\lang_string {
-        $description = attribute_helper::one_from($this, description::class);
-        return $description?->newInstance();
+        return attribute_helper::instance($this, description::class);
     }
 }

@@ -43,6 +43,11 @@ abstract class gateway {
         $this->config = json_decode($config);
     }
 
+    /**
+     * Convert this object to a stdClass.
+     *
+     * @return \stdClass
+     */
     public function to_record(): \stdClass {
         return (object) [
             'id' => $this->id,
@@ -92,7 +97,7 @@ abstract class gateway {
      * @throws coding_exception
      */
     public function update_message_status(message $message): message {
-        if ($message->gateway !== $this->id) {
+        if ($message->gatewayid !== $this->id) {
             throw new \coding_exception('This gateway cannot update the status of this message');
         }
 

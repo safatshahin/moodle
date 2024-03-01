@@ -33,7 +33,7 @@ use ValueError;
 final class message_test extends \advanced_testcase {
     public function test_create(): void {
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
@@ -50,7 +50,7 @@ final class message_test extends \advanced_testcase {
 
         $timecreated = 12345;
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
@@ -63,7 +63,7 @@ final class message_test extends \advanced_testcase {
 
         $starttime = $clock->now();
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
@@ -77,7 +77,7 @@ final class message_test extends \advanced_testcase {
 
     public function test_id_not_updatable(): void {
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
@@ -96,7 +96,7 @@ final class message_test extends \advanced_testcase {
 
     public function test_get_region_invalid(): void {
         $message = new message(
-            recipient: '1234567890',
+            recipientnumber: '1234567890',
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',
@@ -114,11 +114,11 @@ final class message_test extends \advanced_testcase {
      * @param string $expectedregion
      */
     public function test_get_region_valid(
-        string $recipient,
+        string $recipientnumber,
         string $expectedregion,
     ): void {
         $message = new message(
-            recipient: $recipient,
+            recipientnumber: $recipientnumber,
             content: 'Hello, world!',
             component: 'core',
             messagetype: 'test',

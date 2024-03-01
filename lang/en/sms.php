@@ -22,17 +22,19 @@
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+$string['phonenumbernotvalid'] = 'Format of phone number not recognised: {$a->message}';
 $string['privacy:metadata:sms_messages'] = 'Stores messages sent via SMS';
-$string['privacy:metadata:sms_messages:id'] = 'The ID of the message';
 $string['privacy:metadata:sms_messages:content'] = 'The message text';
+$string['privacy:metadata:sms_messages:id'] = 'The ID of the message';
 $string['privacy:metadata:sms_messages:recipient'] = 'The phone number that the message was sent to';
 $string['privacy:metadata:sms_messages:recipientuserid'] = 'The user who the message was sent to, if known';
 $string['privacy:metadata:sms_messages:status'] = 'The status of the message';
 $string['privacy:metadata:sms_messages:timecreated'] = 'The time the message was created';
-$string['privacy:sms:sensitive_not_shown'] = 'The content of this message as not stored as it was marked as containing sensitive content.';
+$string['privacy:sms:sensitive_not_shown'] = 'The content of this message was not stored as it was marked as containing sensitive content.';
 $string['sms'] = 'SMS';
-$string['status:not_attempted'] = 'No attempt has been made to send the message yet';
 $string['status:gateway_not_available'] = 'The gateway is not available to send the message';
 $string['status:gateway_queued'] = 'The message is queued to be sent by the gateway';
 $string['status:gateway_sent'] = 'The message has been sent by the gateway';
+$string['status:message_over_size'] = 'The message is too large to be sent by the gateway';
+$string['status:not_attempted'] = 'No attempt has been made to send the message yet';
 $string['status:unknown'] = 'Unable to determine the status of the message';

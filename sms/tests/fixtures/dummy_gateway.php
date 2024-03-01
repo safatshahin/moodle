@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace smsgw_dummy;
+namespace smsgateway_dummy;
 
 use core_sms\message;
 
 /**
- * TODO describe file dummy_gateway
+ * Dummy SMS gateway.
  *
  * @package    core_sms
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
@@ -37,8 +37,9 @@ class gateway extends \core_sms\gateway {
             return 50;
         }
 
+        // Check if the recipient number starts with a specific prefix.
         if (property_exists($this->config, 'startswith')) {
-            $startswith = substr($message->recipient, 0, 3);
+            $startswith = substr($message->recipientnumber, 0, 3);
             if (property_exists($this->config->startswith, $startswith)) {
                 return (int) $this->config->startswith->$startswith;
             }

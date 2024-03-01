@@ -21,16 +21,17 @@ use moodle_url;
 /**
  * SMS gateway subplugin info class.
  *
+ * @package core
  * @copyright 2024 Andrew Lyons <andrew@nicols.co.uk>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class smsgw extends base {
+class smsgateway extends base {
     public function is_uninstall_allowed(): bool {
         return true;
     }
 
     public function get_settings_section_name(): string {
-        return "smsgw{$this->name}";
+        return "smsgateway{$this->name}";
     }
 
     public function load_settings(
@@ -65,7 +66,7 @@ class smsgw extends base {
 
     public static function get_manage_url(): moodle_url {
         return new \moodle_url('/admin/settings.php', [
-            'section' => 'smsgw',
+            'section' => 'smsgateway',
         ]);
     }
 }

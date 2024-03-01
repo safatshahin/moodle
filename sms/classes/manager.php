@@ -26,6 +26,9 @@ use Generator;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manager {
+    /** @var int The maximum length of a message */
+    const MESSAGE_LENGTH_LIMIT = 160 * 3;
+
     public function __construct(
         protected readonly \moodle_database $db,
     ) {
@@ -34,7 +37,7 @@ class manager {
     /**
      * Send an SMS to the given recipient.
      *
-     * @param string $recipient The phone number to send the SMS to
+     * @param string $recipientnumber The phone number to send the SMS to
      * @param string $content The SMS Content
      * @param string $component The owning component
      * @param string $messagetype The message type within the component
@@ -45,16 +48,16 @@ class manager {
      * @throws \coding_exception If a sensitive message is sent asynchronously
      */
     public function send(
-        string $recipient,
+        string $recipientnumber,
         string $content,
         string $component,
         string $messagetype,
         ?int $recipientuserid,
         bool $sensitive = false,
-        bool $async = false,
+        bool $async = true,
     ): message {
         $message = new message(
-            recipient: $recipient,
+            recipientnumber: $recipientnumber,
             content: $content,
             component: $component,
             messagetype: $messagetype,
@@ -71,8 +74,10 @@ class manager {
             throw new \coding_exception('Asynchronous sending is not yet implemented');
         }
 
-        if ($gateway = $this->get_gateway_for_message($message)) {
-            $message = $message->with(gateway: $gateway->id);
+        if (\core_text::strlen($content) > self::MESSAGE_LENGTH_LIMIT) {
+            $message = $message->with(status: message_status::MESSAGE_OVER_SIZE);
+        } else if ($gateway = $this->get_gateway_for_message($message)) {
+            $message = $message->with(gatewayid: $gateway->id);
             $message = $gateway->send(
                 message: $message,
             );
@@ -133,7 +138,10 @@ class manager {
             array_map(
                 function ($record): ?gateway {
                     if (!class_exists($record->gateway)) {
-                        // TODO Decide whether to throw an exception? Debugging?
+                        debugging(
+                            "Unable to find a gateway class for {$record->gateway}",
+                            DEBUG_DEVELOPER,
+                        );
                         return null;
                     }
 
@@ -189,8 +197,10 @@ class manager {
      * @return gateway
      */
     public function enable_gateway(gateway $gateway): gateway {
-        $gateway = $gateway->with(enabled: true);
-        $this->db->update_record('sms_gateways', $gateway->to_record());
+        if (!$gateway->enabled) {
+            $gateway = $gateway->with(enabled: true);
+            $this->db->update_record('sms_gateways', $gateway->to_record());
+        }
 
         return $gateway;
     }
@@ -202,8 +212,10 @@ class manager {
      * @return gateway
      */
     public function disable_gateway(gateway $gateway): gateway {
-        $gateway = $gateway->with(enabled: false);
-        $this->db->update_record('sms_gateways', $gateway->to_record());
+        if ($gateway->enabled) {
+            $gateway = $gateway->with(enabled: false);
+            $this->db->update_record('sms_gateways', $gateway->to_record());
+        }
 
         return $gateway;
     }
@@ -212,6 +224,7 @@ class manager {
      * Create a new gateway instance.
      *
      * @param string $classname
+     * @param bool $enabled
      * @param \stdClass $config
      * @return gateway
      */
@@ -220,6 +233,9 @@ class manager {
         bool $enabled = false,
         ?\stdClass $config = null,
     ): gateway {
+        if (!class_exists($classname) || !is_a($classname, gateway::class, true)) {
+            throw new \coding_exception("Gateway class not valid: {$classname}");
+        }
         $gateway = new $classname(
             enabled: $enabled,
             config: $config ? json_encode($config) : '',
@@ -256,14 +272,15 @@ class manager {
         foreach ($rows as $record) {
             yield new message(
                 id: $record->id,
-                recipient: $record->recipient,
+                recipientnumber: $record->recipientnumber,
                 content: $record->content,
                 component: $record->component,
                 messagetype: $record->messagetype,
                 recipientuserid: $record->recipientuserid,
                 sensitive: $record->sensitive,
                 status: message_status::from($record->status),
-                gateway: $record->gateway,
+                gatewayid: $record->gatewayid,
+                timecreated: $record->timecreated,
             );
         }
     }
@@ -284,14 +301,15 @@ class manager {
 
         return new message(
             id: $record->id,
-            recipient: $record->recipient,
+            recipientnumber: $record->recipientnumber,
             content: $record->content,
             component: $record->component,
             messagetype: $record->messagetype,
             recipientuserid: $record->recipientuserid,
             sensitive: $record->sensitive,
             status: message_status::from($record->status),
-            gateway: $record->gateway,
+            gatewayid: $record->gatewayid,
+            timecreated: $record->timecreated,
         );
     }
 }

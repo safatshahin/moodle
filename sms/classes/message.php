@@ -2,7 +2,7 @@
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public Licensv as published by
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -30,7 +30,7 @@ use ValueError;
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @property-read int $timecreated The time that the message was created
- * @property-read string $recipient The recipient of the message
+ * @property-read string $recipientnumber The recipient of the message
  * @property-read null|string $content The content of the message
  * @property-read string $component The component that owns the message
  * @property-read string $messagetype The type of message within the component
@@ -38,7 +38,7 @@ use ValueError;
  * @property-read bool $sensitive Whether this message contains sensitive information
  * @property-read int|null $id The id of the message in the database
  * @property-read message_status $status The status of the message
- * @property-read int|null $gateway The id of the gateway that sent the message
+ * @property-read int|null $gatewayid The id of the gateway that sent the message
  */
 class message {
     use Cloneable {
@@ -49,7 +49,7 @@ class message {
     public readonly int $timecreated;
 
     public function __construct(
-        public readonly string $recipient,
+        public readonly string $recipientnumber,
         public readonly ?string $content,
         public readonly string $component,
         public readonly string $messagetype,
@@ -57,7 +57,7 @@ class message {
         public readonly bool $sensitive,
         public readonly ?int $id = null,
         public readonly message_status $status = message_status::UNKNOWN,
-        public readonly ?int $gateway = null,
+        public readonly ?int $gatewayid = null,
         ?int $timecreated = null,
     ) {
         if ($timecreated === null) {
@@ -74,14 +74,14 @@ class message {
      */
     public function to_record(): \stdClass {
         $record = (object) [
-            'recipient' => $this->recipient,
+            'recipientnumber' => $this->recipientnumber,
             'content' => $this->content,
             'component' => $this->component,
             'messagetype' => $this->messagetype,
             'recipientuserid' => $this->recipientuserid,
             'sensitive' => $this->sensitive,
             'status' => $this->status->value,
-            'gateway' => $this->gateway,
+            'gatewayid' => $this->gatewayid,
             'timecreated' => $this->timecreated,
         ];
 
@@ -117,12 +117,12 @@ class message {
     public function get_region(): ?string {
         $pnu = \core\di::get(\libphonenumber\PhoneNumberUtil::class);
         try {
-            $recipient = $pnu->parse($this->recipient);
+            $recipient = $pnu->parse($this->recipientnumber);
         } catch (NumberParseException $e) {
-            // Note: Throw errors which are not specific to libphonenumberhere.
-            // This is to avoid hard-tying use of this library.
+            // Note: Throw errors which are not specific to libphonenumber here.
+            // This is to avoid hard-trying use of this library.
             throw new ValueError(
-                'Invalid phone number: ' . $e->getMessage(),
+                new \lang_string('phonenumbernotvalid', 'sms', ['message' => $e->getMessage()]),
                 $e->getCode(),
                 $e,
             );

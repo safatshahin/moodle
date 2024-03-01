@@ -19,10 +19,12 @@ namespace core_sms;
 /**
  * Message status categorisation.
  *
- * Description in the message_status class provide a human-readable machine description of the status.
+ * Statuses in the message_status class provide a human-readable machine description of the status.
+ *
  * Each message status can further be categorised with attributes such as:
  * - sent
  * - failed
+ * - inprogress
  *
  * @package    core_sms
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
@@ -35,10 +37,15 @@ class status {
      *
      * @param bool $sent
      * @param bool $failed
+     * @param bool $inprogress
      */
     public function __construct(
+        /** @var bool Whether the message was sent successfully */
         public readonly bool $sent = false,
+        /** @var bool Whether the message is in a failed state */
         public readonly bool $failed = false,
+        /** @var bool Whether the message is in-progress */
+        public readonly bool $inprogress = false,
     ) {
     }
 }

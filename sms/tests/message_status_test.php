@@ -33,13 +33,18 @@ final class message_status_test extends \advanced_testcase {
             message_status::GATEWAY_SENT,
         ];
         $failed = [
+            message_status::MESSAGE_OVER_SIZE,
             message_status::NOT_ATTEMPTED,
             message_status::GATEWAY_NOT_AVAILABLE,
+        ];
+        $inprogress = [
+            message_status::GATEWAY_QUEUED,
         ];
 
         foreach (message_status::cases() as $case) {
             $this->assertEquals(in_array($case, $sent), $case->is_sent());
             $this->assertEquals(in_array($case, $failed), $case->is_failed());
+            $this->assertEquals(in_array($case, $inprogress), $case->is_in_progress());
         }
     }
 
