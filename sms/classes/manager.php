@@ -48,10 +48,10 @@ class manager {
      * @param string $component The owning component
      * @param string $messagetype The message type within the component
      * @param null|int $recipientuserid The user id of the recipient if one exists
-     * @param bool $issensitive Whether this SMS contains issensitive information
-     * @param bool $async Whether this SMS should be sent asynchronously. Note: issensitive messages cannot be sent async
+     * @param bool $issensitive Whether this SMS contains sensitive information
+     * @param bool $async Whether this SMS should be sent asynchronously. Note: sensitive messages cannot be sent async
      * @return message
-     * @throws \coding_exception If a issensitive message is sent asynchronously
+     * @throws \coding_exception If a sensitive message is sent asynchronously
      */
     public function send(
         string $recipientnumber,

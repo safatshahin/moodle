@@ -34,8 +34,9 @@ final class message_status_test extends \advanced_testcase {
         ];
         $failed = [
             message_status::MESSAGE_OVER_SIZE,
-            message_status::NOT_ATTEMPTED,
+            message_status::GATEWAY_FAILED,
             message_status::GATEWAY_NOT_AVAILABLE,
+            message_status::GATEWAY_REJECTED,
         ];
         $inprogress = [
             message_status::GATEWAY_QUEUED,
