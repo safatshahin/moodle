@@ -34,10 +34,6 @@ enum message_status: string {
     #[status(failed: true)]
     case MESSAGE_OVER_SIZE = 'message_over_size';
 
-    #[description('status:not_attempted', 'core_sms')]
-    #[status(failed: true)]
-    case NOT_ATTEMPTED = 'not_attempted';
-
     #[description('status:gateway_not_available', 'core_sms')]
     #[status(failed: true)]
     case GATEWAY_NOT_AVAILABLE = 'gateway_not_available';
@@ -49,6 +45,14 @@ enum message_status: string {
     #[description('status:gateway_sent', 'core_sms')]
     #[status(sent: true)]
     case GATEWAY_SENT = 'gateway_sent';
+
+    #[description('status:gateway_rejected', 'core_sms')]
+    #[status(failed: true)]
+    case GATEWAY_REJECTED = 'gateway_rejected';
+
+    #[description('status:gateway_failed', 'core_sms')]
+    #[status(failed: true)]
+    case GATEWAY_FAILED = 'gateway_failed';
 
     /**
      * Whether the message is in a state marked as sent.
