@@ -147,6 +147,8 @@ class component {
         \Invoker::class => 'lib/php-di/invoker/src',
         \FastRoute::class => 'lib/nikic/fast-route/src',
         \Slim::class => 'lib/slim/slim/Slim',
+        \Spatie\Cloneable::class => 'lib/spatie/php-cloneable/src',
+        \libphonenumber::class => 'lib/giggsey/libphonenumber-for-php-lite/src',
     ];
 
     /**
