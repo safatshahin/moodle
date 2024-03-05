@@ -43,5 +43,14 @@ $tasks = [
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*'
-    ]
+    ],
+    [
+        'classname' => 'mod_quiz\task\queue_notify_quiz_open_soon',
+        'blocking' => 0,
+        'minute' => 'R',
+        'hour' => '0',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*',
+    ],
 ];
