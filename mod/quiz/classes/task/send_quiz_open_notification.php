@@ -22,25 +22,14 @@ use core\task\adhoc_task;
  * Ad-hoc task to notify users of quizzes with an approaching open date.
  *
  * @package    mod_quiz
- * @copyright  2024 David Woloszyn <david.woloszyn@moodle.com>
+ * @copyright  2024 Safat Shahin <safatshahin@catalyst-au.net>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class notify_quiz_open_soon extends adhoc_task {
-    /**
-     * Run the ad-hoc task to send a notification to a user about an approaching open date.
-     */
+class send_quiz_open_notification extends adhoc_task {
+
     public function execute(): void {
-        $quiz = $this->get_custom_data();
-        $users = quiz_notification_helper::get_users_within_quiz($quiz);
-        foreach ($users as $user) {
-            $task = new send_quiz_open_notification();
-            $task->set_custom_data(
-                [
-                    'user' => $user,
-                    'quiz' => $quiz,
-                ]
-            );
-            \core\task\manager::queue_adhoc_task($task);
-        }
+        $user = $this->get_custom_data()->user;
+        $quiz = $this->get_custom_data()->quiz;
+        quiz_notification_helper::send_quiz_open_soon_notification($user, $quiz);
     }
 }

@@ -17,8 +17,6 @@
 namespace mod_quiz\task;
 
 use core\task\scheduled_task;
-use mod_quiz\task\notify_quiz_open_soon;
-use mod_quiz\task\quiz_notification_helper;
 
 /**
  * Scheduled task to queue tasks for notifying about quizzes with an approaching open date.

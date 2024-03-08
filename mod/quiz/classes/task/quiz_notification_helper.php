@@ -16,7 +16,6 @@
 
 namespace mod_quiz\task;
 
-use core\task\module_notification_helper;
 use stdClass;
 
 /**
@@ -29,6 +28,11 @@ use stdClass;
 class quiz_notification_helper {
 
     /**
+     * @var int Default date threshold of 48 hours.
+     */
+    private const DEFAULT_DATE_THRESHOLD = (DAYSECS * 2);
+
+    /**
      * Get all quizzes that have an approaching open date (includes users and groups with open date overrides).
      *
      * @return array Returns the matching quiz records.
@@ -37,7 +41,7 @@ class quiz_notification_helper {
         global $DB;
 
         $timenow = time();
-        $futuretime = module_notification_helper::get_date_threshold();
+        $futuretime = $timenow + self::DEFAULT_DATE_THRESHOLD;
 
         $sql = "SELECT DISTINCT q.id AS quizid,
                        q.timeopen,
@@ -65,6 +69,46 @@ class quiz_notification_helper {
         return $DB->get_records_sql($sql, $params);
     }
 
+    public static function get_quiz_overrides(int $quizid): array {
+        global $DB;
+
+        // Check for any override dates.
+        $sql = "SELECT qo.userid,
+                       qo.timeopen,
+                       qo.timeclose,
+                       qo.groupid
+                  FROM {quiz_overrides} qo
+                 WHERE quiz = :quizid
+                   AND (timeopen < :futuretime OR timeclose < :futuretime)
+                   AND (timeopen > :timenow OR timeclose > :timenow);";
+
+        return $DB->get_records_sql($sql, [
+            'quizid' => $quizid,
+            'timenow' => time(),
+            'futuretime' => time() + self::DEFAULT_DATE_THRESHOLD,
+        ]);
+    }
+
+    /**
+     * Check if a user has been sent a notification already.
+     *
+     * @param int $userid The user id.
+     * @param string $match The custom data string to match on.
+     * @return bool Returns true if already sent.
+     */
+    public static function has_user_been_sent_a_notification_already(int $userid, string $match): bool {
+        global $DB;
+
+        $sql = "SELECT COUNT(n.id)
+                  FROM {notifications} n
+                 WHERE " . $DB->sql_compare_text('n.customdata') . " = " . $DB->sql_compare_text(':match') . "
+                   AND n.useridto = :userid";
+
+        $result = $DB->count_records_sql($sql, ['userid' => $userid, 'match' => $match]);
+
+        return ($result > 0);
+    }
+
     /**
      * Get all users that have an approaching open date within a quiz.
      *
@@ -72,13 +116,10 @@ class quiz_notification_helper {
      * @return array The users after all filtering has been applied.
      */
     public static function get_users_within_quiz(stdClass $quiz): array {
-        global $DB;
-
         $modulecontext = \context_module::instance($quiz->cmid);
         $users = get_enrolled_users($modulecontext, 'mod/quiz:attempt', 0, 'u.id, u.firstname');
-
-        // Check for any override dates.
-        $overrides = $DB->get_records('quiz_overrides', ['quiz' => $quiz->quizid]);
+        $course = get_course($quiz->course);
+        $overrides = self::get_quiz_overrides($quiz->quizid);
 
         foreach ($users as $key => $user) {
             // Time open and time close dates can be user specific with an override.
@@ -86,24 +127,35 @@ class quiz_notification_helper {
             $user->timeopen = $quiz->timeopen;
             $user->timeclose = $quiz->timeclose;
             // Set the override type to 'none' to begin with.
-            $user->overridetype = module_notification_helper::OVERRIDE_TYPE_NONE;
+            $user->overridetype = 'none';
 
-            // Update this user with any applicable override dates.
-            if (!empty($overrides)) {
-                module_notification_helper::update_user_with_date_overrides($overrides, $user, 'timeopen');
-                module_notification_helper::update_user_with_date_overrides($overrides, $user, 'timeclose');
-            }
-            // Check the date is within our threshold.
-            if (!module_notification_helper::is_date_within_threshold($user->timeopen)) {
-                unset($users[$key]);
-            }
+            // Check if the $user is in $overrides and get that user's override.
+            array_map(static function($override) use ($user, $course) {
+                if ($override->userid !== $user->id) {
+                    return;
+                }
+                $user->timeopen = $override->timeopen;
+                $user->timeclose = $override->timeclose;
+                if (
+                    $course->groupmode !== NOGROUPS
+                    && !empty($override->groupid)
+                    && groups_is_member($override->groupid, $user->id)
+                ) {
+                    $user->overridetype = 'group';
+                } else {
+                    $user->overridetype = 'user';
+                }
+            }, $overrides);
+
             // Check if the user has already received this notification.
             $match = [
                 'quizid' => $quiz->quizid,
                 'timeopen' => $user->timeopen,
                 'overridetype' => $user->overridetype,
             ];
-            if (module_notification_helper::has_user_been_sent_a_notification_already($user->id, json_encode($match))) {
+            if (
+                self::has_user_been_sent_a_notification_already($user->id, json_encode($match, JSON_THROW_ON_ERROR))
+            ) {
                 unset($users[$key]);
             }
         }
