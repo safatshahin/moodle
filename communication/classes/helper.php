@@ -124,13 +124,19 @@ class helper {
         $groupmode = $course->groupmode ?? get_course(courseid: $course->id)->groupmode;
         $coursecontext = \context_course::instance(courseid: $course->id);
 
+        $coursecommunication = self::load_by_course(
+            courseid: $course->id,
+            context: $coursecontext,
+        );
+
+        // Check we have communication correctly set up before proceeding.
+        if ($coursecommunication->get_processor() === null) {
+            return;
+        }
+
         // If group mode is not set, then just handle the update normally for these users.
         if ((int)$groupmode === NOGROUPS) {
-            $communication = self::load_by_course(
-                courseid: $course->id,
-                context: $coursecontext,
-            );
-            $communication->$memberaction($userids);
+            $coursecommunication->$memberaction($userids);
         } else {
             // If group mode is set, then handle the update for these users with repect to the group they are in.
             $coursegroups = groups_get_all_groups(courseid: $course->id);
@@ -171,12 +177,6 @@ class helper {
                     groupid: $coursegroup->id,
                     context: $coursecontext,
                 );
-
-                // Check we have communication correctly set up before proceeding.
-                if (empty($communication->get_processor())) {
-                    return;
-                }
-
                 $instanceusers = $communication->get_processor()->get_all_userids_for_instance();
 
                 // The difference between the instance users and the group members are the ones we want to check.
