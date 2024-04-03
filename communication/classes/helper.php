@@ -171,6 +171,12 @@ class helper {
                     groupid: $coursegroup->id,
                     context: $coursecontext,
                 );
+
+                // Check we have communication correctly set up before proceeding.
+                if (empty($communication->get_processor())) {
+                    return;
+                }
+
                 $instanceusers = $communication->get_processor()->get_all_userids_for_instance();
 
                 // The difference between the instance users and the group members are the ones we want to check.
