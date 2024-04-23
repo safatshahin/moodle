@@ -16,6 +16,7 @@
 
 namespace core\plugininfo;
 
+use core_plugin_manager;
 use moodle_url;
 
 /**
@@ -31,7 +32,7 @@ class smsgateway extends base {
     }
 
     public function get_settings_section_name(): string {
-        return "smsgateway{$this->name}";
+        return $this->type . '_' . $this->name;
     }
 
     public function load_settings(
@@ -62,6 +63,50 @@ class smsgateway extends base {
         if ($settings) {
             $ADMIN->add($parentnodename, $settings);
         }
+    }
+
+    public static function enable_plugin(string $pluginname, int $enabled): bool {
+        $haschanged = false;
+
+        $plugin = 'smsgateway_' . $pluginname;
+        $oldvalue = get_config($plugin, 'disabled');
+        $disabled = !$enabled;
+
+        if ($oldvalue && !$disabled) {
+            unset_config('disabled', $plugin);
+            $haschanged = true;
+        } else if (!$oldvalue) {
+            set_config('disabled', $disabled, $plugin);
+            $haschanged = true;
+        }
+
+        if ($haschanged) {
+            add_to_config_log('disabled', $oldvalue, $disabled, $plugin);
+            \core_plugin_manager::reset_caches();
+        }
+
+        return $haschanged;
+    }
+
+    public static function get_enabled_plugins(): ?array {
+        $pluginmanager = core_plugin_manager::instance();
+        $plugins = $pluginmanager->get_installed_plugins('smsgateway');
+
+        if (!$plugins) {
+            return [];
+        }
+
+        $plugins = array_keys($plugins);
+
+        // Filter to return only enabled plugins.
+        $enabled = [];
+        foreach ($plugins as $plugin) {
+            $disabled = get_config('smsgateway_' . $plugin, 'disabled');
+            if (empty($disabled)) {
+                $enabled[$plugin] = $plugin;
+            }
+        }
+        return $enabled;
     }
 
     public static function get_manage_url(): moodle_url {

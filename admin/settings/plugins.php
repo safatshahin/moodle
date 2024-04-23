@@ -24,6 +24,8 @@
 * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
 */
 
+use core\plugininfo\smsgateway;
+
 if ($hassiteconfig) {
     /* @var admin_root $ADMIN */
     $ADMIN->locate('modules')->set_sorting(true);
@@ -832,6 +834,31 @@ if ($hassiteconfig) {
     foreach ($plugins as $plugin) {
         /** @var \core\plugininfo\contentbank $plugin */
         $plugin->load_settings($ADMIN, 'contentbanksettings', $hassiteconfig);
+    }
+}
+
+// SMS gateway plugins.
+if ($hassiteconfig) {
+    $ADMIN->add(
+        'modules',
+        new admin_category(
+            'smsgatewaysettings',
+            new lang_string('sms', 'core_sms'),
+        ),
+    );
+    $temp = new admin_settingpage(
+        'smsgateway',
+        new lang_string('managesmsgateways', 'core_sms'),
+    );
+    $temp->add(new \core_sms\admin\manage_smsgateway_page());
+    $ADMIN->add(
+        'smsgatewaysettings',
+        $temp,
+    );
+    $plugins = core_plugin_manager::instance()->get_plugins_of_type('smsgateway');
+    foreach ($plugins as $plugin) {
+        /** @var smsgateway $plugin */
+        $plugin->load_settings($ADMIN, 'smsgatewaysettings', $hassiteconfig);
     }
 }
 

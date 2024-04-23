@@ -22,6 +22,8 @@
  * @copyright  2024 Andrew Lyons <andrew@nicols.co.uk>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+$string['managesmsgateways'] = 'Manage sms gateways';
+$string['nosmsgateway'] = 'No sms gateway found.';
 $string['phonenumbernotvalid'] = 'Format of phone number not recognised: {$a->message}';
 $string['privacy:metadata:sms_messages'] = 'Stores messages sent via SMS';
 $string['privacy:metadata:sms_messages:content'] = 'The message text';
@@ -32,6 +34,7 @@ $string['privacy:metadata:sms_messages:status'] = 'The status of the message';
 $string['privacy:metadata:sms_messages:timecreated'] = 'The time the message was created';
 $string['privacy:sms:sensitive_not_shown'] = 'The content of this message was not stored as it was marked as containing sensitive content.';
 $string['sms'] = 'SMS';
+$string['smsgatewaynotfound'] = 'The \'{$a}\' sms gateway doesn\'t exist or is not recognised.';
 $string['status:gateway_not_available'] = 'The gateway is not available to send the message';
 $string['status:gateway_queued'] = 'The message is queued to be sent by the gateway';
 $string['status:gateway_sent'] = 'The message has been sent by the gateway';
