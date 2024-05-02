@@ -412,9 +412,16 @@ class factor extends object_factor_base {
         ];
         $message = get_string('smsstring', 'factor_sms', $content);
 
-        $class = '\factor_sms\local\smsgateway\\' . get_config('factor_sms', 'gateway');
-        $gateway = new $class();
-        $gateway->send_sms_message($message, $phonenumber);
+        $manager = \core\di::get(\core_sms\manager::class);
+        $manager->send(
+            recipientnumber: $phonenumber,
+            content: $message,
+            component: 'factor_sms',
+            messagetype: 'factor',
+            recipientuserid: null,
+            sensitive: true,
+            async: false,
+        );
     }
 
     /**
