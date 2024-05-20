@@ -433,7 +433,10 @@ class helper {
 
         // Determine the communication room name if none was provided and add it to the course data.
         if (empty($course->communicationroomname)) {
-            $course->communicationroomname = $course->fullname ?? get_course($course->id)->fullname;
+            $course->communicationroomname = $coursecommunication->get_room_name();
+            if (empty($course->communicationroomname)) {
+                $course->communicationroomname = $course->fullname ?? get_course($course->id)->fullname;
+            }
         }
 
         // List of enrolled users for course communication.

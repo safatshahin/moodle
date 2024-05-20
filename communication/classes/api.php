@@ -376,6 +376,9 @@ class api {
      * @return string
      */
     public function get_room_name(): string {
+        if (!$this->communication) {
+            return '';
+        }
         return $this->communication->get_room_name();
     }
 
@@ -474,8 +477,6 @@ class api {
             // Now deactivate the previous provider.
             $this->update_room(
                 active: processor::PROVIDER_INACTIVE,
-                communicationroomname: $communicationroomname,
-                avatar: $instanceimage,
                 instance: $instance,
                 queue: $queue,
             );
