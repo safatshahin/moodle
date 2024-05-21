@@ -113,13 +113,16 @@ class communication_feature implements
     }
 
     public function save_form_data(\stdClass $instance): void {
+        if (!isset($instance->customlinkurl) && !$instance->customlinkurl) {
+            throw new coding_exception('The instance should include customlinkurl.');
+        }
+
         global $DB;
 
         $commid = $this->communication->get_id();
         $cachekey = "link_url_{$commid}";
 
         $newrecord = new \stdClass();
-        $newrecord->url = $instance->customlinkurl ?? null;
 
         $existingrecord = $DB->get_record(
             self::CUSTOMLINK_TABLE,
@@ -130,10 +133,12 @@ class communication_feature implements
         if (!$existingrecord) {
             // Create the record if it does not exist.
             $newrecord->commid = $commid;
+            $newrecord->url = $instance->customlinkurl;
             $DB->insert_record(self::CUSTOMLINK_TABLE, $newrecord);
-        } else if ($newrecord->url !== $existingrecord->url) {
+        } else if ($instance->customlinkurl !== $existingrecord->url) {
             // Update record if the URL has changed.
             $newrecord->id = $existingrecord->id;
+            $newrecord->url = $instance->customlinkurl;
             $DB->update_record(self::CUSTOMLINK_TABLE, $newrecord);
         } else {
             // No change made.

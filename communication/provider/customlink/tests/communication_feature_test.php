@@ -88,6 +88,13 @@ class communication_feature_test extends \advanced_testcase {
         $communicationprocessor->get_form_provider()->save_form_data($formdatainstance);
         $fetchedurl = $communicationprocessor->get_room_provider()->get_chat_room_url();
         $this->assertEquals($customlinkurl, $fetchedurl);
+
+        // Test with empty customlinkurl.
+        $customlinkurl = '';
+        $formdatainstance = (object) ['customlinkurl' => $customlinkurl];
+        $communicationprocessor->get_form_provider()->save_form_data($formdatainstance);
+        $fetchedurl = $communicationprocessor->get_room_provider()->get_chat_room_url();
+        $this->assertEquals($customlinkurl, $fetchedurl);
     }
 
     /**
