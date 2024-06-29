@@ -22,6 +22,7 @@ use core\attribute\deprecated;
 use core\ip_utils;
 use invalid_parameter_exception;
 use moodle_exception;
+use SensitiveParameter;
 
 // phpcs:disable Generic.CodeAnalysis.EmptyStatement.DetectedIf
 
@@ -187,6 +188,13 @@ enum param: string {
      */
     #[param_clientside_regex('^[0-9,]*$')]
     case SEQUENCE = 'sequence';
+
+    /**
+     * PARAM_SENSITIVE - accepts sensitive characters like api key, secret key, shared secret.\
+     *
+     * This can be raw value as per the server.
+     */
+    case SENSITIVE = 'sensitive';
 
     /**
      * PARAM_TAG - one tag (interests, blogs, etc.) - mostly international characters and space, <> not supported
@@ -1331,6 +1339,19 @@ enum param: string {
         } else {
             return '';
         }
+    }
+
+    /**
+     * Validation for PARAM_SENSITIVE.
+     *
+     * @param mixed $param The actual param value.
+     * @return mixed
+     */
+    protected function clean_param_value_sensitive(
+        #[SensitiveParameter]
+        mixed $param,
+    ): mixed {
+        return $this->clean_param_value_text($param);
     }
 
     /**
