@@ -43,11 +43,14 @@ function xmldb_factor_sms_upgrade(int $oldversion): bool {
             $smsconfig->api_region = $config->api_region;
             // Now insert the record.
             $manager = \core\di::get(\core_sms\manager::class);
-            $manager->create_gateway_instance(
+            $gateway = $manager->create_gateway_instance(
                 classname: \smsgateway_aws\gateway::class,
+                name: 'MFA AWS Default',
                 enabled: $config->enabled,
                 config: $smsconfig,
             );
+            // Set the mfa config for the sms gateway.
+            set_config('smsgateway', $gateway->id, 'factor_sms');
         }
         // MFA savepoint reached.
         upgrade_plugin_savepoint(true, 2024050300, 'factor', 'sms');
