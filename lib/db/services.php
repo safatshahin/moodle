@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Core external functions and service definitions.
  *
@@ -3207,6 +3206,12 @@ $functions = array(
         'classname'   => 'core\external\moodlenet_send_course',
         'description' => 'Send course to MoodleNet',
         'type'        => 'read',
+        'ajax'        => true,
+    ],
+    'core_sms_set_gateway_state' => [
+        'classname'   => 'core_sms\external\sms_gateway_status',
+        'description' => 'Set the sms gateway status',
+        'type'        => 'write',
         'ajax'        => true,
     ],
 );
