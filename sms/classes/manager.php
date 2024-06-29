@@ -17,6 +17,7 @@
 namespace core_sms;
 
 use Generator;
+use stdClass;
 
 /**
  * SMS manager.
@@ -50,6 +51,7 @@ class manager {
      * @param null|int $recipientuserid The user id of the recipient if one exists
      * @param bool $issensitive Whether this SMS contains sensitive information
      * @param bool $async Whether this SMS should be sent asynchronously. Note: sensitive messages cannot be sent async
+     * @param ?int $gatewayid the gateway instance id to send the sms in a specific gateway config
      * @return message
      * @throws \coding_exception If a sensitive message is sent asynchronously
      */
@@ -61,6 +63,7 @@ class manager {
         ?int $recipientuserid,
         bool $issensitive = false,
         bool $async = true,
+        ?int $gatewayid = null,
     ): message {
         $message = new message(
             recipientnumber: $recipientnumber,
@@ -82,6 +85,18 @@ class manager {
 
         if (\core_text::strlen($content) > self::MESSAGE_LENGTH_LIMIT) {
             $message = $message->with(status: message_status::MESSAGE_OVER_SIZE);
+        } else if ($gatewayid !== null) {
+            // Check if the gateway id is valid.
+            $gateway = $this->get_gateway_instances(['id' => $gatewayid]);
+            $gateway = reset($gateway);
+            if (!empty($gateway)) {
+                $message = $message->with(gatewayid: $gatewayid);
+                $message = $gateway->send(
+                    message: $message,
+                );
+            } else {
+                $message = $message->with(status: message_status::GATEWAY_NOT_AVAILABLE);
+            }
         } else if ($gateway = $this->get_gateway_for_message($message)) {
             $message = $message->with(gatewayid: $gateway->id);
             $message = $gateway->send(
@@ -153,6 +168,7 @@ class manager {
 
                     return new $record->gateway(
                         id: $record->id,
+                        name: $record->name,
                         enabled: $record->enabled,
                         config: $record->config,
                     );
@@ -162,6 +178,13 @@ class manager {
                     conditions: $filter,
                 ),
             )
+        );
+    }
+
+    public function get_gateway_records(?array $filter = null): array {
+        return $this->db->get_records(
+            table: 'sms_gateways',
+            conditions: $filter,
         );
     }
 
@@ -219,37 +242,89 @@ class manager {
      */
     public function disable_gateway(gateway $gateway): gateway {
         if ($gateway->enabled) {
-            $gateway = $gateway->with(enabled: false);
-            $this->db->update_record('sms_gateways', $gateway->to_record());
+            try {
+                $hook = new \core_sms\hook\before_gateway_disabled(
+                    gateway: $gateway,
+                );
+                $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
+                if (!$hookmanager->isPropagationStopped()) {
+                    $gateway = $gateway->with(enabled: false);
+                    $this->db->update_record('sms_gateways', $gateway->to_record());
+                }
+            } catch (\dml_exception $e) {
+            }
         }
 
         return $gateway;
     }
 
     /**
+     * Delete the gateway instance.
+     *
+     * @param gateway $gateway
+     * @return bool
+     */
+    public function delete_gateway(gateway $gateway): bool {
+        try {
+            // Dispatch the hook before deleting the record.
+            $hook = new \core_sms\hook\before_gateway_deleted(
+                gateway: $gateway,
+            );
+            $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
+            if ($hookmanager->isPropagationStopped()) {
+                $deleted = false;
+            } else {
+                $deleted = $this->db->delete_records('sms_gateways', ['id' => $gateway->id]);
+            }
+        } catch (\dml_exception $exception) {
+            $deleted = false;
+        }
+        return $deleted;
+    }
+
+    /**
      * Create a new gateway instance.
      *
-     * @param string $classname
-     * @param bool $enabled
-     * @param \stdClass $config
+     * @param string $classname Classname of the gateway
+     * @param string $name The name of the gateway config
+     * @param bool $enabled If the gateway is enabled or not
+     * @param stdClass|null $config The config json
      * @return gateway
      */
     public function create_gateway_instance(
         string $classname,
+        string $name,
         bool $enabled = false,
-        ?\stdClass $config = null,
+        ?stdClass $config = null,
     ): gateway {
         if (!class_exists($classname) || !is_a($classname, gateway::class, true)) {
             throw new \coding_exception("Gateway class not valid: {$classname}");
         }
         $gateway = new $classname(
             enabled: $enabled,
+            name: $name,
             config: $config ? json_encode($config) : '',
         );
 
         $id = $this->db->insert_record('sms_gateways', $gateway->to_record());
 
         return $gateway->with(id: $id);
+    }
+
+    /**
+     * Update gateway instance.
+     *
+     * @param gateway $gateway
+     * @param stdClass|null $config
+     */
+    public function update_gateway_instance(
+        gateway $gateway,
+        ?stdClass $config = null,
+    ): gateway {
+        $gateway = $gateway->with(config: $config, name: $gateway->name);
+        // $gateway = $gateway->with(name: $gateway->name);
+        $this->db->update_record('sms_gateways', $gateway->to_record());
+        return $gateway;
     }
 
     /**
