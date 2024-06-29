@@ -227,6 +227,11 @@ define('PARAM_SAFEPATH', \core\param::SAFEPATH->value);
 define('PARAM_SEQUENCE', \core\param::SEQUENCE->value);
 
 /**
+ * PARAM_SENSITIVE - accepts sensitive characters like api key, secret key, shared secret. This can be raw value as per the server.
+ */
+define('PARAM_SENSITIVE', \core\param::SENSITIVE->value);
+
+/**
  * PARAM_TAG - one tag (interests, blogs, etc.) - mostly international characters and space, <> not supported
  */
 define('PARAM_TAG', \core\param::TAG->value);
