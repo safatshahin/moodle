@@ -55,6 +55,18 @@ function xmldb_factor_sms_upgrade(int $oldversion): bool {
         // MFA savepoint reached.
         upgrade_plugin_savepoint(true, 2024050300, 'factor', 'sms');
     }
+    if ($oldversion < 2024070500) {
+        // Unset the removed admin settings.
+        unset_config('countrycode', 'factor_sms');
+        unset_config('gateway', 'factor_sms');
+        unset_config('usecredchain', 'factor_sms');
+        unset_config('api_key', 'factor_sms');
+        unset_config('api_secret', 'factor_sms');
+        unset_config('api_region', 'factor_sms');
+
+        // MFA savepoint reached.
+        upgrade_plugin_savepoint(true, 2024070500, 'factor', 'sms');
+    }
 
     return true;
 }
