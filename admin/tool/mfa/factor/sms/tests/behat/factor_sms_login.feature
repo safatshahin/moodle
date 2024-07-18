@@ -10,8 +10,8 @@ Feature: Login user with sms authentication factor
       | enabled | 1 | tool_mfa |
       | lockout | 3 | tool_mfa |
     And the following config values are set as admin:
-      | enabled | 1 | factor_sms |
-    # Set up user SMS factor in user preferences.
+      | enabled    | 1  | factor_sms |
+      | duration   | 30 | factor_sms |
     When I follow "Preferences" in the user menu
     And I click on "Multi-factor authentication preferences" "link"
     And I click on "Set up" "button"

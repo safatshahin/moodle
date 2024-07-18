@@ -37,7 +37,7 @@ class aws_sns implements aws_sms_service_provider {
         global $CFG;
         require_once($CFG->libdir . '/aws-sdk/src/functions.php');
         require_once($CFG->libdir . '/guzzlehttp/guzzle/src/functions_include.php');
-        require_once($CFG->libdir . '/guzzlehttp/promises/src/functions_include.php');
+        // require_once($CFG->libdir . '/guzzlehttp/promises/src/functions_include.php');
     }
 
     public static function send_sms_message(
