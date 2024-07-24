@@ -22,8 +22,6 @@
  * @since       4.5
  */
 
-import $ from 'jquery';
-
 const SELECTORS = {
     COLLAPSE_ELEMENTS: '[data-toggle="collapse"]',
 };
@@ -59,6 +57,12 @@ export const expandSection = (hash) => {
     ) {
         const collapseId = targetContainer.getAttribute('aria-controls');
         const collapseContainer = document.getElementById(collapseId);
-        $(collapseContainer).collapse('show');
+
+        // Remove 'collapse' class and add 'show' class to show the content.
+        collapseContainer.classList.remove('collapse');
+        collapseContainer.classList.add('show');
+
+        // Update aria-expanded attribute to reflect the new state.
+        targetContainer.setAttribute('aria-expanded', 'true');
     }
 };
