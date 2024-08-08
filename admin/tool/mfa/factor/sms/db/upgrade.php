@@ -51,6 +51,10 @@ function xmldb_factor_sms_upgrade(int $oldversion): bool {
             );
             // Set the mfa config for the sms gateway.
             set_config('smsgateway', $gateway->id, 'factor_sms');
+
+            // Now add the task to send notification to admins about this migration.
+            $task = new \factor_sms\task\sms_gateway_migration_notification();
+            \core\task\manager::queue_adhoc_task($task, true);
         }
         // MFA savepoint reached.
         upgrade_plugin_savepoint(true, 2024050300, 'factor', 'sms');
