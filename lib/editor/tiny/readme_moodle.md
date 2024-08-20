@@ -7,10 +7,7 @@ The Moodle `master` branch is named as the upcoming STABLE branch name, for exam
 
 ## Patches included in this release
 
-- MDL-78714: Add support for disabling XSS Sanitisation (TINY-9600)
-
-Please note: TinyMCE issue numbers are related to bugs in their private issue
-tracker. See git history of their repository for relevant information.
+N/A
 
 ## Upgrade procedure for TinyMCE Editor
 
