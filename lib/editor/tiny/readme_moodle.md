@@ -1,16 +1,13 @@
-# This is a description for the TinyMCE 6 library integration with Moodle.
+# This is a description for the TinyMCE 7 library integration with Moodle.
 
 Please note that we have a clone of the official TinyMCE repository which contains the working build and branch for each release. This ensures build repeatability and gives us the ability to patch stable versions of Moodle for security fixes where relevant.
 
 Each Moodle branch has a similar branch in the https://github.com/moodlehq/tinymce.
-The Moodle `master` branch is named as the upcoming STABLE branch name, for example during the development of Moodle 4.2.0, the upcoming STABLE branch name will be MOODLE_402_STABLE.
+The Moodle `master` branch is named as the upcoming STABLE branch name, for example during the development of Moodle 4.5.0, the upcoming STABLE branch name will be MOODLE_405_STABLE.
 
 ## Patches included in this release
 
-- MDL-78714: Add support for disabling XSS Sanitisation (TINY-9600)
-
-Please note: TinyMCE issue numbers are related to bugs in their private issue
-tracker. See git history of their repository for relevant information.
+N/A
 
 ## Upgrade procedure for TinyMCE Editor
 
@@ -62,9 +59,9 @@ cp -r modules/tinymce/js "${MOODLEDIR}/js"
 
  ```
 # Tag the next Moodle version.
-git tag v4.2.0
+git tag v4.5.0
 git remote add moodlehq --tags
-git push moodlehq MOODLE_402_STABLE
+git push moodlehq MOODLE_405_STABLE
  ```
 
 9. Check the (Release notes)[https://www.tiny.cloud/docs/tinymce/6/release-notes/] for any new plugins, premium plugins, menu items, or buttons and add them to classes/manager.php
