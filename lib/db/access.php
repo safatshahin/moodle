@@ -2776,12 +2776,4 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         ],
     ],
-
-    'moodle/sms:configuresmsgateway' => [
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-        ],
-    ],
 );

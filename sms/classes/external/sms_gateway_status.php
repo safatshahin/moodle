@@ -44,11 +44,6 @@ class sms_gateway_status extends external_api {
             'enabled' => $enabled,
         ]);
 
-        require_capability(
-            'moodle/sms:configuresmsgateway',
-            context_system::instance(),
-        );
-
         $result = [
             'result' => true,
             'message' => '',

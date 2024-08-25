@@ -31,8 +31,6 @@ $id = optional_param('id', null, PARAM_INT);
 $gateway = optional_param('smsgateway', null, PARAM_PLUGIN);
 $returnurl = optional_param('returnurl', null, PARAM_LOCALURL);
 
-require_capability('moodle/sms:configuresmsgateway', $context);
-
 $urlparams = [];
 if ($id) {
     $urlparams['id'] = $id;

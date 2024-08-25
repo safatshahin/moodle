@@ -34,8 +34,6 @@ $id = optional_param('id', null, PARAM_INT);
 $action = optional_param('action', '', PARAM_TEXT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 
-require_capability('moodle/sms:configuresmsgateway', $context);
-
 // Set up the page.
 $title = get_string('sms_gateways', 'sms');
 $returnurl = new moodle_url('/sms/sms_gateways.php');

@@ -468,7 +468,6 @@ $string['site:viewfullnames'] = 'Always see full names of users';
 $string['site:viewparticipants'] = 'View participants';
 $string['site:viewreports'] = 'View reports';
 $string['site:viewuseridentity'] = 'See full user identity in lists';
-$string['sms:configuresmsgateway'] = 'Configure SMS gateway instance';
 $string['tag:edit'] = 'Edit existing tags';
 $string['tag:editblocks'] = 'Edit blocks in tags pages';
 $string['tag:manage'] = 'Manage all tags';
