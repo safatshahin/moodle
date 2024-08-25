@@ -86,7 +86,7 @@ class hook_listener {
             get_string('api_secret', 'smsgateway_aws'),
             'maxlength="255" size="20"',
         );
-        $mform->setType('api_secret', PARAM_SENSITIVE);
+        $mform->setType('api_secret', PARAM_TEXT);
         $mform->setDefault(
             elementName: 'api_secret',
             defaultValue: '',
