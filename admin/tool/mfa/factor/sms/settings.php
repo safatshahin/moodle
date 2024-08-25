@@ -66,7 +66,7 @@ if (count($gatewayrecords) > 0) {
     $enabled->set_updatedcallback(function () {
         \tool_mfa\manager::do_factor_action(
             'sms',
-            new lang_string('factor_sms', 'enabled') ? 'enable' : 'disable',
+            get_config('factor_sms', 'enabled') ? 'enable' : 'disable',
         );
     });
     $settings->add($enabled);
@@ -97,7 +97,7 @@ if (count($gatewayrecords) > 0) {
         new admin_setting_heading(
             'factor_sms/heading',
             '',
-            get_string(
+            new lang_string(
                 'settings:heading',
                 'factor_sms',
                 $smsconfigureurl,
