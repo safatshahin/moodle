@@ -29,7 +29,7 @@ use stdClass;
  * @property-read int $id The id of the gateway in the database
  * @property-read bool $enabled Whether the gateway is enabled
  * @property-read stdClass $config The configuration for this instance
- * @property-read string $name The name of the gateway config
+ * @property-write string $name The name of the gateway config
  */
 abstract class gateway {
     use Cloneable;
@@ -48,7 +48,7 @@ abstract class gateway {
     public function __construct(
         /** @var bool Whether the gateway is enabled */
         public readonly bool $enabled,
-        public readonly string $name,
+        public string $name,
         string $config,
         /** @var null|int The ID of the gateway in the database, or null if it has not been persisted yet */
         public readonly ?int $id = null,

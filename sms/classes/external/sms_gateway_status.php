@@ -16,8 +16,8 @@
 
 namespace core_sms\external;
 
-use core_external\external_api;
 use context_system;
+use core_external\external_api;
 use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
