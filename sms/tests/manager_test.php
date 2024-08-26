@@ -30,6 +30,7 @@ namespace core_sms;
 final class manager_test extends \advanced_testcase {
     public static function setUpBeforeClass(): void {
         require_once(__DIR__ . "/fixtures/dummy_gateway.php");
+        parent::setUpBeforeClass();
     }
 
     public function test_gateway_manipulation(): void {
@@ -211,6 +212,9 @@ final class manager_test extends \advanced_testcase {
      * Test that the manager can get gateways for a message.
      *
      * @dataProvider gateway_priority_provider
+     * @param string $recipientnumber
+     * @param int $matchcount
+     * @param ?string $gw
      */
     public function test_get_gateways_for_message(
         string $recipientnumber,

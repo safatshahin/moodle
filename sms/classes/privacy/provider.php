@@ -30,8 +30,7 @@ use core_privacy\local\request\userlist;
 class provider implements
     \core_privacy\local\request\core_userlist_provider,
     \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\subsystem\provider
-{
+    \core_privacy\local\request\subsystem\provider {
     #[\Override]
     public static function get_metadata(
         collection $collection,
@@ -89,7 +88,8 @@ class provider implements
                 function ($data) {
                     return [
                         'recipient' => $data->recipientnumber,
-                        'content' => $data->issensitive ? get_string('privacy:sms:sensitive_not_shown', 'core_sms') : $data->content,
+                        'content' => $data->issensitive ?
+                            get_string('privacy:sms:sensitive_not_shown', 'core_sms') : $data->content,
                         'messagetype' => $data->messagetype,
                         'status' => $data->status,
                         'timecreated' => $data->timecreated,
