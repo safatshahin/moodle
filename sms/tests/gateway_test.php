@@ -17,7 +17,7 @@
 namespace core_sms;
 
 /**
- * Tests for sms
+ * Tests for sms gateway.
  *
  * @package    core_sms
  * @category   test
@@ -28,6 +28,7 @@ namespace core_sms;
 final class gateway_test extends \advanced_testcase {
     public static function setUpBeforeClass(): void {
         require_once(__DIR__ . "/fixtures/dummy_gateway.php");
+        parent::setUpBeforeClass();
     }
 
     public function test_update_message_status(): void {

@@ -109,7 +109,7 @@ final class message_test extends \advanced_testcase {
      * Test that get_region returns regions with valid numbers.
      *
      * @dataProvider get_region_provider
-     * @param string $recipient
+     * @param string $recipientnumber
      * @param string $expectedregion
      */
     public function test_get_region_valid(

@@ -231,7 +231,7 @@ class manager {
      *
      * @param string $classname
      * @param bool $enabled
-     * @param \stdClass $config
+     * @param ?\stdClass $config
      * @return gateway
      */
     public function create_gateway_instance(
