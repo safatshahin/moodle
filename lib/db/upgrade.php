@@ -1240,7 +1240,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024080500.00);
     }
 
-    if ($oldversion < 2024071000.00) {
+    if ($oldversion < 2024082300.01) {
         // Define table sms_gateways to be created.
         $table = new xmldb_table('sms_gateways');
 
@@ -1283,7 +1283,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2024071000.00);
+        upgrade_main_savepoint(true, 2024082300.01);
     }
 
     return true;
