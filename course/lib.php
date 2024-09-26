@@ -4888,6 +4888,14 @@ function course_get_communication_instance_data(int $courseid): array {
  */
 function course_update_communication_instance_data(stdClass $data): void {
     $data->id = $data->instanceid; // For correct use in update_course.
+    // If the room name is set to empty, then set it course name.
+    $provider = $data->selectedcommunication ?? null;
+    if ($provider) {
+        $roomnameidentifier = $provider . 'roomname';
+        if (!isset($data->$roomnameidentifier) || empty($data->$roomnameidentifier)) {
+            $data->$roomnameidentifier = $data->fullname ?? get_course($data->id)->fullname;
+        }
+    }
     core_communication\helper::update_course_communication_instance(
         course: $data,
         changesincoursecat: false,
