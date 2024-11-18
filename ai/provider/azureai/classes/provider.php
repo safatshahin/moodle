@@ -16,7 +16,10 @@
 
 namespace aiprovider_azureai;
 
+use core\router\middleware\error_handling_middleware;
+use core_ai\ai_error_message_manager;
 use core_ai\aiactions;
+use core_ai\error_rate_limit_reached;
 use core_ai\rate_limiter;
 use Psr\Http\Message\RequestInterface;
 
@@ -112,10 +115,11 @@ class provider extends \core_ai\provider {
                 ratelimit: $this->userratelimit,
                 userid: $action->get_configuration('userid')
             )) {
+                $error = new error_rate_limit_reached();
+                $errormanager = new ai_error_message_manager($error);
                 return [
                     'success' => false,
-                    'errorcode' => 429,
-                    'errormessage' => 'User rate limit exceeded',
+                    'errormessage' => $errormanager->get_error_message(),
                 ];
             }
         }
@@ -125,10 +129,11 @@ class provider extends \core_ai\provider {
             if (!$ratelimiter->check_global_rate_limit(
                 component: $component,
                 ratelimit: $this->globalratelimit)) {
+                $error = new error_rate_limit_reached(global: true);
+                $errormanager = new ai_error_message_manager($error);
                 return [
                     'success' => false,
-                    'errorcode' => 429,
-                    'errormessage' => 'Global rate limit exceeded',
+                    'errormessage' => $errormanager->get_error_message(),
                 ];
             }
         }
