@@ -42,14 +42,6 @@ class tool_mfa_management_table extends \core_admin\table\plugin_management_tabl
     }
 
     #[\Override]
-    protected function get_dynamic_table_html_end(): string {
-        global $PAGE;
-        $PAGE->requires->js_call_amd('tool_mfa/factor_combinations_table', 'init', [$this->get_table_id()]);
-
-        return parent::get_dynamic_table_html_end();
-    }
-
-    #[\Override]
     protected function get_column_list(): array {
         $columns = [
             'namedesc' => get_string('factor', 'tool_mfa'),
