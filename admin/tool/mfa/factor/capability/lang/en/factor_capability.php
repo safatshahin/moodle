@@ -25,6 +25,7 @@
 
 $string['capability:cannotpassfactor'] = 'STOPS a role from passing the MFA user capability factor.';
 $string['pluginname'] = 'User capability';
+$string['pluginshortdesc'] = 'Specify which users must use other factors to authenticate. Must be combined with other factors.';
 $string['privacy:metadata'] = 'The User capability factor plugin does not store any personal data.';
 $string['settings:adminpasses'] = 'Site admins can pass this factor';
 $string['settings:adminpasses_help'] = 'By default admins pass all capability checks, including this one which uses \'factor/capability:cannotpassfactor\', which means they will fail this factor.

@@ -15,10 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace tool_mfa;
-use tool_mfa\tool_mfa_trait;
-
-defined('MOODLE_INTERNAL') || die();
-require_once(__DIR__ . '/tool_mfa_trait.php');
 
 /**
  * Tests for MFA admin settings
@@ -28,20 +24,20 @@ require_once(__DIR__ . '/tool_mfa_trait.php');
  * @author      Peter Burnett <peterburnett@catalyst-au.net>
  * @copyright   Catalyst IT
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ *
+ * @covers \tool_mfa\local\admin_setting_factor_combinations
  */
-class admin_setting_managemfa_test extends \advanced_testcase {
+final class admin_setting_factor_combinations_test extends \advanced_testcase {
 
-    use tool_mfa_trait;
+    use \tool_mfa\tests\mfa_settings_trait;
 
     /**
      * Tests getting the factor combinations
-     *
-     * @covers ::get_factor_combinations
      */
     public function test_get_factor_combinations_default(): void {
-        $namagemfa = new \tool_mfa\local\admin_setting_managemfa();
+        $factorcombinations = new \tool_mfa\local\admin_setting_factor_combinations();
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $namagemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(0, count($factors));
         $this->assertEquals(0, count($combinations));
     }
@@ -136,7 +132,6 @@ class admin_setting_managemfa_test extends \advanced_testcase {
     /**
      * Tests getting the factor combinations with data provider
      *
-     * @covers ::get_factor_combinations
      * @dataProvider get_factor_combinations_provider
      * @param array $factorset configured factors
      * @param int $combinationscount expected count of available combinations
@@ -152,9 +147,9 @@ class admin_setting_managemfa_test extends \advanced_testcase {
             }
         }
 
-        $managemfa = new \tool_mfa\local\admin_setting_managemfa();
+        $factorcombinations = new \tool_mfa\local\admin_setting_factor_combinations();
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
 
         foreach ($combinations as $combination) {
             $this->assertGreaterThanOrEqual(100, $combination['totalweight']);
@@ -171,12 +166,10 @@ class admin_setting_managemfa_test extends \advanced_testcase {
 
     /**
      * Tests checking the factor combinations
-     *
-     * @covers ::get_factor_combinations
      */
     public function test_factor_combination_checker(): void {
         $this->resetAfterTest();
-        $managemfa = new \tool_mfa\local\admin_setting_managemfa();
+        $factorcombinations = new \tool_mfa\local\admin_setting_factor_combinations();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
 
@@ -186,13 +179,13 @@ class admin_setting_managemfa_test extends \advanced_testcase {
 
         // Check that there is only 1 valid combination.
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(1, count($combinations));
 
         // Change weights to 100 for each, and check for 2 valid.
         $this->set_factor_state('email', 1, 100);
         $this->set_factor_state('totp', 1, 100);
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(2, count($combinations));
 
         // Add another compatible factors, and check for 3 combinations.
@@ -200,7 +193,7 @@ class admin_setting_managemfa_test extends \advanced_testcase {
         $this->set_factor_state('totp', 1, 50);
         $this->set_factor_state('iprange', 1, 50);
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(3, count($combinations));
 
         // Now same tests again, with an invalid combination set.
@@ -209,20 +202,20 @@ class admin_setting_managemfa_test extends \advanced_testcase {
         $this->set_factor_state('iprange', 0, 50);
         $this->set_factor_state('nosetup', 1, 100);
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(2, count($combinations));
 
         $this->set_factor_state('totp', 1, 50);
         $this->set_factor_state('email', 0, 50);
         $this->set_factor_state('nosetup', 1, 50);
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(0, count($combinations));
 
         $this->set_factor_state('email', 1, 50);
         $this->set_factor_state('nosetup', 1, 50);
         $this->set_factor_state('totp', 1, 50);
         $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
-        $combinations = $managemfa->get_factor_combinations($factors, 0, count($factors) - 1);
+        $combinations = $factorcombinations->get_factor_combinations($factors, 0, count($factors) - 1);
         $this->assertEquals(1, count($combinations));
     }
 }

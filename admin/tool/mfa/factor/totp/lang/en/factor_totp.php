@@ -47,6 +47,7 @@ $string['managefactor'] = 'Manage authenticator app';
 $string['managefactorbutton'] = 'Manage';
 $string['manageinfo'] = 'You are using \'{$a}\' to authenticate.';
 $string['pluginname'] = 'Authenticator app';
+$string['pluginshortdesc'] = 'Require users to enter a code from an authenticator app on their devices during login.';
 $string['privacy:metadata'] = 'The Authenticator app factor plugin does not store any personal data.';
 $string['replacefactor'] = 'Replace authenticator app';
 $string['replacefactorconfirmation'] = 'Replace \'{$a}\' authenticator app?';

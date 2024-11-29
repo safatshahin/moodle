@@ -15,17 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Language strings.
+ * MFA webservice definitions.
  *
- * @package     factor_nosetup
- * @author      Peter Burnett <peterburnett@catalyst-au.net>
- * @copyright   Catalyst IT
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    tool_mfa
+ * @copyright  Meirza <meirza.arson@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['deleteunusablefactors'] = 'Delete unusable Nosetup factors';
-$string['info'] = 'This factor passes if the user has no other factors set up.';
-$string['pluginname'] = 'Optional MFA';
-$string['pluginshortdesc'] = 'Allow users to bypass MFA if they have not set up any other authentication factor.';
-$string['privacy:metadata'] = 'The No other factors plugin does not store any personal data';
-$string['summarycondition'] = 'has no other factors set up';
+defined('MOODLE_INTERNAL') || die();
+
+$functions = [
+    'tool_mfa_get_factor_combinations_table' => [
+        'classname' => \tool_mfa\external\factor_combinations_table::class,
+        'description' => 'Get factor combinations table',
+        'type' => 'read',
+        'ajax' => true,
+        'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+];

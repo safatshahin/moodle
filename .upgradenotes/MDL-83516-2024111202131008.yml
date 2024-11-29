@@ -1,0 +1,16 @@
+issueNumber: MDL-83516
+notes:
+  tool_mfa:
+    - message: >-
+        The Multi-factor authentication management improvement uses the
+        `plugin_management_table`, which means the `managemfa` admin setting is
+        no longer necessary. The following files are removed:
+
+
+        - `admin/tool/mfa/classes/local/admin_setting_managemfa.php`
+
+        - `admin/tool/mfa/tests/admin_setting_managemfa_test.php`
+      type: removed
+    - message: >-
+        The two language strings in the tool_mfa plugin, namely `inputrequired` and `setuprequired`, are deprecated.
+      type: deprecated

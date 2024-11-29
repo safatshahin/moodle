@@ -52,6 +52,7 @@ $string['logintitle'] = "Verify it's you by email";
 $string['managefactor'] = 'Manage email';
 $string['manageinfo'] = '\'{$a}\' is being used to authenticate. This has been set up by your administrator.';
 $string['pluginname'] = 'Email';
+$string['pluginshortdesc'] = 'Require users to enter a code received via email during login.';
 $string['privacy:metadata'] = 'The Email factor plugin does not store any personal data';
 $string['settings:duration'] = 'Validity duration';
 $string['settings:duration_help'] = 'The period of time that the code is valid.';

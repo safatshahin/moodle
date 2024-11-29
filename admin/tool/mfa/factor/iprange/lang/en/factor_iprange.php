@@ -27,6 +27,7 @@ $string['allowedipsempty'] = 'Nobody will currently pass this factor! You can ad
 $string['allowedipshasmyip'] = 'Your IP (<i>{$a->ip}</i>) is in the list and you will pass this factor.';
 $string['allowedipshasntmyip'] = 'Your IP (<i>{$a->ip}</i>) is not in the list and you will not pass this factor.';
 $string['pluginname'] = 'IP range';
+$string['pluginshortdesc'] = 'Use IP addresses to automatically verify users\' identity.';
 $string['privacy:metadata'] = 'The IP range factor plugin does not store any personal data.';
 $string['settings:safeips'] = 'Safe IP ranges';
 $string['settings:safeips_help'] = 'Enter a list of IP addresses or subnets to be counted as a pass in factor. If empty nobody will pass this factor. {$a->info} {$a->syntax}';

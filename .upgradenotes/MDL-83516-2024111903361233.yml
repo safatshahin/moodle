@@ -1,0 +1,6 @@
+issueNumber: MDL-83516
+notes:
+  tool_mfa:
+    - message: >-
+        Introduce the new language string `pluginshortdesc`, which is mandatory for each factor.
+      type: improved

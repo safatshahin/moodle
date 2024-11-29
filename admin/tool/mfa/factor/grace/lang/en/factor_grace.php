@@ -25,6 +25,7 @@
 
 $string['info'] = 'Allows login without other factor for a specified period of time.';
 $string['pluginname'] = 'Grace period';
+$string['pluginshortdesc'] = 'Allow users to log in without MFA for a specified period, giving them time to set up authentication factors.';
 $string['preferences'] = 'User preferences';
 $string['privacy:metadata'] = 'The Grace period factor plugin does not store any personal data';
 $string['redirectsetup'] = 'You must complete setup for Multi-factor authentication before you can proceed.';

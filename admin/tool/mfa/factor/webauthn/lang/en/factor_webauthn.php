@@ -40,6 +40,7 @@ $string['loginskip'] = 'I don\'t have my security key';
 $string['loginsubmit'] = 'Continue';
 $string['logintitle'] = 'Verify it\'s you by security key';
 $string['pluginname'] = 'Security key';
+$string['pluginshortdesc'] = 'Require users to use a security key, like a USB or NFC token, or a biometric method, during login.';
 $string['privacy:metadata'] = 'The Security key factor plugin does not store any personal data.';
 $string['register'] = 'Register security key';
 $string['registererror'] = 'Couldn\'t register security key: {$a}';
