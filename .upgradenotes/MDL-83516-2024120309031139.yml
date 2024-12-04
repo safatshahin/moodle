@@ -1,0 +1,21 @@
+issueNumber: MDL-83516
+notes:
+  tool_mfa:
+    - message: >-
+        The existing admin_setting_managemfa uses admin_settings and manage two tables: the factor management table and the factor combinations table.
+
+        The new factor management table uses `plugin_management_table`, so not only the functions that changed, but the file needs to be
+        moved from `admin/tool/mfa/classes/local/admin_setting_managemfa.php` to `admin/tool/mfa/classes/table/admin_setting_managemfa.php`
+
+        The factor combinations table has a new class, `admin/tool/mfa/classes/local/admin_setting_factor_combinations.php`.
+
+        Since the `admin_setting_managemfa_test` only tests the factor combinations table.
+        Therefore, it is renamed to `admin_setting_factor_combinations_test` as its purpose.
+
+      type: improved
+    - message: >-
+        The two language strings in the tool_mfa plugin, namely `inputrequired` and `setuprequired`, are deprecated.
+      type: deprecated
+    - message: >-
+        Introduce the new language string `settings:shortdescription`, which is mandatory for each factor.
+      type: improved
