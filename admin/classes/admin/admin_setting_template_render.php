@@ -17,8 +17,6 @@
 namespace core_admin\admin;
 
 use admin_setting;
-use core_plugin_manager;
-use core_text;
 
 /**
  * Render a template as part of other admin settings.
@@ -30,12 +28,6 @@ use core_text;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_template_render extends admin_setting {
-    /** @var string The name of the template to render */
-    protected string $templatename;
-
-    /** @var array|\stdClass The context to pass to the template */
-    protected array|\stdClass $context;
-
     /**
      * Constructor.
      *
@@ -45,8 +37,10 @@ class admin_setting_template_render extends admin_setting {
      */
     public function __construct(
         string $name,
-        string $templatename,
-        array|\stdClass $context
+        /** @var string The name of the template to render. */
+        protected string $templatename,
+        /** @var array|\stdClass The context to pass to the template. */
+        protected array|\stdClass $context
     ) {
         $this->nosave = true;
         $this->templatename = $templatename;
@@ -55,29 +49,17 @@ class admin_setting_template_render extends admin_setting {
         parent::__construct($name, $templatename, '', '');
     }
 
-    /**
-     * Always returns true, does nothing
-     *
-     * @return true
-     */
+    #[\Override]
     public function get_setting(): bool {
         return true;
     }
 
-    /**
-     * Always returns true, does nothing
-     *
-     * @return true
-     */
+    #[\Override]
     public function get_defaultsetting(): bool {
         return true;
     }
 
-    /**
-     * Always returns '', does not write anything
-     *
-     * @return string Always returns ''
-     */
+    #[\Override]
     // phpcs:disable VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
     public function write_setting($data): string {
         // Do not write any setting.
