@@ -187,3 +187,13 @@ function tool_mfa_output_fragment_factor_action_confirmation_form(
 
     return $mform->render();
 }
+
+/**
+ * Fragment to display summary of good conditions for login table.
+ *
+ * @return string The rendered form.
+ */
+function tool_mfa_output_fragment_factor_combinations(): string {
+    $factorcombinations = new \tool_mfa\local\admin_setting_factor_combinations();
+    return $factorcombinations->define_factor_combinations_table();
+}
