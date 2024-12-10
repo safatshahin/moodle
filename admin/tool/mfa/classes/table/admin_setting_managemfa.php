@@ -17,6 +17,7 @@
 namespace tool_mfa\table;
 
 use stdClass;
+use tool_mfa\local\factor\object_factor_base;
 
 /**
  * Admin setting for MFA.
@@ -43,11 +44,6 @@ class admin_setting_managemfa extends \core_admin\table\plugin_management_table 
     #[\Override]
     protected function get_action_url(array $params = []): \moodle_url {
         return new \moodle_url('/admin/tool/mfa/index.php', $params);
-    }
-
-    #[\Override]
-    protected function get_table_js_module(): string {
-        return 'tool_mfa/factor_management_table';
     }
 
     #[\Override]
@@ -110,5 +106,98 @@ class admin_setting_managemfa extends \core_admin\table\plugin_management_table 
     protected function col_weight(stdClass $row): string {
         $factor = $row->plugininfo->get_factor($row->plugininfo->name);
         return $factor->get_weight();
+    }
+
+    public function wrap_html_finish() {
+        $this->output_factor_combinations_table();
+    }
+
+    /**
+     * Defines supplementary table that shows available combinations of factors enough for successful authentication.
+     */
+    public function output_factor_combinations_table(): void {
+        global $OUTPUT;
+
+        $factors = \tool_mfa\plugininfo\factor::get_enabled_factors();
+        $combinations = $this->get_factor_combinations($factors, 0, count($factors) - 1);
+
+        echo \html_writer::tag('h3', get_string('settings:combinations', 'tool_mfa'));
+        if (empty($combinations)) {
+            echo $OUTPUT->notification(get_string('error:notenoughfactors', 'tool_mfa'), 'notifyproblem');
+            return;
+        }
+
+        $txt = get_strings(['combination', 'totalweight'], 'tool_mfa');
+        $table = new \html_table();
+        $table->id = 'mfacombinations';
+        $table->attributes['class'] = 'admintable generaltable table table-bordered';
+        $table->head  = [$txt->combination, $txt->totalweight];
+        $table->data  = [];
+
+        $factorstringconnector = get_string('connector', 'tool_mfa');
+        foreach ($combinations as $combination) {
+            $factorstrings = array_map(static function(object_factor_base $factor): string {
+                return $factor->get_summary_condition() . ' <sup>' . $factor->get_weight() . '</sup>';
+            }, $combination['combination']);
+
+            $string = implode(" {$factorstringconnector} ", $factorstrings);
+            $table->data[] = new \html_table_row([$string, $combination['totalweight']]);
+        }
+
+        echo \html_writer::table($table);
+    }
+
+    /**
+     * Recursive method to get all possible combinations of given factors.
+     * Output is filtered by combination total weight (should be greater than 100).
+     *
+     * @param array $allfactors initial array of factor objects
+     * @param int $start start position in initial array
+     * @param int $end end position in initial array
+     * @param int $totalweight total weight of combination
+     * @param array $combination combination candidate
+     * @param array $result array that includes combination total weight and subarray of factors combination
+     *
+     * @return array
+     */
+    public function get_factor_combinations($allfactors, $start = 0, $end = 0,
+        $totalweight = 0, $combination = [], $result = []): array {
+
+        if ($totalweight >= 100) {
+            // Ensure this is a valid combination before appending result.
+            $valid = true;
+            foreach ($combination as $factor) {
+                if (!$factor->check_combination($combination)) {
+                    $valid = false;
+                }
+            }
+            if ($valid) {
+                $result[] = ['totalweight' => $totalweight, 'combination' => $combination];
+            }
+            return $result;
+        } else if ($start > $end) {
+            return $result;
+        }
+
+        $combinationnext = $combination;
+        $combinationnext[] = $allfactors[$start];
+
+        $result = $this->get_factor_combinations(
+            $allfactors,
+            $start + 1,
+            $end,
+            $totalweight + $allfactors[$start]->get_weight(),
+            $combinationnext,
+            $result);
+
+        $result = $this->get_factor_combinations(
+            $allfactors,
+            $start + 1,
+            $end,
+            $totalweight,
+            $combination,
+            $result);
+
+        return $result;
     }
 }

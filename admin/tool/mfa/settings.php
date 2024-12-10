@@ -39,8 +39,6 @@ if ($hassiteconfig) {
         visiblename: new lang_string('manageaiproviders', 'core_ai'),
     ));
 
-    $settings->add(new \tool_mfa\local\admin_setting_factor_combinations());
-
     $heading = new lang_string('settings:general', 'tool_mfa');
     $settings->add(new admin_setting_heading('tool_mfa/settings', $heading, ''));
 
