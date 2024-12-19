@@ -14,16 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_assign;
+
+use core_message\hook\check_processor_support;
+
 /**
- * Version information
+ * Hook listener assign.
  *
  * @package    mod_assign
- * @copyright 2012 NetSpot {@link http://www.netspot.com.au}
+ * @copyright  2024 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class hook_listener {
 
-defined('MOODLE_INTERNAL') || die();
+    /**
+     * Set the SMS support for Assign.
+     *
+     * @param check_processor_support $hook The processor support hook.
+     */
+    public static function set_sms_support_for_assign(check_processor_support $hook): void {
+        if ($hook->processor->name === 'sms' && $hook->provider->component === 'mod_assign') {
+            $hook->set_processor_support();
+        }
+    }
 
-$plugin->component = 'mod_assign'; // Full name of the plugin (used for diagnostics).
-$plugin->version  = 2025010600;    // The current module version (Date: YYYYMMDDXX).
-$plugin->requires = 2024100100;    // Requires this Moodle version.
+}
