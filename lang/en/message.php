@@ -141,6 +141,7 @@ $string['notifications'] = 'Notifications';
 $string['notincontactsheading'] = '{$a} is not in your contacts';
 $string['notincontacts'] = 'You need to add {$a} to your contacts to be able to send them messages.';
 $string['numparticipants'] = '{$a} participants';
+$string['notsupported'] = 'Not supported';
 $string['off'] = 'Off';
 $string['offline'] = 'Offline';
 $string['on'] = 'On';

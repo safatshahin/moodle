@@ -150,6 +150,14 @@ class notification_list_processor implements templatable, renderable {
             }
         }
 
+        // Dispatch the hook to stop support for any processor from the provider component.
+        $hook = new \core_message\hook\check_processor_support(
+            processor: $this->processor,
+            provider: $this->provider,
+        );
+        $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
+        $context['supportsprocessor'] = $hookmanager->is_processor_supported();
+
         return $context;
     }
 }
