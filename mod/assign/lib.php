@@ -1845,3 +1845,13 @@ function mod_assign_core_calendar_get_event_action_string(string $eventtype): st
 
     return get_string($identifier, 'assign', $modulename);
 }
+
+/**
+ * The support for SMS for assignment.
+ *
+ * @return bool
+ */
+function mod_assign_supports_sending_sms(): bool {
+    // At the moment, assignment supports sending sms.
+    return true;
+}
