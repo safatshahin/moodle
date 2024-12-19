@@ -144,6 +144,14 @@ class core_message_renderer extends plugin_renderer_base {
             foreach ($processors as $processor) {
                 $setting = new StdClass();
 
+                // Dispatch the hook to stop support for any processor from the provider component.
+                $hook = new \core_message\hook\check_processor_support(
+                    processor: $processor,
+                    provider: $provider,
+                );
+                $hookmanager = \core\di::get(\core\hook\manager::class)->dispatch($hook);
+                $setting->supportsprocessor = $hookmanager->is_processor_supported();
+
                 $setting->lockedsetting = $providersettingprefix.'locked['.$processor->name.']';
                 $preference = $processor->name.'_provider_'.$providersettingprefix.'locked';
 
