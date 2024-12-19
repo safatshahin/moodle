@@ -6564,6 +6564,7 @@ class assign {
         $info->url = $CFG->wwwroot.'/mod/assign/view.php?id='.$coursemodule->id;
         $info->timeupdated = userdate($updatetime, get_string('strftimerecentfull'));
 
+        $smsmessage = get_string($messagetype . 'sms', 'assign', $info);
         $postsubject = get_string($messagetype . 'small', 'assign', $info);
         $posttext = self::format_notification_message_text($messagetype,
                                                            $info,
@@ -6591,6 +6592,7 @@ class assign {
         $eventdata->fullmessage      = $posttext;
         $eventdata->fullmessageformat = FORMAT_PLAIN;
         $eventdata->fullmessagehtml  = $posthtml;
+        $eventdata->fullmessagesms   = $smsmessage;
         $eventdata->smallmessage     = $postsubject;
 
         $eventdata->name            = $eventtype;
