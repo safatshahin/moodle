@@ -150,6 +150,12 @@ class notification_list_processor implements templatable, renderable {
             }
         }
 
+        $supportsprocessor = true;
+        if ($processor->name === 'sms') {
+            $supportsprocessor = message_check_sms_support($this->provider->component);
+        }
+        $context['supportsprocessor'] = $supportsprocessor;
+
         return $context;
     }
 }

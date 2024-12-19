@@ -740,3 +740,41 @@ function message_processor_uninstall($name) {
     // Purge all messaging settings from the caches. They are stored by plugin so we have to clear all message settings.
     cache_helper::invalidate_by_definition('core', 'config', array(), array('message', "message_{$name}"));
 }
+
+/**
+ * If SMS is supported by System notifications.
+ *
+ * At the moment, it will be false as they are not supported yet.
+ *
+ * @return bool
+ */
+function message_check_sms_support_for_system_notifications(): bool {
+    return false;
+}
+
+/**
+ * Check the support for SMS in different components.
+ *
+ * At the moment, SMS is not supported for all the components.
+ * Components that supports SMS, can implement the callback to let the notification API support them.
+ *
+ * @param string $component The name of the component eg 'mod_assign'
+ * @return bool
+ */
+function message_check_sms_support(string $component): bool {
+    // Notification API assigns system ones as component 'moodle'.
+    // We need a special mechanism to handle that as component callback will throw errors.
+    if ($component === 'moodle') {
+        return message_check_sms_support_for_system_notifications();
+    }
+
+    $smssupport = component_callback(
+        $component,
+        'supports_sending_sms'
+    );
+
+    if (empty($smssupport)) {
+        return false;
+    }
+    return true;
+}
