@@ -321,6 +321,11 @@ class behat_core_generator extends behat_generator_base {
                 'datagenerator' => 'stored_progress_bar',
                 'required' => ['idnumber'],
             ],
+            'ai providers' => [
+                'singular' => 'ai provider',
+                'datagenerator' => 'ai_provider',
+                'required' => ['provider', 'name', 'enabled'],
+            ],
         ];
 
         return $entities;
@@ -1280,5 +1285,25 @@ class behat_core_generator extends behat_generator_base {
             $updatedata = (object) $updatedata;
             $DB->update_record('user', $updatedata);
         }
+    }
+
+    /**
+     * Creates AI provider instance.
+     *
+     * @param array $data
+     * @return void
+     */
+    protected function process_ai_provider(array $data) {
+        $manager = \core\di::get(\core_ai\manager::class);
+        $classname = $data['provider'] . '\\' . 'provider';
+        $name = $data['name'];
+        $enabled = $data['enabled'];
+        unset($data['provider'], $data['name'], $data['enabled']);
+        $manager->create_provider_instance(
+            classname: $classname,
+            name: $name,
+            enabled: $enabled,
+            config: $data,
+        );
     }
 }
