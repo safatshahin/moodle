@@ -103,7 +103,7 @@ class aiprovider_action_management_table extends flexible_table implements dynam
      * @return string
      */
     protected function get_table_js_module(): string {
-        return 'core_ai/aiprovider_action_management_table';
+        return 'core_admin/plugin_management_table';
     }
 
     #[\Override]
@@ -169,7 +169,7 @@ class aiprovider_action_management_table extends flexible_table implements dynam
                 'value' => $row->action,
                 'toggle-method' => $this->get_toggle_service(),
                 'action' => 'togglestate',
-                'plugin' => $this->pluginname . "-" . $row->action::get_basename(),
+                'plugin' => $this->pluginname . "-" . $row->action::get_basename() . "-" . $this->providerid,
                 'state' => $enabled ? 1 : 0,
             ],
             'title' => $labelstr,

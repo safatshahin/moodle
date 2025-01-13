@@ -20,6 +20,7 @@ use context_system;
 use core_table\dynamic as dynamic_table;
 use flexible_table;
 use moodle_url;
+use stdClass;
 
 /**
  * Table to manage AI Provider plugins.
@@ -75,7 +76,7 @@ class aiprovider_management_table extends flexible_table implements dynamic_tabl
      * @return string
      */
     protected function get_table_js_module(): string {
-        return 'core_ai/aiprovider_instance_management_table';
+        return 'core_admin/instance_management_table';
     }
 
     /**
@@ -272,12 +273,23 @@ class aiprovider_management_table extends flexible_table implements dynamic_tabl
         // Render the delete button from the template.
         $component = \core\component::get_component_from_classname($row->provider);
         $provider = get_string('pluginname', $component);
+
+        $a = new stdClass();
+        $a->provider = $row->provider;
+        $a->name = $row->name;
+
         $params = [
             'id' => $row->id,
-            'name' => $row->name,
-            'provider' => $provider,
-            'delete-method' => $this->get_delete_service(),
+            'dataattributes' => [
+                'name' => $row->name,
+                'value' => $row->provider,
+                'delete_method' => $this->get_delete_service(),
+                'action' => 'deleteinstance',
+                'plugin' => $provider,
+                'title' => get_string('providerinstancedelete', 'core_ai'),
+                'confirm' => get_string('providerinstancedeleteconfirm', 'core_ai', $a),
+            ],
         ];
-        return $OUTPUT->render_from_template('core_ai/admin_delete_provider', $params);
+        return $OUTPUT->render_from_template('core_admin/setting_delete_instance', $params);
     }
 }

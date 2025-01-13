@@ -34,13 +34,14 @@
     }
 }}
 <a href="#"
-    id="provider-delete-{{id}}"
-    title="{{#str}}providerinstancedelete, core_ai{{/str}}"
-    class="ai-provider-delete"
-    data-action="provider-delete-{{id}}"
-    data-id="{{id}}"
-    data-name="{{name}}"
-    data-provider="{{provider}}"
-    data-delete-method="{{delete-method}}">
-  <i class="fa fa-trash"></i>&nbsp;{{#str}}delete, core{{/str}}
+   id="instance-delete-{{id}}"
+   title="{{dataattributes.title}}"
+   class="plugin-instance-delete"
+   data-confirm="{{dataattributes.confirm}}"
+   data-action="{{dataattributes.action}}"
+   data-id="{{id}}"
+   data-name="{{dataattributes.name}}"
+   data-instance="{{dataattributes.plugin}}"
+   data-delete-method="{{dataattributes.delete_method}}">
+    <i class="fa fa-trash"></i>&nbsp;{{#str}}delete, core{{/str}}
 </a>
