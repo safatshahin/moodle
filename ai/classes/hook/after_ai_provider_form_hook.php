@@ -14,34 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai;
+namespace core_ai\hook;
+
+use MoodleQuickForm;
 
 /**
- * Class placement.
+ * Hook after AI provider setup form is initiated.
  *
  * @package    core_ai
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @property-read MoodleQuickForm $mform The form element
+ * @property-read ?string $plugin Name of the plugin
  */
-abstract class placement {
-    /**
-     * Get the actions that this placement supports.
-     *
-     * Returns an array of action class names.
-     *
-     * @return array An array of action class names.
-     */
-    abstract public static function get_action_list(): array;
+#[\core\attribute\label('Allows plugins to add form elements for ai provider setup.')]
+#[\core\attribute\tags('ai')]
+class after_ai_provider_form_hook {
 
     /**
-     * Given an action class name.
+     * Constructor for the hook.
      *
-     * Returns an array of sub actions that this placement supports.
-     *
-     * @param string $classname The action class name.
-     * @return array An array of supported sub actions.
+     * @param MoodleQuickForm $mform The moodle form instance.
+     * @param ?string $plugin The name of the plugin
      */
-    public function get_sub_actions(string $classname): array {
-        return [];
+    public function __construct(
+        /** @var MoodleQuickForm The moodle form instance. */
+        public readonly MoodleQuickForm $mform,
+
+        /** @var ?string The name of the plugin */
+        public readonly ?string $plugin,
+    ) {
     }
 }

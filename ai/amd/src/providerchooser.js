@@ -1,6 +1,4 @@
-<?php
-// This file is part of Moodle - http://moodle.org/
-//
+// This file is part of Moodle - http://moodle.org/ //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -14,34 +12,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace core_ai;
-
 /**
- * Class placement.
+ * AI provider selection handler.
  *
- * @package    core_ai
+ * @module     core_ai/providerchooser
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-abstract class placement {
-    /**
-     * Get the actions that this placement supports.
-     *
-     * Returns an array of action class names.
-     *
-     * @return array An array of action class names.
-     */
-    abstract public static function get_action_list(): array;
 
-    /**
-     * Given an action class name.
-     *
-     * Returns an array of sub actions that this placement supports.
-     *
-     * @param string $classname The action class name.
-     * @return array An array of supported sub actions.
-     */
-    public function get_sub_actions(string $classname): array {
-        return [];
-    }
-}
+const Selectors = {
+    fields: {
+        selector: '[data-aiproviderchooser-field="selector"]',
+        updateButton: '[data-aiproviderchooser-field="updateButton"]',
+    },
+};
+
+/**
+ * Initialise the AI provider chooser.
+ */
+export const init = () => {
+    document.querySelector(Selectors.fields.selector)?.addEventListener('change', e => {
+        const form = e.target.closest('form');
+        const updateButton = form.querySelector(Selectors.fields.updateButton);
+        const url = new URL(form.action);
+
+        form.action = url.toString();
+        updateButton.click();
+    });
+};
