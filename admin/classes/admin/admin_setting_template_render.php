@@ -43,8 +43,6 @@ class admin_setting_template_render extends admin_setting {
         protected array|\stdClass $context
     ) {
         $this->nosave = true;
-        $this->templatename = $templatename;
-        $this->context = $context;
 
         parent::__construct($name, $templatename, '', '');
     }

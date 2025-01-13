@@ -18,17 +18,13 @@ import {call as fetchMany} from 'core/ajax';
 import {refreshTableContent} from 'core_table/dynamic';
 import Pending from 'core/pending';
 import {fetchNotifications} from 'core/notification';
-import {prefetchStrings} from 'core/prefetch';
-import {getString} from 'core/str';
 import DeleteCancelModal from 'core/modal_delete_cancel';
 import ModalEvents from 'core/modal_events';
 
-let watching = false;
-
 /**
- * Handles setting plugin state for the AI provider management table.
+ * Handles setting plugin state for the instance management table.
  *
- * @module     core_ai/aiprovider_instance_management_table
+ * @module     core_admin/instance_management_table
  * @copyright  2024 Matt Porritt <matt.porritt@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -39,32 +35,13 @@ export default class extends PluginManagementTable {
     }
 
     /**
-     * Initialise an instance of the class.
-     *
-     * This is just a way of making it easier to initialise an instance of the class from PHP.
-     */
-    static init() {
-        if (watching) {
-            return;
-        }
-
-        prefetchStrings('core_ai', [
-            'providerinstancedelete',
-            'providerinstancedeleteconfirm',
-        ]);
-
-        watching = true;
-        new this();
-    }
-
-    /**
      * Call the delete service.
      *
      * @param {string} methodname The web service to call
      * @param {number} providerid The provider id.
      * @return {Promise} The promise.
      */
-    deleteProvider(methodname, providerid) {
+    deleteInstance(methodname, providerid) {
         return fetchMany([{
             methodname,
             args: {
@@ -74,24 +51,21 @@ export default class extends PluginManagementTable {
     }
 
     /**
-     * Handle delete.
+     * Handle deletion of the instance.
      *
      * @param {HTMLElement} tableRoot
      * @param {Event} e
      */
     async handleDelete(tableRoot, e) {
-        const deleteElement = e.target.closest('[data-delete-method]');
+        const deleteElement = e.target.closest('[data-action="deleteinstance"][data-delete-method]');
         if (deleteElement) {
             e.preventDefault();
             const providerId = e.target.dataset.id;
             const deleteMethod = e.target.dataset.deleteMethod;
-            const bodyParams = {
-                provider: e.target.dataset.provider,
-                name: e.target.dataset.name,
-            };
+
             const modal = await DeleteCancelModal.create({
-                title: getString('providerinstancedelete', 'core_ai'),
-                body: getString('providerinstancedeleteconfirm', 'core_ai', bodyParams),
+                title: e.target.dataset.title,
+                body: e.target.dataset.confirm,
                 show: true,
                 removeOnClose: true,
             });
@@ -99,8 +73,8 @@ export default class extends PluginManagementTable {
             // Handle delete event.
             modal.getRoot().on(ModalEvents.delete, async(e) => {
                 e.preventDefault();
-                const pendingPromise = new Pending('core_table/dynamic:deleteProvider');
-                await this.deleteProvider(deleteMethod, providerId);
+                const pendingPromise = new Pending('core_table/dynamic:deleteInstance');
+                await this.deleteInstance(deleteMethod, providerId);
                 // Reload the table, so we get the updated list of providers, and any messages.
                 await Promise.all([
                     refreshTableContent(tableRoot),
