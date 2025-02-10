@@ -1412,5 +1412,30 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2025013100.01);
     }
 
+    // Uninstall auth_cas and remove dependencies.
+    if ($oldversion < 2025020600.01) {
+        if (!file_exists($CFG->dirroot . "/auth/cas/version.php")) {
+            uninstall_plugin('auth', 'cas');
+
+            // Remove the sensiblesettings config for auth_cas.
+            $sensiblesettings = explode(
+                ',',
+                str_replace(
+                    ' ',
+                    '',
+                    get_config('adminpresets', 'sensiblesettings')
+                )
+            );
+            if (($key = array_search('bind_pw@@auth_cas', $sensiblesettings)) !== false) {
+                unset($sensiblesettings[$key]);
+            }
+            $sensiblesettings = implode(', ', $sensiblesettings);
+            set_config('sensiblesettings', $sensiblesettings, 'adminpresets');
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2025020600.01);
+    }
+
     return true;
 }
