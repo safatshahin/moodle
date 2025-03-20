@@ -18,7 +18,6 @@ namespace smsgateway_aws;
 
 use core_sms\manager;
 use core_sms\message;
-use MoodleQuickForm;
 
 /**
  * AWS SMS gateway.
@@ -28,36 +27,22 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class gateway extends \core_sms\gateway {
-
     #[\Override]
     public function send(
         message $message,
     ): message {
-        global $DB;
-        // Get the config from the message record.
-        $awsconfig = $DB->get_field(
-            table: 'sms_gateways',
-            return: 'config',
-            conditions: ['id' => $message->gatewayid, 'enabled' => 1, 'gateway' => 'smsgateway_aws\gateway',],
+        $class = '\smsgateway_aws\local\service\\' . $this->config->gateway;
+        $recipientnumber = manager::format_number(
+            phonenumber: $message->recipientnumber,
+            countrycode: isset($this->config->countrycode) ?? null,
         );
-        $status = \core_sms\message_status::GATEWAY_NOT_AVAILABLE;
-        if ($awsconfig) {
-            $config = (object)json_decode($awsconfig, true, 512, JSON_THROW_ON_ERROR);
-            $class = '\smsgateway_aws\local\service\\' . $config->gateway;
-            $recipientnumber = manager::format_number(
-                phonenumber: $message->recipientnumber,
-                countrycode: isset($config->countrycode) ?? null,
-            );
 
-            if (class_exists($class)) {
-                $status = call_user_func(
-                    $class . '::send_sms_message',
-                    $message->content,
-                    $recipientnumber,
-                    $config,
-                );
-            }
-        }
+        $status = call_user_func(
+            $class . '::send_sms_message',
+            $message->content,
+            $recipientnumber,
+            $this->config,
+        );
 
         return $message->with(
             status: $status,

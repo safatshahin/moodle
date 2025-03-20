@@ -16,6 +16,7 @@
 
 namespace smsgateway_aws\local\service;
 
+use core\di;
 use core_sms\message_status;
 use smsgateway_aws\helper;
 use smsgateway_aws\local\aws_sms_service_provider;
@@ -29,7 +30,6 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class aws_sns implements aws_sms_service_provider {
-
     /**
      * Include the required calls.
      */
@@ -60,6 +60,7 @@ class aws_sns implements aws_sms_service_provider {
             ];
         }
         $client = new \Aws\Sns\SnsClient($params);
+        di::set(\Aws\Sns\SnsClient::class, $client);
 
         // Set up the sender information.
         $senderid = $SITE->shortname;
@@ -84,7 +85,7 @@ class aws_sns implements aws_sms_service_provider {
             ]);
             return \core_sms\message_status::GATEWAY_SENT;
         } catch (\Aws\Exception\AwsException $e) {
-            return \core_sms\message_status::GATEWAY_NOT_AVAILABLE;
+            return \core_sms\message_status::GATEWAY_FAILED;
         }
     }
 }

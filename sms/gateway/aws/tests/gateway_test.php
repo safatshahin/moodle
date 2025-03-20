@@ -17,6 +17,7 @@
 namespace smsgateway_aws;
 
 use core_sms\message;
+use core_sms\message_status;
 
 /**
  * AWS SMS gateway tests.
@@ -28,12 +29,14 @@ use core_sms\message;
  * @covers     \smsgateway_aws\gateway
  */
 final class gateway_test extends \advanced_testcase {
-
-    public function test_update_message_status(): void {
+    public function test_send(): void {
         $this->resetAfterTest();
 
         $config = new \stdClass();
         $config->api_key = 'test_api_key';
+        $config->api_secret = 'test_api_secret';
+        $config->gateway = 'aws_sns';
+        $config->api_region = 'ap-southeast-2';
 
         $manager = \core\di::get(\core_sms\manager::class);
         $gw = $manager->create_gateway_instance(
@@ -42,36 +45,25 @@ final class gateway_test extends \advanced_testcase {
             enabled: true,
             config: $config,
         );
-        $othergw = $manager->create_gateway_instance(
-            classname: gateway::class,
-            name: 'aws',
-            enabled: true,
-            config: $config,
-        );
 
-        $message = new message(
-            recipientnumber: '1234567890',
+        $message = $manager->send(
+            recipientnumber: '+447123456789',
             content: 'Hello, world!',
-            component: 'smsgateway_aws',
+            component: 'core',
             messagetype: 'test',
             recipientuserid: null,
-            issensitive: false,
-            gatewayid: $gw->id,
-        );
-        $message2 = new message(
-            recipientnumber: '1234567890',
-            content: 'Hello, world!',
-            component: 'smsgateway_aws',
-            messagetype: 'test',
-            recipientuserid: null,
-            issensitive: false,
-            gatewayid: $gw->id,
+            async: false,
         );
 
-        $updatedmessages = $gw->update_message_statuses([$message, $message2]);
-        $this->assertEquals([$message, $message2], $updatedmessages);
+        $this->assertInstanceOf(message::class, $message);
+        $this->assertIsInt($message->id);
+        // We can't reliably test success as AWS doesn't use dependency injection,
+        // We can try mocking the result using aws-sdk, eg MockHandler.
+        $this->assertEquals(message_status::GATEWAY_FAILED, $message->status);
+        $this->assertEquals($gw->id, $message->gatewayid);
+        $this->assertEquals('Hello, world!', $message->content);
 
-        $this->expectException(\coding_exception::class);
-        $othergw->update_message_status($message);
+        $storedmessage = $manager->get_message(['id' => $message->id]);
+        $this->assertEquals($message, $storedmessage);
     }
 }
