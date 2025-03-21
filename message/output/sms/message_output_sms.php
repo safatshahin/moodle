@@ -34,7 +34,7 @@ class message_output_sms extends message_output {
     public function send_message($message): bool {
         $userdata = is_object($message->userto) ? $message->userto : get_complete_user_data('id', $message->userto);
 
-        if (!$this->is_user_configured($userdata) || !$this->should_send_sms($message)) {
+        if (empty($userdata) || !$this->is_user_configured($userdata) || !$this->should_send_sms($message)) {
             return false;
         }
 
@@ -59,6 +59,10 @@ class message_output_sms extends message_output {
 
     #[\Override]
     public function is_user_configured($user = null): bool {
+        if (empty($user)) {
+            return false;
+        }
+
         // Skip any SMS if user doesn't have a mobile number.
         if (empty($user->phone2)) {
             mtrace('No mobile number found for userid: ' . $user->id);
