@@ -79,26 +79,24 @@ class message_output_sms extends message_output {
     }
 
     /**
-     * Check whether the SMS eventdata fulfills the requirements.
+     * Check whether the SMS message data fulfills the requirements.
      *
-     * @param stdclass $eventdata The event/message data
+     * @param stdclass $messagedata The message data
      * @return bool
      */
-    public function should_send_sms(stdclass $eventdata): bool {
-        // We don't have a fallback for SMS text. It has to be included.
-        if (!isset($eventdata->fullmessagesms)) {
-            mtrace('No SMS string found for the message');
-            return false;
-        }
-
+    public function should_send_sms(stdclass $messagedata): bool {
         // Don't send SMS if it's not a production site and the following config is set.
         if (!empty($CFG->nosmsever)) {
             mtrace('Can not send SMS while nosmsever is enabled.');
             return false;
         }
-
+        // We don't have a fallback for SMS text. It has to be included.
+        if (!isset($messagedata->fullmessagesms)) {
+            mtrace('No SMS string found for the message');
+            return false;
+        }
         // Check support for SMS from the component.
-        if (!core_message\helper::supports_sms_notifications($eventdata->component)) {
+        if (!core_message\helper::supports_sms_notifications($messagedata)) {
             return false;
         }
 
