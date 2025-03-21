@@ -1847,11 +1847,11 @@ function mod_assign_core_calendar_get_event_action_string(string $eventtype): st
 }
 
 /**
- * The support for SMS for assignment.
+ * Allow the support for SMS in assignment.
  *
  * @return bool
  */
-function mod_assign_supports_sending_sms(): bool {
-    // At the moment, assignment supports sending sms.
+function mod_assign_supports_sms_notifications(): bool {
+    // At the moment, assignment supports sms notifications.
     return true;
 }
