@@ -721,4 +721,31 @@ class helper {
 
         return $html;
     }
+
+    /**
+     * Check the support for SMS in different components.
+     *
+     * At the moment, SMS is not supported for all the components.
+     * Components that supports SMS, can implement the callback to let the notification API support them.
+     *
+     * @param string $component The name of the component eg 'mod_assign'
+     * @return bool
+     */
+    public static function supports_sms_notifications(string $component): bool {
+        // Notification API assigns system ones as component 'moodle'.
+        // We need a special mechanism to handle that as component callback will throw errors.
+        if ($component === 'moodle') {
+            return false;
+        }
+
+        $smssupport = component_callback(
+            $component,
+            'supports_sms_notifications'
+        );
+
+        if (empty($smssupport)) {
+            return false;
+        }
+        return true;
+    }
 }

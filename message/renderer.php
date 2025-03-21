@@ -146,7 +146,7 @@ class core_message_renderer extends plugin_renderer_base {
 
                 $supportsprocessor = true;
                 if ($processor->name === 'sms') {
-                    $supportsprocessor = message_check_sms_support($provider->component);
+                    $supportsprocessor = core_message\helper::supports_sms_notifications($provider->component);
                 }
                 $setting->supportsprocessor = $supportsprocessor;
 

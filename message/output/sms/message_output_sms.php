@@ -98,7 +98,7 @@ class message_output_sms extends message_output {
         }
 
         // Check support for SMS from the component.
-        if (!message_check_sms_support($eventdata->component)) {
+        if (!core_message\helper::supports_sms_notifications($eventdata->component)) {
             return false;
         }
 

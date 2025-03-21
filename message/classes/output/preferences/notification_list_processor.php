@@ -152,7 +152,7 @@ class notification_list_processor implements templatable, renderable {
 
         $supportsprocessor = true;
         if ($processor->name === 'sms') {
-            $supportsprocessor = message_check_sms_support($this->provider->component);
+            $supportsprocessor = \core_message\helper::supports_sms_notifications($this->provider->component);
         }
         $context['supportsprocessor'] = $supportsprocessor;
 
