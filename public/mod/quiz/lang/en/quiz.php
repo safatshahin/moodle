@@ -827,6 +827,7 @@ $string['quiz:emailnotifysubmission'] = 'Receive notification of your students\'
 $string['quiz:emailnotifyattemptgraded'] = 'Receive notification when your attempt has been graded';
 $string['quiz:emailwarnoverdue'] = 'Receive warning when your quiz attempt becomes overdue';
 $string['quiz:grade'] = 'Grade quizzes manually';
+$string['quizhaspendingbestattemptcalculation'] = 'This quiz has pending calculations to determine the best attempt grades. The calculations will be completed shortly.';
 $string['quiz:ignoretimelimits'] = 'Ignore quiz time limit';
 $string['quizinvalidquestions'] = 'This quiz has questions with invalid types. The missing question type must be reinstalled or the affected questions removed, before the quiz can be used.';
 $string['quizisclosed'] = 'This quiz is closed';

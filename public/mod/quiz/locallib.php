@@ -136,6 +136,9 @@ function quiz_create_attempt(quiz_settings $quizobj, $attemptnumber, $lastattemp
     $attempt->sumgrades = null;
     $attempt->gradednotificationsenttime = null;
     $attempt->timecheckstate = null;
+    $attempt->gradehighest = 0;
+    $attempt->attemptfirst = 0;
+    $attempt->attemptlast = 0;
 
     // If this is a preview, mark it as such.
     if ($ispreview) {

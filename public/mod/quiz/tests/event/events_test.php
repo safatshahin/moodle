@@ -162,8 +162,15 @@ final class events_test extends \advanced_testcase {
 
         // Validate the event.
         $this->assertCount(3, $events);
-        $event = $events[2];
-        $this->assertInstanceOf('\mod_quiz\event\attempt_graded', $event);
+
+        $event = null;
+        foreach ($events as $singleevent) {
+            if ($singleevent instanceof \mod_quiz\event\attempt_graded) {
+                $event = $singleevent;
+                break;
+            }
+        }
+        $this->assertNotNull($event, 'No attempt_graded event found in events array');
         $this->assertEquals('quiz_attempts', $event->objecttable);
         $this->assertEquals($quizobj->get_context(), $event->get_context());
         $this->assertEquals($attempt->userid, $event->relateduserid);

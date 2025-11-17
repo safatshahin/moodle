@@ -875,8 +875,15 @@ final class attempt_walkthrough_test extends \advanced_testcase {
 
         $this->assertEquals($attempturl, $submittedevent->get_url());
 
-        $gradedevent = array_pop($events);
-        $this->assertInstanceOf('\mod_quiz\event\attempt_graded', $gradedevent);
+        $gradedevent = null;
+        foreach ($events as $event) {
+            if ($event instanceof \mod_quiz\event\attempt_graded) {
+                $gradedevent = $event;
+                break;
+            }
+        }
+        $this->assertNotNull($gradedevent, 'No attempt_graded event found in events array');
+        // Now you can use $gradedevent below.
         $this->assertEquals($attemptobj->get_context(), $gradedevent->get_context());
         $this->assertEquals($attempturl, $gradedevent->get_url());
     }

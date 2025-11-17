@@ -1,0 +1,9 @@
+issueNumber: MDL-87180
+notes:
+  mod_quiz:
+    - message: >-
+        Quiz attempts have been denormalized to improve performance and scalability.
+        You can now get the highest grade, first attempt and last attempt for a user
+        in a quiz without having to calculate it on the fly. It is also now exposed
+        on the API.
+      type: changed

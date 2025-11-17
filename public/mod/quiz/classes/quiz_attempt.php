@@ -1925,13 +1925,13 @@ class quiz_attempt {
         $DB->update_record('quiz_attempts', $this->attempt);
 
         if (!$this->is_preview()) {
+            grade_attempt_tracker::calculate_quiz_user_attempts($this->get_quizid(), $this->get_userid());
+            // Tell any access rules that care that the attempt is over.
             $this->recompute_final_grade();
-
             // Trigger event.
             $this->fire_state_transition_event('\mod_quiz\event\attempt_graded', $timestamp, false);
-
+            // Trigger state change first, to allow hooks before final gradeing.
             di::get(hook\manager::class)->dispatch(new attempt_state_changed($originalattempt, $this->attempt));
-            // Tell any access rules that care that the attempt is over.
             $this->get_access_manager($timestamp)->current_attempt_finished();
         }
 

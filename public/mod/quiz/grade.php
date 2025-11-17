@@ -26,6 +26,7 @@
 
 use mod_quiz\quiz_attempt;
 use mod_quiz\quiz_settings;
+use mod_quiz\grade_attempt_tracker;
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->dirroot . '/mod/quiz/locallib.php');
@@ -56,29 +57,7 @@ if (empty($reportlist) || $userid == $USER->id) {
 if ($userid) {
 
     // Work out which attempt is most significant from a grading point of view.
-    $attempts = quiz_get_user_attempts($quiz->id, $userid, 'finished');
-    $attempt = null;
-    switch ($quiz->grademethod) {
-        case QUIZ_ATTEMPTFIRST:
-            $attempt = reset($attempts);
-            break;
-
-        case QUIZ_ATTEMPTLAST:
-        case QUIZ_GRADEAVERAGE:
-            $attempt = end($attempts);
-            break;
-
-        case QUIZ_GRADEHIGHEST:
-            $maxmark = 0;
-            foreach ($attempts as $at) {
-                // Operator >=, since we want to most recent relevant attempt.
-                if ((float) $at->sumgrades >= $maxmark) {
-                    $maxmark = $at->sumgrades;
-                    $attempt = $at;
-                }
-            }
-            break;
-    }
+    $attempt = grade_attempt_tracker::get_user_best_attempt($quiz, $userid);
 
     // If the user can review the relevant attempt, redirect to it.
     if ($attempt) {

@@ -109,5 +109,35 @@ function xmldb_quiz_upgrade($oldversion) {
     // Automatically generated Moodle v5.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2026051401) {
+        $table = new xmldb_table('quiz_attempts');
+        $field = new xmldb_field('gradehighest', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026051401, 'quiz');
+    }
+
+    if ($oldversion < 2026051402) {
+        $field = new xmldb_field('attemptfirst', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026051402, 'quiz');
+    }
+
+    if ($oldversion < 2026051403) {
+        $field = new xmldb_field('attemptlast', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 0);
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_mod_savepoint(true, 2026051403, 'quiz');
+    }
+
+    if ($oldversion < 2026051404) {
+        \mod_quiz\grade_attempt_tracker::calculate_all_queued();
+        upgrade_mod_savepoint(true, 2026051404, 'quiz');
+    }
+
     return true;
 }

@@ -532,6 +532,21 @@ class mod_quiz_external extends external_api {
                     'Feedback information',
                     VALUE_OPTIONAL,
                 ),
+                'gradehighest' => new external_value(
+                    PARAM_BOOL,
+                    'Whether this attempt has the highest grade for this user and quiz.',
+                    VALUE_OPTIONAL
+                ),
+                'attemptfirst' => new external_value(
+                    PARAM_BOOL,
+                    'Whether this is the first attempt for the user.',
+                    VALUE_OPTIONAL
+                ),
+                'attemptlast' => new external_value(
+                    PARAM_BOOL,
+                    'Whether this is the last attempt for the user.',
+                    VALUE_OPTIONAL
+                ),
             ]
         );
     }
