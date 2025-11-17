@@ -138,6 +138,10 @@ class grade_calculator {
                 'quizid' => $this->quizobj->get_quizid(),
                 'finishedstate' => quiz_attempt::FINISHED
             ]);
+
+        // A normal grading flow will recalculate best attempts later; this is a fallback
+        // in case this method is called on its own.
+        grade_attempt_tracker::ensure_quiz_calculated_before_shutdown($this->quizobj->get_quizid());
     }
 
     /**
@@ -152,9 +156,9 @@ class grade_calculator {
      * then you can pass that data here to save DB queries.
      *
      * @param int|null $userid The userid to calculate the grade for. Defaults to the current user.
-     * @param array $attempts if you already have this user's attempt records loaded, pass them here to save queries.
+     * @param ?array $attempts if you already have this user's attempt records loaded, pass them here to save queries.
      */
-    public function recompute_final_grade(?int $userid = null, array $attempts = []): void {
+    public function recompute_final_grade(?int $userid = null, ?array $attempts = null): void {
         global $DB, $USER;
         $quiz = $this->quizobj->get_quiz();
 
@@ -162,13 +166,13 @@ class grade_calculator {
             $userid = $USER->id;
         }
 
-        if (!$attempts) {
-            // Get all the attempts made by the user.
-            $attempts = quiz_get_user_attempts($quiz->id, $userid);
-        }
+        // The final grade is read from the stored best-attempt flags, so they must be
+        // brought up to date first. Doing it here covers every path that changes
+        // which attempt counts (finish, regrade, delete, ...).
+        grade_attempt_tracker::calculate_quiz_user_attempts($quiz->id, $userid);
 
         // Calculate the best grade.
-        $bestgrade = $this->compute_final_grade_from_attempts($attempts);
+        $bestgrade = $this->compute_final_grade($userid, $attempts);
         $bestgrade = quiz_rescale_grade($bestgrade, $quiz, false);
 
         // Save the best grade in the database.
@@ -194,50 +198,51 @@ class grade_calculator {
     }
 
     /**
-     * Calculate the overall grade for a quiz given a number of attempts by a particular user.
+     * Compute the final grade for a user.
      *
-     * @param array $attempts an array of all the user's attempts at this quiz in order.
-     * @return float|null the overall grade, or null if the user does not have a grade.
+     * @param int $userid the user id
+     * @param ?array $attempts if you already have this user's attempt records loaded, pass them here to save queries.
+     * @return mixed the final grade, or null if the user has no grade.
+     * @throws \coding_exception if grademethod is invalid.
      */
-    protected function compute_final_grade_from_attempts(array $attempts): ?float {
+    protected function compute_final_grade($userid, ?array $attempts = null) {
+        $quiz  = $this->quizobj->get_quiz();
+        // Not ideal, sometimes this is string, sometimes its an int, see MDL-88180.
+        $grademethod = (string) $quiz->grademethod;
 
-        $grademethod = $this->quizobj->get_quiz()->grademethod;
-        switch ($grademethod) {
+        return match ($grademethod) {
+            QUIZ_ATTEMPTFIRST,
+            QUIZ_ATTEMPTLAST,
+            QUIZ_GRADEHIGHEST,
+                => grade_attempt_tracker::get_user_best_attempt($quiz, $userid)?->sumgrades ?? null,
+            QUIZ_GRADEAVERAGE => $this->compute_user_grade_average($userid, $attempts),
+            default => throw new \coding_exception('Invalid grademethod ' . $grademethod),
+        };
+    }
 
-            case QUIZ_ATTEMPTFIRST:
-                $firstattempt = reset($attempts);
-                return $firstattempt->sumgrades;
-
-            case QUIZ_ATTEMPTLAST:
-                $lastattempt = end($attempts);
-                return $lastattempt->sumgrades;
-
-            case QUIZ_GRADEAVERAGE:
-                $sum = 0;
-                $count = 0;
-                foreach ($attempts as $attempt) {
-                    if (!is_null($attempt->sumgrades)) {
-                        $sum += $attempt->sumgrades;
-                        $count++;
-                    }
-                }
-                if ($count == 0) {
-                    return null;
-                }
-                return $sum / $count;
-
-            case QUIZ_GRADEHIGHEST:
-                $max = null;
-                foreach ($attempts as $attempt) {
-                    if ($attempt->sumgrades > $max) {
-                        $max = $attempt->sumgrades;
-                    }
-                }
-                return $max;
-
-            default:
-                throw new coding_exception('Unrecognised grading method ' . $grademethod);
+    /**
+     * Compute the average grade for a user.
+     *
+     * @param int $userid the user id
+     * @param ?array $attempts if you already have this user's attempt records loaded, pass them here to save queries.
+     * @return float|null the average grade, or null if the user has no grade.
+     */
+    protected function compute_user_grade_average($userid, $attempts = null): ?float {
+        if ($attempts === null) {
+            $attempts = quiz_get_user_attempts($this->quizobj->get_quizid(), $userid);
         }
+        $sum = 0;
+        $count = 0;
+        foreach ($attempts as $attempt) {
+            if (!is_null($attempt->sumgrades)) {
+                $sum += $attempt->sumgrades;
+                $count++;
+            }
+        }
+        if ($count == 0) {
+            return null;
+        }
+        return $sum / $count;
     }
 
     /**
@@ -255,56 +260,22 @@ class grade_calculator {
             return;
         }
 
-        $param = ['iquizid' => $quiz->id, 'istatefinished' => quiz_attempt::FINISHED];
-        $firstlastattemptjoin = "JOIN (
-                SELECT
-                    iquiza.userid,
-                    MIN(attempt) AS firstattempt,
-                    MAX(attempt) AS lastattempt
+        // Ensure best-attempt flags (gradehighest, attemptfirst, attemptlast) are up to date
+        // before we use them to filter attempts below. They can be stale if attempts have been
+        // reassigned between users (e.g. via a user-merge operation).
+        grade_attempt_tracker::calculate_quiz($quiz->id);
 
-                FROM {quiz_attempts} iquiza
 
-                WHERE
-                    iquiza.state = :istatefinished AND
-                    iquiza.preview = 0 AND
-                    iquiza.quiz = :iquizid
+        $param = [];
 
-                GROUP BY iquiza.userid
-            ) first_last_attempts ON first_last_attempts.userid = quiza.userid";
-
-        switch ($quiz->grademethod) {
-            case QUIZ_ATTEMPTFIRST:
-                // Because of the where clause, there will only be one row, but we
-                // must still use an aggregate function.
-                $select = 'MAX(quiza.sumgrades)';
-                $join = $firstlastattemptjoin;
-                $where = 'quiza.attempt = first_last_attempts.firstattempt AND';
-                break;
-
-            case QUIZ_ATTEMPTLAST:
-                // Because of the where clause, there will only be one row, but we
-                // must still use an aggregate function.
-                $select = 'MAX(quiza.sumgrades)';
-                $join = $firstlastattemptjoin;
-                $where = 'quiza.attempt = first_last_attempts.lastattempt AND';
-                break;
-
-            case QUIZ_GRADEAVERAGE:
-                $select = 'AVG(quiza.sumgrades)';
-                $join = '';
-                $where = '';
-                break;
-
-            default:
-            case QUIZ_GRADEHIGHEST:
-                $select = 'MAX(quiza.sumgrades)';
-                $join = '';
-                $where = '';
-                break;
-        }
+        // Not ideal, sometimes this is string, sometimes its an int, see MDL-88180.
+        $where = match ((string) $quiz->grademethod) {
+            QUIZ_GRADEAVERAGE => "quiza.state = '" . quiz_attempt::FINISHED . "' AND",
+            default => 'quiza.' . grade_attempt_tracker::get_best_attempt_column($quiz->grademethod) . ' = 1 AND',
+        };
 
         if ($quiz->sumgrades >= self::ALMOST_ZERO) {
-            $finalgrade = $select . ' * ' . ($quiz->grade / $quiz->sumgrades);
+            $finalgrade = 'AVG(quiza.sumgrades) * ' . ($quiz->grade / $quiz->sumgrades);
         } else {
             $finalgrade = '0';
         }
@@ -313,17 +284,14 @@ class grade_calculator {
         $param['quizid3'] = $quiz->id;
         $param['quizid4'] = $quiz->id;
         $param['statefinished'] = quiz_attempt::FINISHED;
-        $param['statefinished2'] = quiz_attempt::FINISHED;
         $param['almostzero'] = self::ALMOST_ZERO;
         $finalgradesubquery = "
                 SELECT quiza.userid, $finalgrade AS newgrade
                 FROM {quiz_attempts} quiza
-                $join
                 WHERE
                     $where
-                    quiza.state = :statefinished AND
                     quiza.preview = 0 AND
-                    quiza.quiz = :quizid3
+                    quiza.quiz = :quizid
                 GROUP BY quiza.userid";
 
         $changedgrades = $DB->get_records_sql("
@@ -332,14 +300,14 @@ class grade_calculator {
                 FROM (
                     SELECT userid
                     FROM {quiz_grades} qg
-                    WHERE quiz = :quizid
+                    WHERE quiz = :quizid2
                 UNION
                     SELECT DISTINCT userid
                     FROM {quiz_attempts} quiza2
                     WHERE
-                        quiza2.state = :statefinished2 AND
+                        quiza2.state = :statefinished AND
                         quiza2.preview = 0 AND
-                        quiza2.quiz = :quizid2
+                        quiza2.quiz = :quizid3
                 ) users
 
                 LEFT JOIN {quiz_grades} qg ON qg.userid = users.userid AND qg.quiz = :quizid4
@@ -424,7 +392,6 @@ class grade_calculator {
         if ($oldgrade < $newgrade) {
             // The new total is bigger, so we need to recompute fully to avoid underflow problems.
             $this->recompute_all_final_grades();
-
         } else {
             // New total smaller, so we can rescale the grades efficiently.
             $DB->execute("

@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace mod_quiz\task;
+
+use core\task\adhoc_task;
+use core\output\progress_trace\text_progress_trace;
+
 /**
- * Quiz activity version information.
+ * Calculates the best attempts for a quiz.
  *
- * @package   mod_quiz
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    mod_quiz
+ * @copyright  2026 Jay Oswald <jayoswald@catalyst-au.net>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version = 2026051404;
-$plugin->requires = 2026041000;
-$plugin->component = 'mod_quiz';
+class quiz_calculate_best_attempts_for_quiz extends adhoc_task {
+    /**
+     * Execute the task.
+     */
+    #[\Override]
+    public function execute() {
+        $quizid = $this->get_custom_data()->id;
+        \mod_quiz\grade_attempt_tracker::calculate_quiz($quizid, new text_progress_trace());
+    }
+}

@@ -1,0 +1,27 @@
+issueNumber: MDL-87180
+notes:
+  mod_quiz:
+    - message: >-
+        Three new columns have been added to the quiz_attempts table: gradehighest,
+        attemptfirst and attemptlast. They flag, for each user and quiz, which attempt
+        provides the grade under the corresponding grading method, so this no longer
+        needs to be calculated on the fly. The flags are also returned by the
+        mod_quiz_get_user_attempts web service.
+
+        Quiz report plugins that use quiz_report_grade_method_sql() or
+        quiz_report_qm_filter_select() need no changes; those functions now use the
+        new columns.
+
+        Code that modifies quiz_attempts rows directly (for example a custom attempt
+        clean-up script) rather than through the quiz_attempt or grade_calculator
+        APIs must call \mod_quiz\grade_attempt_tracker::calculate_quiz_user_attempts()
+        (or calculate_quiz() for a whole quiz) afterwards to keep the flags in sync.
+        The flags are updated automatically by grade_calculator::recompute_final_grade()
+        and recompute_all_final_grades().
+
+        On upgrade, an adhoc task is queued per quiz to populate the flags. Until
+        that task has run for a quiz, its reports show a warning and the best-attempt
+        highlighting and filtering are not available. A CLI script,
+        mod/quiz/cli/recalculate_best_attempts.php, can recalculate the flags for one
+        or all quizzes if ever needed.
+      type: changed

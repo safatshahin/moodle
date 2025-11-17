@@ -153,6 +153,9 @@ final class reportlib_test extends \advanced_testcase {
         $quiz->attempts = 10;
 
         $quiz->grademethod = QUIZ_ATTEMPTFIRST;
+
+        grade_attempt_tracker::calculate_quiz($fakeattempt->quiz);
+
         $firstattempt = $DB->get_records_sql("
                 SELECT * FROM {quiz_attempts} quiza WHERE userid = ? AND quiz = ? AND "
                 . quiz_report_qm_filter_select($quiz), [123, 456]);
