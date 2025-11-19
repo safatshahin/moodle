@@ -1,0 +1,28 @@
+[submodule "local/datacurso_ratings"]
+	path = local/datacurso_ratings
+	url = https://github.com/industria-elearning/moodle-local_datacurso_ratings.git
+[submodule "local/assign_ai"]
+	path = local/assign_ai
+	url = https://github.com/industria-elearning/moodle-local_assign_ai.git
+[submodule "local/forum_ai"]
+	path = local/forum_ai
+	url = https://github.com/industria-elearning/moodle-local_forum_ai.git
+[submodule "local/coursegen"]
+	path = local/coursegen
+	url = https://github.com/industria-elearning/moodle-local_coursegen.git
+[submodule "local/socialcert"]
+	path = local/socialcert
+	url = https://github.com/industria-elearning/moodle-local_socialcert.git
+[submodule "report/lifestory"]
+	path = report/lifestory
+	url = https://github.com/industria-elearning/moodle-report_lifestory.git
+[submodule "ai/provider/datacurso"]
+	path = ai/provider/datacurso
+	url = https://github.com/industria-elearning/moodle-aiprovider_datacurso.git
+[submodule "blocks/dixeo_coursegen"]
+	path = blocks/dixeo_coursegen
+	url = https://github.com/Edunao/moodle-block_dixeo_coursegen.git
+[submodule "mod/customcert"]
+	path = mod/customcert
+	url = https://github.com/mdjnelson/moodle-mod_customcert.git
+	branch = MOODLE_404_STABLE
