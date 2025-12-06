@@ -1,0 +1,21 @@
+
+.checktable {
+    table-layout: fixed;
+}
+
+.checktable .status {
+    width: 10%;
+}
+
+.checktable .check {
+    width: 20%;
+}
+
+.checktable .summary {
+    width: 50%;
+}
+
+.checktable .action {
+    width: 20%;
+}
+
