@@ -35,6 +35,9 @@ class response_generate_image extends response_base {
     /** @var string|null The URL of the source image used to generate the image. */
     private ?string $sourceurl = null;
 
+    /** @var string|null The imagebase64 of the generated image. */
+    private ?string $imagebase64 = null;
+
     /**
      * Constructor.
      *
@@ -64,6 +67,7 @@ class response_generate_image extends response_base {
         $this->revisedprompt = $response['revisedprompt'] ?? null;
         $this->sourceurl = $response['sourceurl'] ?? null;
         $this->model = $response['model'] ?? null;
+        $this->imagebase64 = $response['imagebase64'] ?? null;
     }
 
     #[\Override]
@@ -73,6 +77,7 @@ class response_generate_image extends response_base {
             'revisedprompt' => $this->revisedprompt,
             'sourceurl' => $this->sourceurl,
             'model' => $this->model,
+            'imagebase64' => $this->imagebase64,
         ];
     }
 }
