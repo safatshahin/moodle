@@ -1134,6 +1134,37 @@ class core_renderer extends renderer_base {
     }
 
     /**
+     * Returns the course progress bar HTML for the header, if available.
+     *
+     * @return string
+     */
+    public function course_progress() {
+        global $CFG, $USER;
+
+        if ($this->page->course->id == SITEID) {
+            return '';
+        }
+
+        require_once($CFG->dirroot . '/completion/classes/progress.php');
+
+        $percentage = \core_completion\progress::get_course_progress_percentage($this->page->course, $USER->id);
+        if ($percentage === null) {
+            return '';
+        }
+
+        $percentage = (int)round($percentage);
+        $percentage = min(100, max(0, $percentage));
+
+        $context = [
+            'label' => get_string('courseprogress', 'moodle'),
+            'percentage' => $percentage,
+            'percentageformatted' => get_string('percents', 'moodle', $percentage),
+        ];
+
+        return $this->render_from_template('core/course_progress', $context);
+    }
+
+    /**
      * Returns course-specific information to be output on any course page in the footer area
      * (for the current course)
      *
