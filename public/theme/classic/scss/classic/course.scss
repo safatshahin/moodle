@@ -2,6 +2,12 @@
  * Course page styles (specific for Classic theme).
  */
 
+.course-progress {
+    .progress {
+        height: 0.5rem;
+    }
+}
+
 // Single section navigation
 .course-content .single-section .section-navigation {
     display: block;

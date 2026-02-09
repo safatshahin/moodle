@@ -347,6 +347,8 @@ $string['counteditems'] = '{$a->count} {$a->items}';
 $string['country'] = 'Country';
 $string['course'] = 'Course';
 $string['courseheader'] = 'Course menu';
+$string['courseprogress'] = 'Course Progress';
+$string['courseprogressmodulescompleted'] = '{$a->completed} out of {$a->total} modules completed';
 $string['courseadministration'] = 'Course administration';
 $string['courseapprovedemail'] = 'Your requested course is approved, <a href="{$a->url}">{$a->name}</a>, and you are a {$a->teacher}.';
 $string['courseapprovedemail2'] = 'Your requested course is approved: <a href="{$a->url}">{$a->name}</a>.';

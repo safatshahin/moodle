@@ -30486,6 +30486,10 @@ table.calendartable caption {
  * Course page styles.
  */
 /* Course content */
+.course-progress .progress {
+  height: 0.5rem;
+}
+
 .course-content ul.section-list {
   padding: 0;
   margin: 0;
