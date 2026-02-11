@@ -129,6 +129,7 @@ $string['coursecompletion'] = 'Course completion';
 $string['coursecompletioncondition'] = 'Condition: {$a}';
 $string['coursecompletionnavigation'] = 'Course completion tertiary navigation';
 $string['coursecompletionsettings'] = 'Course completion settings';
+$string['courseprogress'] = 'Course Progress';
 $string['coursegrade'] = 'Course grade';
 $string['coursesavailable'] = 'Courses available';
 $string['coursesavailableexplaination'] = 'Note: Course completion conditions must be set for a course to appear in the above list.';

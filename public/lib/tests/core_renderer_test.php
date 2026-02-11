@@ -201,4 +201,78 @@ final class core_renderer_test extends \advanced_testcase {
         $this->assertIsString($attributes);
         $this->assertStringContainsString('data-test="test"', $attributes);
     }
+
+    /**
+     * @covers \core_renderer::course_content_header
+     */
+    public function test_course_content_header_shows_course_progress_for_enrolled_user(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablecompletion = true;
+
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, 'student');
+        $this->getDataGenerator()->create_module('assign', ['course' => $course->id], ['completion' => COMPLETION_TRACKING_MANUAL]);
+
+        $this->setUser($user);
+
+        $page = new moodle_page();
+        $page->set_course($course);
+        $page->set_context(\context_course::instance($course->id));
+        $renderer = new core_renderer($page, RENDERER_TARGET_GENERAL);
+
+        $html = $renderer->course_content_header();
+        $this->assertStringContainsString('data-region="course-progress"', $html);
+        $this->assertStringContainsString('0%', $html);
+    }
+
+    /**
+     * @covers \core_renderer::course_content_header
+     */
+    public function test_course_content_header_hides_course_progress_when_completion_is_disabled(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablecompletion = true;
+
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 0]);
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, 'student');
+
+        $this->setUser($user);
+
+        $page = new moodle_page();
+        $page->set_course($course);
+        $page->set_context(\context_course::instance($course->id));
+        $renderer = new core_renderer($page, RENDERER_TARGET_GENERAL);
+
+        $html = $renderer->course_content_header();
+        $this->assertStringNotContainsString('data-region="course-progress"', $html);
+    }
+
+    /**
+     * @covers \core_renderer::course_content_header
+     */
+    public function test_course_content_header_hides_course_progress_for_not_enrolled_user(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $CFG->enablecompletion = true;
+
+        $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
+        $user = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->create_module('assign', ['course' => $course->id], ['completion' => COMPLETION_TRACKING_MANUAL]);
+
+        $this->setUser($user);
+
+        $page = new moodle_page();
+        $page->set_course($course);
+        $page->set_context(\context_course::instance($course->id));
+        $renderer = new core_renderer($page, RENDERER_TARGET_GENERAL);
+
+        $html = $renderer->course_content_header();
+        $this->assertStringNotContainsString('data-region="course-progress"', $html);
+    }
 }

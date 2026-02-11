@@ -1052,7 +1052,7 @@ class core_renderer extends renderer_base {
      * @return string
      */
     public function course_content_header($onlyifnotcalledbefore = false) {
-        global $CFG;
+        global $CFG, $USER;
         static $functioncalled = false;
         if ($functioncalled && $onlyifnotcalledbefore) {
             // we have already output the content header
@@ -1083,6 +1083,19 @@ class core_renderer extends renderer_base {
         if (($obj = $courseformat->course_content_header()) !== null) {
             $output .= html_writer::div($courseformat->get_renderer($this->page)->render($obj), 'course-content-header');
         }
+
+        $coursecontext = \context_course::instance($this->page->course->id);
+        if (is_enrolled($coursecontext, $USER->id, '', true)) {
+            $progress = \core_completion\progress::get_course_progress_percentage($this->page->course, $USER->id);
+            if ($progress !== null) {
+                $progress = min(100, max(0, (int) floor($progress)));
+                $output .= html_writer::div(
+                    $this->render_from_template('core/course_progress', ['progress' => $progress]),
+                    'course-content-header'
+                );
+            }
+        }
+
         return $output;
     }
 
