@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,15 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+declare(strict_types=1);
+
+namespace tool_installaddon\task;
+
 /**
- * @package     tool_installaddon
- * @copyright   2013 David Mudrak <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Ad-hoc task to perform post install tasks.
+ *
+ * @package   tool_installaddon
+ * @copyright 2026 Safat Shahin <safat.shahin@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component  = 'tool_installaddon';
-$plugin->version    = 2026021900;
-$plugin->requires   = 2025092600;
-$plugin->maturity   = MATURITY_STABLE;
+class post_install extends \core\task\adhoc_task {
+    /**
+     * Execute the ad-hoc task.
+     */
+    public function execute(): void {
+        $activefooter = get_config('core', 'activitychooseractivefooter');
+        if ($activefooter === false || $activefooter === '' || $activefooter === 'hidden') {
+            set_config('activitychooseractivefooter', 'tool_installaddon');
+        }
+    }
+}

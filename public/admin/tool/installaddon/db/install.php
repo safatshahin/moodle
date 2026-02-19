@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,14 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package     tool_installaddon
- * @copyright   2013 David Mudrak <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Install script for tool_installaddon.
+ *
+ * @package   tool_installaddon
+ * @copyright 2026 Safat Shahin <safat.shahin@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component  = 'tool_installaddon';
-$plugin->version    = 2026021900;
-$plugin->requires   = 2025092600;
-$plugin->maturity   = MATURITY_STABLE;
+/**
+ * Perform the post-install procedures.
+ */
+function xmldb_tool_installaddon_install() {
+    // Use an ad-hoc task to set the active activity chooser footer plugin to tool_installaddon.
+    // We couldn't do this directly here, because there is an admin_apply_default_settings() call
+    // after all plugins are installed and that would reset the value to 'hidden'.
+    $postinstall = new tool_installaddon\task\post_install();
+    core\task\manager::queue_adhoc_task($postinstall);
+}
