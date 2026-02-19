@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,14 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package     tool_installaddon
- * @copyright   2013 David Mudrak <david@moodle.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Install script for tool_installaddon.
+ *
+ * @package   tool_installaddon
+ * @copyright 2026 Safat Shahin <safat.shahin@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component  = 'tool_installaddon';
-$plugin->version    = 2026022600;
-$plugin->requires   = 2025092600;
-$plugin->maturity   = MATURITY_STABLE;
+/**
+ * Perform the post-install procedures.
+ */
+function xmldb_tool_installaddon_install() {
+    // Set the activity chooser active footer to include tool_installaddon.
+    // This will ensure that the activity chooser footer shows marketplace after a fresh install.
+    set_config('activitychooseractivefooter', 'tool_installaddon');
+}
