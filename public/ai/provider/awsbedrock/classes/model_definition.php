@@ -14,68 +14,65 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_awsbedrock\aimodel;
+namespace aiprovider_awsbedrock;
 
 use core_ai\aimodel\base;
 use MoodleQuickForm;
 
 /**
- * Stability AI Stable Image Core model.
+ * Generic AWS Bedrock model definition.
  *
  * @package    aiprovider_awsbedrock
- * @copyright  2026 Raquel Ortega <raquel.ortega@moodle.com>
+ * @copyright  2026 Safat Shahin <safat.shahin@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class stability_stable_image_core_v1 extends base implements awsbedrock_base {
+class model_definition extends base {
+    /** @var int MODEL_TYPE_TEXT Text model type. */
+    public const MODEL_TYPE_TEXT = 1;
+    /** @var int MODEL_TYPE_IMAGE Image model type. */
+    public const MODEL_TYPE_IMAGE = 2;
+    /** @var string Model id. */
+    private readonly string $modelname;
+    /** @var int Model type. */
+    private readonly int $modeltype;
+    /** @var array Model settings schema. */
+    private readonly array $settings;
+
+    /**
+     * Constructor.
+     *
+     * @param string $modelname Model id.
+     * @param int $modeltype Model type.
+     * @param array $settings Model settings schema.
+     */
+    public function __construct(
+        string $modelname,
+        int $modeltype,
+        array $settings = [],
+    ) {
+        $this->modelname = $modelname;
+        $this->modeltype = $modeltype;
+        $this->settings = $settings;
+    }
+
     #[\Override]
     public function get_model_name(): string {
-        return 'stability.stable-image-core-v1:1';
+        return $this->modelname;
     }
 
     #[\Override]
     public function get_model_display_name(): string {
-        return get_string("model_{$this->get_model_name()}", 'aiprovider_awsbedrock');
+        return get_string("model_{$this->modelname}", 'aiprovider_awsbedrock');
     }
 
     #[\Override]
     public function get_model_settings(): array {
-        return [
-            // A specific value that is used to guide the 'randomness' of the generation.
-            // (Omit this parameter or pass 0 to use a random seed.)
-            'seed' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_seed_img',
-                    'component' => 'aiprovider_awsbedrock',
-                ],
-                'type' => PARAM_INT,
-                'help' => [
-                    'identifier' => 'settings_seed_img',
-                    'component' => 'aiprovider_awsbedrock',
-                    'a' => ['min' => 0, 'max' => 4294967295, 'default' => 0],
-                ],
-            ],
-            // Keywords of what you do not wish to see in the output image. Max: 10.000 characters.
-            'negative_prompt' => [
-                'elementtype' => 'text',
-                'label' => [
-                    'identifier' => 'settings_negative_prompt_img',
-                    'component' => 'aiprovider_awsbedrock',
-                ],
-                'type' => PARAM_TEXT,
-                'help' => [
-                    'identifier' => 'settings_negative_prompt_img',
-                    'component' => 'aiprovider_awsbedrock',
-                ],
-            ],
-        ];
+        return $this->settings;
     }
 
     #[\Override]
     public function add_model_settings(MoodleQuickForm $mform): void {
-        $settings = $this->get_model_settings();
-
-        foreach ($settings as $key => $setting) {
+        foreach ($this->settings as $key => $setting) {
             $mform->addElement(
                 $setting['elementtype'],
                 $key,
@@ -90,11 +87,18 @@ class stability_stable_image_core_v1 extends base implements awsbedrock_base {
                     a: !empty($setting['help']['a']) ? $setting['help']['a'] : [],
                 );
             }
+            if (!empty($setting['required'])) {
+                $mform->addRule($key, get_string('required'), 'required', null, 'client');
+            }
         }
     }
 
-    #[\Override]
+    /**
+     * Get the model type.
+     *
+     * @return int
+     */
     public function model_type(): int {
-        return self::MODEL_TYPE_IMAGE;
+        return $this->modeltype;
     }
 }

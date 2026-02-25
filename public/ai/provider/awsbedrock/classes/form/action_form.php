@@ -216,8 +216,7 @@ class action_form extends action_settings_form {
     protected function get_model_list(int $modeltype): array {
         $models = [];
         $models['custom'] = get_string('custom', 'core_form');
-        foreach (helper::get_model_classes() as $class) {
-            $model = new $class();
+        foreach (helper::get_models() as $model) {
             if ($model->model_type() == $modeltype) {
                 $models[$model->get_model_name()] = $model->get_model_display_name();
             }

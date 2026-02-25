@@ -16,6 +16,7 @@
 
 namespace aiprovider_awsbedrock;
 
+use aiprovider_awsbedrock\model_definition;
 use core_ai\aimodel\base;
 
 /**
@@ -27,35 +28,30 @@ use core_ai\aimodel\base;
  */
 class helper {
     /**
-     * Get all model classes.
+     * Get all model definitions.
      *
-     * @return array Array of model classes.
+     * @return model_definition[] Array of model definitions.
      */
-    public static function get_model_classes(): array {
-        $models = [];
-        $modelclasses = \core_component::get_component_classes_in_namespace('aiprovider_awsbedrock', 'aimodel');
-        foreach ($modelclasses as $class => $path) {
-            if (!class_exists($class) || !is_a($class, base::class, true)) {
-                throw new \coding_exception("Model class not valid: {$class}");
-            }
-            $models[] = $class;
-        }
-        return $models;
+    public static function get_models(): array {
+        return model_registry::get_models();
     }
 
     /**
-     * Get model class by name.
+     * Backward-compatible alias for model definitions.
+     *
+     * @return model_definition[] Array of model definitions.
+     */
+    public static function get_model_classes(): array {
+        return static::get_models();
+    }
+
+    /**
+     * Get model definition by name.
      *
      * @param string $modelname Model name.
      * @return base|null
      */
     public static function get_model_class(string $modelname): ?base {
-        foreach (static::get_model_classes() as $classname) {
-            $model = new $classname();
-            if ($model->get_model_name() === $modelname) {
-                return $model;
-            }
-        }
-        return null;
+        return model_registry::get_model($modelname);
     }
 }

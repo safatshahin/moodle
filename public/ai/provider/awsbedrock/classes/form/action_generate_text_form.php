@@ -16,7 +16,7 @@
 
 namespace aiprovider_awsbedrock\form;
 
-use aiprovider_awsbedrock\aimodel\awsbedrock_base;
+use aiprovider_awsbedrock\model_definition;
 
 /**
  * Generate text action provider settings form.
@@ -31,7 +31,7 @@ class action_generate_text_form extends action_form {
         parent::definition();
         $mform = $this->_form;
 
-        $this->add_model_fields(awsbedrock_base::MODEL_TYPE_TEXT);
+        $this->add_model_fields(model_definition::MODEL_TYPE_TEXT);
 
         $mform->addElement(
             'select',
