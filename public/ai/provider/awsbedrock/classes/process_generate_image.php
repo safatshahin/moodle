@@ -145,19 +145,38 @@ class process_generate_image extends abstract_processor {
     #[\Override]
     protected function handle_api_success(Result $result): array {
         $bodyobj = json_decode($result['body']->getContents());
-        $responseheaders = $result['@metadata']['headers'];
+        $responseheaders = $result['@metadata']['headers'] ?? [];
+        $statuscode = (int)($result['@metadata']['statusCode'] ?? 500);
         $model = $this->get_model();
         $response = [
             'success' => true,
-            'fingerprint' => $responseheaders['x-amzn-requestid'],
-            'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
-            'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
+            'fingerprint' => (string)($responseheaders['x-amzn-requestid'] ?? ''),
+            'prompttokens' => (string)($responseheaders['x-amzn-bedrock-input-token-count'] ?? '0'),
+            'completiontokens' => (string)($responseheaders['x-amzn-bedrock-output-token-count'] ?? '0'),
             'revisedprompt' => $this->action->get_configuration('prompttext'), // No revised prompt in AWS Bedrock.
             'model' => $model,
         ];
 
         if (str_contains($model, 'amazon') || str_contains($model, 'stability')) {
-            $response['draftfile'] = $this->base64_to_file($bodyobj->images[0]);
+            $imagebase64 = $bodyobj->images[0] ?? null;
+            if (!is_string($imagebase64) || $imagebase64 === '') {
+                return [
+                    'success' => false,
+                    'errorcode' => $statuscode,
+                    'error' => 'InvalidResponseException',
+                    'errormessage' => 'AWS Bedrock response did not include a valid image payload.',
+                ];
+            }
+            try {
+                $response['draftfile'] = $this->base64_to_file($imagebase64);
+            } catch (\Throwable $exception) {
+                return [
+                    'success' => false,
+                    'errorcode' => $statuscode,
+                    'error' => 'InvalidResponseException',
+                    'errormessage' => 'AWS Bedrock image payload could not be processed.',
+                ];
+            }
         } else {
             throw new \coding_exception('Unknown model class type.');
         }
@@ -179,17 +198,31 @@ class process_generate_image extends abstract_processor {
         global $CFG, $USER;
         require_once("{$CFG->libdir}/filelib.php");
 
+        $base64 = ltrim($base64, "\xEF\xBB\xBF");
+        $base64 = preg_replace('/\s+/', '', $base64) ?? '';
+
         // Decode the base64 image into a binary format we can use.
-        $binarydata = base64_decode($base64);
+        $binarydata = base64_decode($base64, true);
+        if ($binarydata === false) {
+            throw new \coding_exception('Invalid image data returned by AWS Bedrock.');
+        }
 
         // Construct a filename for the image, because we don't get one explicitly.
         $imageinfo = getimagesizefromstring($binarydata);
+        if ($imageinfo === false || empty($imageinfo[2])) {
+            throw new \coding_exception('Invalid image binary returned by AWS Bedrock.');
+        }
         $fileext = image_type_to_extension($imageinfo[2]);
+        if ($fileext === false) {
+            throw new \coding_exception('Unsupported image format returned by AWS Bedrock.');
+        }
         $filename = substr(hash('sha512', ($base64)), 0, 16) . $fileext;
 
         // Save the image to a temp location and add the watermark.
         $tempdst = make_request_directory() . DIRECTORY_SEPARATOR . $filename;
-        file_put_contents($tempdst, $binarydata);
+        if (file_put_contents($tempdst, $binarydata) === false) {
+            throw new \coding_exception('Unable to write temporary image file.');
+        }
         $image = new ai_image($tempdst);
         $image->add_watermark()->save();
 
@@ -204,7 +237,11 @@ class process_generate_image extends abstract_processor {
         $fileinfo->filename = $filename;
 
         $fs = get_file_storage();
-        return $fs->create_file_from_string($fileinfo, file_get_contents($tempdst));
+        $filecontent = file_get_contents($tempdst);
+        if ($filecontent === false) {
+            throw new \coding_exception('Unable to read temporary image file.');
+        }
+        return $fs->create_file_from_string($fileinfo, $filecontent);
     }
 
     /**

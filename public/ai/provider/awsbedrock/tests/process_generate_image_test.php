@@ -316,6 +316,62 @@ final class process_generate_image_test extends \advanced_testcase {
     }
 
     /**
+     * Test API success response handling when Bedrock metadata headers are missing.
+     */
+    public function test_handle_api_success_with_missing_headers(): void {
+        $processor = $this->getMockBuilder(process_generate_image::class)
+            ->setConstructorArgs([$this->provider, $this->action])
+            ->onlyMethods(['base64_to_file'])
+            ->getMock();
+        $processor->method('base64_to_file')
+            ->willReturn($this->testfile);
+        $method = new \ReflectionMethod($processor, 'handle_api_success');
+        $stream = Utils::streamFor('{
+            "images":[
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIW2NgYGD4DwABBAEAwS2OUAAAAABJRU5ErkJggg=="
+            ]
+        }');
+        $resultobj = new Result([
+            'body' => $stream,
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [],
+            ],
+        ]);
+
+        $result = $method->invoke($processor, $resultobj);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals('', $result['fingerprint']);
+        $this->assertEquals('0', $result['prompttokens']);
+        $this->assertEquals('0', $result['completiontokens']);
+    }
+
+    /**
+     * Test API success handling when Bedrock response does not contain an image payload.
+     */
+    public function test_handle_api_success_with_missing_image_payload(): void {
+        $processor = new process_generate_image($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'handle_api_success');
+        $stream = Utils::streamFor('{}');
+        $resultobj = new Result([
+            'body' => $stream,
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [],
+            ],
+        ]);
+
+        $result = $method->invoke($processor, $resultobj);
+
+        $this->assertFalse($result['success']);
+        $this->assertEquals(200, $result['errorcode']);
+        $this->assertEquals('InvalidResponseException', $result['error']);
+    }
+
+    /**
      * Test base64_to_file.
      */
     public function test_base64_to_file(): void {
@@ -329,9 +385,20 @@ final class process_generate_image_test extends \advanced_testcase {
 
         $filenobj = $method->invoke($processor, $base64);
 
-        $this->assertEquals('40d86bd0181bd424.jpeg', $filenobj->get_filename());
+        $this->assertEquals('aa7ff9e16b9cdafd.jpeg', $filenobj->get_filename());
         $this->assertEquals('image/jpeg', $filenobj->get_mimetype());
         $this->assertgreaterThan(0, $filenobj->get_filesize());
+    }
+
+    /**
+     * Test base64_to_file with invalid base64 payload.
+     */
+    public function test_base64_to_file_with_invalid_base64(): void {
+        $processor = new process_generate_image($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'base64_to_file');
+
+        $this->expectException(\coding_exception::class);
+        $method->invoke($processor, '#invalid-base64#');
     }
 
     /**

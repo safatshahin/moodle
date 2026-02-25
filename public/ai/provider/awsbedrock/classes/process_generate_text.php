@@ -269,12 +269,12 @@ class process_generate_text extends abstract_processor {
     #[\Override]
     protected function handle_api_success(Result $result): array {
         $bodyobj = json_decode($result['body']->getContents());
-        $responseheaders = $result['@metadata']['headers'];
+        $responseheaders = $result['@metadata']['headers'] ?? [];
         $response = [
             'success' => true,
-            'fingerprint' => $responseheaders['x-amzn-requestid'],
-            'prompttokens' => $responseheaders['x-amzn-bedrock-input-token-count'],
-            'completiontokens' => $responseheaders['x-amzn-bedrock-output-token-count'],
+            'fingerprint' => (string)($responseheaders['x-amzn-requestid'] ?? ''),
+            'prompttokens' => (string)($responseheaders['x-amzn-bedrock-input-token-count'] ?? '0'),
+            'completiontokens' => (string)($responseheaders['x-amzn-bedrock-output-token-count'] ?? '0'),
         ];
 
         $model = $this->get_model();

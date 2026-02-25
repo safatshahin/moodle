@@ -65,8 +65,10 @@ abstract class abstract_processor extends process_base {
         if (!empty($settings['modelextraparams'])) {
             // Custom model settings.
             $params = json_decode($settings['modelextraparams'], true);
-            foreach ($params as $key => $param) {
-                $settings[$key] = $param;
+            if (json_last_error() === JSON_ERROR_NONE && is_array($params)) {
+                foreach ($params as $key => $param) {
+                    $settings[$key] = $param;
+                }
             }
         }
 

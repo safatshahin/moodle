@@ -18,6 +18,8 @@ namespace aiprovider_awsbedrock;
 
 use Aws\BedrockRuntime\BedrockRuntimeClient;
 use Aws\Exception\AwsException;
+use Aws\Result;
+use GuzzleHttp\Psr7\Utils;
 use core_ai\aiactions\base;
 
 defined('MOODLE_INTERNAL') || die();
@@ -203,6 +205,38 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals('11', $result['prompttokens']);
         $this->assertEquals('568', $result['completiontokens']);
         $this->assertEquals('amazon.nova-pro-v1:0', $result['model']);
+    }
+
+    /**
+     * Test API success response handling when Bedrock metadata headers are missing.
+     */
+    public function test_handle_api_success_with_missing_headers(): void {
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'handle_api_success');
+        $stream = Utils::streamFor('{
+            "output":{
+                "message":{
+                    "content":[{"text":"The capital of Australia is Canberra."}],
+                    "role":"assistant"
+                }
+            },
+            "stopReason":"end_turn"
+        }');
+        $resultobj = new Result([
+            'body' => $stream,
+            'contentType' => 'application/json',
+            '@metadata' => [
+                'statusCode' => 200,
+                'headers' => [],
+            ],
+        ]);
+
+        $result = $method->invoke($processor, $resultobj);
+
+        $this->assertTrue($result['success']);
+        $this->assertEquals('', $result['fingerprint']);
+        $this->assertEquals('0', $result['prompttokens']);
+        $this->assertEquals('0', $result['completiontokens']);
     }
 
     /**
@@ -633,5 +667,25 @@ final class process_generate_text_test extends \advanced_testcase {
         $this->assertEquals(100, $result->max_gen_len);
         $this->assertEquals(0.9, $result->top_p);
         $this->assertStringContainsString('This is a test prompt', $result->prompt);
+    }
+
+    /**
+     * Test create_request when modelextraparams is valid JSON, but not an object/array.
+     */
+    public function test_create_request_ignores_non_array_modelextraparams(): void {
+        $this->provider = $this->create_provider(
+            actionclass: \core_ai\aiactions\generate_text::class,
+            actionconfig: [
+                'systeminstruction' => get_string('action_generate_text_instruction', 'core_ai'),
+                'modelextraparams' => '1',
+            ],
+        );
+        $processor = new process_generate_text($this->provider, $this->action);
+        $method = new \ReflectionMethod($processor, 'create_request');
+        $request = $method->invoke($processor);
+        $body = (object) json_decode($request['body']);
+
+        $this->assertEquals('amazon.nova-pro-v1:0', $request['modelId']);
+        $this->assertObjectNotHasProperty('inferenceConfig', $body);
     }
 }
