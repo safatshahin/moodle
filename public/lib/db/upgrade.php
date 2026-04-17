@@ -1868,5 +1868,20 @@ function xmldb_main_upgrade($oldversion) {
     // Automatically generated Moodle v5.2.0 release upgrade line.
     // Put any upgrade step following this.
 
+    if ($oldversion < 2026042000.02) {
+        // Remove theme_classic if no longer present.
+        if (!file_exists($CFG->dirroot . '/theme/classic/version.php')) {
+            // Migrate settings and uninstall the plugin only if it is installed.
+            if (get_config('theme_classic', 'version') !== false) {
+                require_once($CFG->dirroot . '/lib/db/upgradelib.php');
+                upgrade_migrate_classic_theme_to_boost();
+                uninstall_plugin('theme', 'classic');
+            }
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2026042000.02);
+    }
+
     return true;
 }
