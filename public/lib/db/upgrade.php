@@ -1865,5 +1865,23 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026032700.01);
     }
 
+    if ($oldversion < 2026032700.02) {
+        // Remove theme_classic if no longer present.
+        if (!file_exists($CFG->dirroot . '/theme/classic/version.php')) {
+            // Migrate settings and uninstall the plugin only if it is installed.
+            if (get_config('theme_classic', 'version') !== false) {
+                require_once($CFG->dirroot . '/lib/db/upgradelib.php');
+                upgrade_migrate_classic_theme_to_boost();
+                uninstall_plugin('theme', 'classic');
+            } else if (get_config('core', 'theme') === 'classic') {
+                // Ensure stale default theme config does not point to the removed theme.
+                set_config('theme', 'boost');
+            }
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2026032700.02);
+    }
+
     return true;
 }

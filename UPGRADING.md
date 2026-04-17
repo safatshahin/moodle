@@ -227,6 +227,7 @@ The format of this change log follows the advice given at [Keep a CHANGELOG](htt
 - The MoodleNet integration plugin (tool_moodlenet) has been removed from Moodle core. The public MoodleNet service (moodle.net) is being retired in April 2026. Sites using self-hosted MoodleNet instances can install the plugin from the Moodle HQ GitHub repository.
 
   For more information see [MDL-87351](https://tracker.moodle.org/browse/MDL-87351)
+- The Classic theme (`theme_classic`) has been removed from Moodle core. During upgrade, sites using Classic as their default theme are migrated to Boost with compatible setting and file migration.
 - The following functions have been removed from `public/lib/deprecatedlib.php` as part of the depreciation process:
   - `print_course_request_buttons()`
   - `cron_run()`

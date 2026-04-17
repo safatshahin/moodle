@@ -29,7 +29,7 @@ require_once($CFG->libdir.'/completionlib.php');
 redirect_if_major_upgrade_required();
 
 $sectionid = required_param('id', PARAM_INT);
-// This parameter is used by the classic theme to force editing on.
+// This parameter is used by legacy non-drawer themes to force editing on.
 $edit = optional_param('edit', -1, PARAM_BOOL);
 
 if (!$section = $DB->get_record('course_sections', ['id' => $sectionid], '*')) {
