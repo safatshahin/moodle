@@ -1,0 +1,8 @@
+issueNumber: MDL-88351
+notes:
+  theme:
+    - message: >-
+        Classic theme has been removed from core. If you are using the classic theme, your theme will be automatically
+        migrated to the Boost theme during the upgrade process. If you want to use the classic theme after the upgrade,
+        please install it manually from the Moodle github repository.
+      type: removed
