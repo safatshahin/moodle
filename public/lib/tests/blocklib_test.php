@@ -597,8 +597,8 @@ final class blocklib_test extends \advanced_testcase {
         // There should be no blocks in the DB.
 
         $PAGE->reset_theme_and_output();
-        // Change to a theme with undeletable blocks.
-        $CFG->theme = 'classic';
+        // Re-run for boost while showing only fake blocks.
+        $CFG->theme = 'boost';
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $context, 'page-type');
@@ -618,8 +618,8 @@ final class blocklib_test extends \advanced_testcase {
         $blockmanager->load_blocks();
         $blockmanager->create_all_block_instances();
         $blocks = $blockmanager->get_blocks_for_region($regionname);
-        // Assert that we get the required block for this theme auto-created.
-        $this->assertCount(2, $blocks);
+        // Assert that no required blocks are auto-created for boost.
+        $this->assertEmpty($blocks);
 
         $PAGE->reset_theme_and_output();
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
@@ -630,9 +630,10 @@ final class blocklib_test extends \advanced_testcase {
         $blockmanager->create_all_block_instances();
         $blocks = $blockmanager->get_blocks_for_region($regionname);
         // Assert that protecting a block does not make it auto-created.
-        $this->assertCount(2, $blocks);
+        $this->assertEmpty($blocks);
 
         $requiredbytheme = $blockmanager->get_required_by_theme_block_types();
+        $this->assertEmpty($requiredbytheme);
         foreach ($requiredbytheme as $blockname) {
             $instance = $DB->get_record('block_instances', array('blockname' => $blockname));
             $this->assertEquals(1, $instance->requiredbytheme);
@@ -851,14 +852,15 @@ final class blocklib_test extends \advanced_testcase {
         $this->assertContains('settings', $blocks);
         $this->assertContains('course_list', $blocks);
 
-        // Change to a theme without unaddable blocks.
+        // Clear unaddable blocks and check the result for boost.
         $PAGE->reset_theme_and_output();
-        $CFG->theme = 'classic';
+        $CFG->theme = 'boost';
+        set_config('unaddableblocks', '', 'theme_boost');
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager([$regionname], $context, 'page-type');
         $blockmanager->load_blocks();
         $blocks = $blockmanager->get_unaddable_by_theme_block_types();
-        // Assert that no blocks are excluded for classic theme.
+        // Assert that no blocks are excluded once the boost setting is cleared.
         $this->assertEmpty($blocks);
     }
 }
