@@ -796,41 +796,41 @@ final class moodle_page_test extends \advanced_testcase {
                 'usertheme' => '',
                 'sitetheme' => 'boost',
                 'cohortthemes' => [
-                    'classic',
+                    'boost',
                 ],
-                'expected' => 'classic',
+                'expected' => 'boost',
             ],
             'User member of one cohort which has a theme set, and one without a theme' => [
                 'usertheme' => '',
                 'sitetheme' => 'boost',
                 'cohortthemes' => [
-                    'classic',
+                    'boost',
                     '',
                 ],
-                'expected' => 'classic',
+                'expected' => 'boost',
             ],
             'User member of one cohort which has a theme set, and one with a different theme' => [
                 'usertheme' => '',
                 'sitetheme' => 'boost',
                 'cohortthemes' => [
-                    'classic',
+                    'boost',
                     'someother',
                 ],
                 'expected' => 'boost',
             ],
             'User with a theme but not a member of any cohort' => [
-                'usertheme' => 'classic',
+                'usertheme' => 'boost',
                 'sitetheme' => 'boost',
                 'cohortthemes' => [],
-                'expected' => 'classic',
+                'expected' => 'boost',
             ],
             'User with a theme and member of one cohort which has a theme set' => [
-                'usertheme' => 'classic',
+                'usertheme' => 'boost',
                 'sitetheme' => 'boost',
                 'cohortthemes' => [
                     'boost',
                 ],
-                'expected' => 'classic',
+                'expected' => 'boost',
             ],
         ];
     }
