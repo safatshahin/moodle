@@ -297,7 +297,7 @@ final class manager_test extends \advanced_testcase {
         $this->assertEquals(\tool_mfa\manager::NO_REDIRECT, \tool_mfa\manager::should_require_mfa($themeurl, false));
 
         // Access a different theme pluginfile area which is not explicitly allowed.
-        $themeurl = new \moodle_url('/pluginfile.php/1/theme_classic/customfield/0/example.txt');
+        $themeurl = new \moodle_url('/pluginfile.php/1/theme_boost/customfield/0/example.txt');
         $this->assertEquals(\tool_mfa\manager::REDIRECT, \tool_mfa\manager::should_require_mfa($themeurl, false));
 
         // Access private area.
