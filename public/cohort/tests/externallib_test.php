@@ -79,7 +79,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             'name' => 'cohort test 1',
             'idnumber' => 'cohorttest1',
             'description' => 'This is a description for cohorttest1',
-            'theme' => 'classic'
+            'theme' => 'boost'
             );
 
         $cohort2 = array(
@@ -103,7 +103,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             'name' => 'cohort test 4',
             'idnumber' => 'cohorttest4',
             'description' => 'This is a description for cohorttest4',
-            'theme' => 'classic'
+            'theme' => 'boost'
             );
 
         $cohort5 = array(
@@ -242,7 +242,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             'name' => 'cohortnametest1',
             'idnumber' => 'idnumbertest1',
             'description' => 'This is a description for cohort 1',
-            'theme' => 'classic',
+            'theme' => 'boost',
             'customfield_testfield1' => 'Test value 1',
             'customfield_testfield2' => 'Test value 2',
         );
@@ -334,7 +334,7 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
             'name' => 'cohortnametest1',
             'idnumber' => 'idnumbertest1',
             'description' => 'This is a description for cohort 1',
-            'theme' => 'classic',
+            'theme' => 'boost',
             'customfields' => array(
                 array(
                     'shortname' => 'testfield1',
@@ -376,15 +376,15 @@ final class externallib_test extends \core_external\tests\externallib_testcase {
 
         // Call when $CFG->allowcohortthemes is enabled.
         set_config('allowcohortthemes', 1);
-        core_cohort_external::update_cohorts(array($cohort1 + array('theme' => 'classic')));
+        core_cohort_external::update_cohorts(array($cohort1 + array('theme' => 'boost')));
         $dbcohort = $DB->get_record('cohort', array('id' => $cohort1['id']));
-        $this->assertEquals('classic', $dbcohort->theme);
+        $this->assertEquals('boost', $dbcohort->theme);
 
         // Call when $CFG->allowcohortthemes is disabled.
         set_config('allowcohortthemes', 0);
         core_cohort_external::update_cohorts(array($cohort1 + array('theme' => 'boost')));
         $dbcohort = $DB->get_record('cohort', array('id' => $cohort1['id']));
-        $this->assertEquals('classic', $dbcohort->theme);
+        $this->assertEquals('boost', $dbcohort->theme);
 
         // Updating custom fields.
         $cohort1['customfields'] = array(
