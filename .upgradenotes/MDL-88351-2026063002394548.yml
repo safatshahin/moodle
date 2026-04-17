@@ -1,0 +1,7 @@
+issueNumber: MDL-88351
+notes:
+  theme:
+    - message: >-
+        Classic theme has been removed from core. If you are using the classic theme, you theme will be automatically
+        migrated to the Boost theme during the upgrade process.
+      type: removed

@@ -1927,5 +1927,19 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026061600.01);
     }
 
+    if ($oldversion < 2026062400.01) {
+        // Remove theme_classic if no longer present.
+        if (!file_exists($CFG->dirroot . '/theme/classic/version.php')) {
+            // Migrate settings and uninstall the plugin only if it is installed.
+            if (get_config('theme_classic', 'version') !== false) {
+                upgrade_migrate_classic_theme_to_boost();
+                uninstall_plugin('theme', 'classic');
+            }
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2026062400.01);
+    }
+
     return true;
 }
