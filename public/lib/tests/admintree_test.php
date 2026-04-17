@@ -145,6 +145,39 @@ final class admintree_test extends \advanced_testcase {
         $this->assertInstanceOf('\core\event\config_log_created', $event);
         // Verify password was nuked.
         $this->assertNotEquals($event->other['value'], 'nice password');
+
+    }
+
+    /**
+     * Testing whether a configexecutable setting is executable.
+     */
+    public function test_admin_setting_configexecutable(): void {
+        global $CFG;
+        $this->resetAfterTest();
+
+        $CFG->theme = 'boost';
+        $executable = new admin_setting_configexecutable('test1', 'Text 1', 'Help Path', '');
+
+        // Check for an invalid path.
+        $result = $executable->output_html($CFG->dirroot . '/lib/tests/other/file_does_not_exist');
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
+
+        // Check for a directory.
+        $result = $executable->output_html($CFG->dirroot);
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
+
+        // Check for a file which is not executable.
+        $result = $executable->output_html($CFG->dirroot . '/lib/upgrade.txt');
+        $this->assertMatchesRegularExpression('/class="text-danger"/', $result);
+
+        // Check for an executable file using PHP_BINARY (the current PHP executable).
+        $result = $executable->output_html(PHP_BINARY);
+        $this->assertMatchesRegularExpression('/class="text-success"/', $result);
+
+        // Check for no file specified.
+        $result = $executable->output_html('');
+        $this->assertMatchesRegularExpression('/name="s__test1"/', $result);
+        $this->assertMatchesRegularExpression('/value=""/', $result);
     }
 
     /**
