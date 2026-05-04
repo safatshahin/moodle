@@ -27,8 +27,8 @@ $stickyfooter-height: calc(max(80px, calc(#{$font-size-base} * 3))) !default;
 $course-content-maxwidth: 830px !default;
 $h5p-content-maxwidth: 960px !default;
 
-$box-shadow-drawer-left: -0.25rem .25rem .8rem rgba($black, .025) !default;
-$box-shadow-drawer-right: 0 .25rem .8rem rgba($black, .025) !default;
+$box-shadow-drawer-left: none !default;
+$box-shadow-drawer-right: none !default;
 
 $moremenu-height: 60px !default;
 

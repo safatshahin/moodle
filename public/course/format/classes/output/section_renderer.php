@@ -267,7 +267,7 @@ abstract class section_renderer extends core_course_renderer {
             'core_courseformat/local/content/divider',
             [
                 'content' => $this->render($activitychooserbutton),
-                'extraclasses' => 'always-visible my-3',
+                'extraclasses' => 'always-visible p-5',
             ]
         );
     }

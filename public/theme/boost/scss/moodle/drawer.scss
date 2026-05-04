@@ -123,7 +123,7 @@ $right-drawer-width: 320px;
         right: 0;
         height: calc(100% - #{$navbar-height});
         width: $right-drawer-width;
-        box-shadow: -2px 2px 4px $drawer-shadow-color;
+        border-left: $border-width solid $gray-200;
         padding: 0;
         visibility: visible;
         opacity: 1;
@@ -157,7 +157,8 @@ $right-drawer-width: 320px;
 
 .dir-rtl {
     [data-region=right-hand-drawer] {
-        box-shadow: 2px 2px 4px $drawer-shadow-color;
+        border-left: none;
+        border-right: $border-width solid $gray-200;
     }
 }
 
@@ -189,7 +190,6 @@ $right-drawer-width: 320px;
         max-width: $drawer-right-width;
         right: calc(-#{$drawer-right-width} + -10px);
         visibility: hidden;
-        @include box-shadow($box-shadow-drawer-right);
 
         &.show {
             right: 0;
@@ -207,7 +207,6 @@ $right-drawer-width: 320px;
         max-width: $drawer-left-width;
         left: calc(-#{$drawer-left-width} + -10px);
         visibility: hidden;
-        @include box-shadow($box-shadow-drawer-left);
 
         &.show {
             left: 0;
@@ -283,7 +282,7 @@ $right-drawer-width: 320px;
     }
 }
 .drawer.scrolled .drawerheader {
-    box-shadow: 0 8px 11px -7px $drawer-shadow-color;
+    border-bottom: $border-width solid $gray-200;
 }
 
 @include media-breakpoint-down(lg) {

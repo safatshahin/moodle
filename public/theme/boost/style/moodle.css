@@ -30526,6 +30526,10 @@ table.calendartable caption {
   list-style: square;
 }
 
+.course-content .section {
+  background-color: var(--bg-surface-subtle, #f8f9fa);
+}
+
 .section-collapsemenu .collapseall {
   display: block;
 }
@@ -30540,7 +30544,7 @@ table.calendartable caption {
 }
 
 .max-section-alert {
-  border-top: 2px dashed #dee2e6;
+  border-top: 1px solid #e9ecef;
   font-size: 0.875rem;
   font-weight: normal;
   color: #6a737b;
@@ -30555,12 +30559,26 @@ table.calendartable caption {
   margin-top: 0.5rem;
 }
 .course-section .section-item {
-  padding: 1rem;
-  border: 1px solid #dee2e6;
+  padding: 0;
+  border: 1px solid #e9ecef;
+  background-color: var(--bg-surface-default, #fff);
   border-radius: 1rem;
 }
-.course-section.hidden .section-item, .course-section.orphaned .section-item {
-  background-color: #f8f9fa;
+.course-section .course-section-header {
+  padding: 1rem 1rem 1rem;
+}
+.course-section .course-content-item-content {
+  padding: 0;
+}
+.course-section .course-content-item-content > [data-for=sectioninfo] {
+  margin: 0;
+  padding: 1rem;
+}
+.course-section .course-content-item-content > [id^=coursecontentcollapse] {
+  padding: 0;
+}
+.course-section .course-content-item-content > [id^=coursecontentcollapse] > * {
+  padding: 0 1rem 1rem;
 }
 .course-section.current > .section-item {
   position: relative;
@@ -30661,7 +30679,7 @@ table.calendartable caption {
   padding: 0.75rem;
 }
 body:not(.editing) .activity-item {
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: none;
 }
 .section-list .section .section-item .activity:last-child > .activity-item {
   border-bottom: none;
@@ -30684,7 +30702,6 @@ body:not(.editing) .activity-item {
 }
 .editing .activity-item:hover:not(:has(.activity:hover)), .editing .activity-item.selected {
   outline: 2px solid #0f6cbf;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 .editing .activity-item:hover:not(:has(.activity:hover)) .activityiconcontainer,
 .editing .activity-item:hover:not(:has(.activity:hover)) .badge, .editing .activity-item.selected .activityiconcontainer,
@@ -30884,25 +30901,24 @@ body:not(.editing) .activity-item {
 /* Dividers */
 .course-content .divider {
   position: relative;
+  background-color: var(--bg-surface-subtle, #f8f9fa);
+  padding: 0.5rem 0.25rem;
 }
 .course-content .divider hr {
   width: 100%;
-  margin: 0.5rem 0.25rem;
-  border-top: 2px dashed #dee2e6;
+  margin: 0;
+  border-top: 1px solid #e9ecef;
   opacity: 1;
 }
 .changenumsections.disabled .course-content .divider hr {
-  border-top: 2px dashed #dee2e6;
+  border-top: 1px solid #e9ecef;
 }
 .course-content .divider .divider-content {
   opacity: 0;
   visibility: hidden;
   transition: visibility 0.1s;
   position: absolute;
-  background: linear-gradient(transparent 40%, #ffffff 40%, #ffffff 60%, transparent 60%);
-}
-.section.hidden .course-content .divider .divider-content {
-  background: linear-gradient(transparent 40%, #f8f9fa 40%, #f8f9fa 60%, transparent 60%);
+  background-color: var(--bg-surface-subtle, #f8f9fa);
 }
 .course-content .divider.always-visible .divider-content {
   opacity: 1;
@@ -30984,7 +31000,7 @@ body:not(.editing) .activity-item {
   margin-top: 0.5rem;
   margin-left: 2rem;
   padding-top: 0.5rem;
-  border-top: 2px dashed #dee2e6;
+  border-top: 1px solid #e9ecef;
 }
 .bulkenabled .activity:first-child {
   margin-top: 1.5rem;
@@ -31035,9 +31051,6 @@ body:not(.editing) .activity-item {
 }
 
 /* Single section page */
-.single-section > ul > .course-section.hidden .section-item {
-  background-color: inherit;
-}
 .single-section > ul > .course-section .section-item {
   padding: 0;
   border: none;
@@ -31138,17 +31151,17 @@ body:not(.editing) .single-section > ul > .course-section .section-item .activit
 .activity.subsection > .activity-item {
   border-bottom: none;
   padding: 0;
-  margin: 0.5rem 0;
 }
 .activity.subsection > .activity-item > .activity-grid > .activity-altcontent {
   margin-top: 0;
 }
 .activity.subsection .section {
   margin-top: 0;
+  padding: 1rem 1rem 1rem;
 }
 .activity.subsection .section .section-item {
-  border: none;
-  padding: 0.75rem 0.75rem 0;
+  padding: 0 !important;
+  border: 1px solid #e9ecef;
 }
 .activity.subsection .section .icons-collapse-expand:has(+ h4, + .h4) {
   height: 24px;
@@ -31173,6 +31186,14 @@ body:not(.editing) .single-section > ul > .course-section .section-item .activit
 .activity.subsection .activity {
   margin-left: 1.5rem;
 }
+.activity.subsection .course-content-item-content > [data-for=sectioninfo] {
+  margin: 0;
+  padding: 1rem 1rem 1rem;
+}
+.activity.subsection .course-content-item-content > [data-for=sectioninfo]:not(.description) {
+  margin: 0;
+  min-height: 0;
+}
 body:not(.editing) .activity.subsection .section-item .course-content-item-content {
   border-bottom: 1px solid #dee2e6;
 }
@@ -31187,13 +31208,6 @@ body:not(.editing) .activity.subsection .section-item:has(.course-content-item-c
 }
 body:not(.editing) .activity.subsection .section-item .section .activity:last-child {
   border-bottom: none;
-}
-body:not(.editing) .activity.subsection .course-content-item-content > [data-for=sectioninfo] {
-  margin: 0.25rem 0;
-}
-body:not(.editing) .activity.subsection .course-content-item-content > [data-for=sectioninfo]:not(.description) {
-  margin: 0;
-  min-height: 0;
 }
 body:not(.editing) .activity.subsection:last-child .section-item .course-content-item-content {
   border-bottom: none;
@@ -32179,7 +32193,7 @@ body.drawer-ease {
   right: 0;
   height: calc(100% - 60px);
   width: 320px;
-  box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.25);
+  border-left: 1px solid #e9ecef;
   padding: 0;
   visibility: visible;
   opacity: 1;
@@ -32209,7 +32223,8 @@ body.drawer-ease {
   }
 }
 .dir-rtl [data-region=right-hand-drawer] {
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border-left: none;
+  border-right: 1px solid #e9ecef;
 }
 
 .drawer {
@@ -32314,7 +32329,7 @@ body.drawer-ease {
 }
 
 .drawer.scrolled .drawerheader {
-  box-shadow: 0 8px 11px -7px rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid #e9ecef;
 }
 
 @media (max-width: 991.98px) {
@@ -39555,6 +39570,7 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
 
 #page.drawers {
   margin-top: 60px;
+  background-color: var(--bg-surface-subtle, #f8f9fa);
   scrollbar-width: thin;
   scrollbar-color: #6a737b #f8f9fa;
 }
@@ -39577,11 +39593,14 @@ body.tox-fullscreen .tox.tox-tinymce-aux {
   width: 100%;
   margin: 0 auto;
   border-radius: 0.5rem;
-  background-color: #ffffff;
+  background-color: inherit;
   padding: 1.5rem 0.5rem;
   margin-top: 0.5rem;
   margin-bottom: 3rem;
   flex: 1 0 auto;
+}
+#page.drawers div[role=main] {
+  background-color: var(--bg-surface-subtle, #f8f9fa);
 }
 #page.drawers .activity-header {
   margin-left: 15px;
@@ -40339,6 +40358,11 @@ div.editor_atto_toolbar button .icon {
   display: flex;
 }
 
+.navbar.fixed-top.bg-body {
+  background-color: var(--bg-surface-subtle, #f8f9fa);
+  --bs-body-bg-rgb: var(--bg-surface-subtle-rgb, 248, 249, 250);
+}
+
 .dir-rtl .navbar.fixed-top .usermenu .dropdown-menu .dropdown-item.carousel-navigation-link::after {
   font: var(--fa-font-solid);
   content: "\f0d9";
@@ -41086,7 +41110,6 @@ div.editor_atto_toolbar button .icon {
 }
 .moremenu .nav-tabs {
   margin-left: 0;
-  background-color: #ffffff;
 }
 .moremenu .show > .nav-link,
 .moremenu .active > .nav-link,
@@ -41178,10 +41201,11 @@ div.editor_atto_toolbar button .icon {
 
 .secondary-navigation {
   padding-bottom: 15px;
+  background-color: var(--bg-surface-subtle, #f8f9fa);
 }
 .secondary-navigation .navigation {
   border-bottom: 1px solid var(--bs-border-color);
-  background-color: #ffffff;
+  background-color: var(--bg-surface-subtle, #f8f9fa);
   margin: 0 -0.5rem;
   padding: 0 0.5rem;
 }

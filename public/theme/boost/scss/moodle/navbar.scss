@@ -136,6 +136,12 @@
         display: flex;
     }
 }
+
+.navbar.fixed-top.bg-body {
+    background-color: var(--bg-surface-subtle, #f8f9fa);
+    --bs-body-bg-rgb: var(--bg-surface-subtle-rgb, 248, 249, 250);
+}
+
 .dir-rtl .navbar.fixed-top {
     .usermenu {
         .dropdown-menu {
