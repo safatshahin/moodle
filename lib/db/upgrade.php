@@ -1685,5 +1685,12 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2024100710.07);
     }
 
+    if ($oldversion < 2024100711.03) {
+        // Force H5P content dependencies to be rebuilt lazily after the H5P library update.
+        $DB->set_field_select('h5p', 'filtered', null, $DB->sql_compare_text('filtered') . ' IS NOT NULL');
+
+        upgrade_main_savepoint(true, 2024100711.03);
+    }
+
     return true;
 }
