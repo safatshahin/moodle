@@ -3017,10 +3017,13 @@ function get_all_roles(?context $context = null) {
 function get_all_roles_with_counts() {
     global $DB;
     $sql = "SELECT r.*,
-                    count(ra.userid) count
+                   COALESCE(racounts.count, 0) AS count
               FROM {role} r
-         LEFT JOIN {role_assignments} ra ON ra.roleid = r.id
-          GROUP BY r.id
+         LEFT JOIN (
+                    SELECT ra.roleid, COUNT(ra.userid) AS count
+                      FROM {role_assignments} ra
+                  GROUP BY ra.roleid
+                   ) racounts ON racounts.roleid = r.id
           ORDER BY r.sortorder ASC";
     return $DB->get_records_sql($sql);
 }
@@ -3044,7 +3047,7 @@ function get_roles_risk_counts(array $roleids): array {
         return $riskcounts;
     }
 
-    list($insql, $params) = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'roleid');
+    [$insql, $params] = $DB->get_in_or_equal($roleids, SQL_PARAMS_NAMED, 'roleid');
     $params['contextid'] = context_system::instance()->id;
     $params['allow'] = CAP_ALLOW;
 
