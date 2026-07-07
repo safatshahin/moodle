@@ -18,6 +18,102 @@ namespace core;
 
 use core\task\manager;
 
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Testable subclass of cron used to verify the keepalive scheduling behaviour.
+ *
+ * It overrides run_scheduled_tasks(), run_adhoc_tasks(), sleep(), and
+ * get_next_scheduled_task_time() so that:
+ *   - The two task-runner methods record their invocations rather than executing real tasks.
+ *   - sleep() advances the injected fake clock instead of blocking the process.
+ *   - get_next_scheduled_task_time() returns controlled values without hitting the database.
+ *
+ * For these overrides to be reachable from run_main_process() the production code must
+ * call all four via static:: (late static binding) rather than self:: or bare built-ins.
+ *
+ * @package core
+ */
+class testable_keepalive_cron extends cron {
+    /** @var array Ordered log of every method invocation. */
+    public static array $methodcalls = [];
+
+    /**
+     * Queue of values to return from get_next_scheduled_task_time(), one per call.
+     * If the queue is empty, PHP_INT_MAX is returned (no future scheduled tasks).
+     *
+     * @var int[]
+     */
+    public static array $nextscheduledtimes = [];
+
+    /**
+     * Reset all recorded invocations and the next-scheduled-times queue.
+     */
+    public static function reset_tracking(): void {
+        self::$methodcalls = [];
+        self::$nextscheduledtimes = [];
+    }
+
+    /**
+     * Record the call rather than running real scheduled tasks.
+     *
+     * @param int $startruntime
+     * @param int|null $startprocesstime
+     */
+    public static function run_scheduled_tasks(
+        int $startruntime,
+        ?int $startprocesstime = null,
+    ): void {
+        self::$methodcalls[] = ['method' => 'run_scheduled_tasks', 'time' => $startruntime];
+    }
+
+    /**
+     * Record the call rather than running real adhoc tasks.
+     *
+     * @param int $startruntime
+     * @param int $keepalive
+     * @param bool $checklimits
+     * @param int|null $startprocesstime
+     * @param int|null $maxtasks
+     * @param string|null $classname
+     */
+    public static function run_adhoc_tasks(
+        int $startruntime,
+        $keepalive = 0,
+        $checklimits = true,
+        ?int $startprocesstime = null,
+        ?int $maxtasks = null,
+        ?string $classname = null,
+    ): void {
+        self::$methodcalls[] = ['method' => 'run_adhoc_tasks', 'time' => $startruntime];
+    }
+
+    /**
+     * Advance the injected clock instead of blocking the process.
+     *
+     * @param int $seconds
+     */
+    protected static function sleep(int $seconds): void {
+        \core\di::get(\core\clock::class)->bump($seconds);
+    }
+
+    /**
+     * Return the next scheduled time from the pre-configured queue rather than
+     * querying the database. Returns 5 minutes ahead when the queue is exhausted.
+     * Records the $after argument so tests can assert the correct offset was passed.
+     *
+     * @param int $after
+     * @return int|null
+     */
+    protected static function get_next_scheduled_task_time(int $after): ?int {
+        self::$methodcalls[] = ['method' => 'get_next_scheduled_task_time', 'after' => $after];
+        if (!empty(self::$nextscheduledtimes)) {
+            return array_shift(self::$nextscheduledtimes);
+        }
+        return $after + (5 * MINSECS);
+    }
+}
+
 /**
  * Tests for core\cron.
  *
@@ -38,6 +134,7 @@ final class cron_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         cron::reset_user_cache();
+        testable_keepalive_cron::reset_tracking();
     }
 
     /**
@@ -320,5 +417,242 @@ final class cron_test extends \advanced_testcase {
 
         // The task should have run and been deleted.
         $this->assertEquals(0, $DB->count_records('task_adhoc'));
+    }
+
+    /**
+     * Scheduled tasks should run exactly once on the first iteration, then be skipped
+     * for the remainder of the keepalive window because get_next_scheduled_task_time()
+     * returns a time well beyond the keepalive finish time.
+     *
+     * Adhoc tasks must still be polled on every iteration.
+     */
+    public function test_keepalive_skips_scheduled_when_next_task_is_far_away(): void {
+        $this->resetAfterTest();
+
+        $startofminute = (int)(time() / MINSECS) * MINSECS;
+        $clock = $this->mock_clock_with_incrementing($startofminute + 30);
+
+        // No future scheduled tasks within the keepalive window.
+        testable_keepalive_cron::$nextscheduledtimes = [$startofminute + 30 + HOURSECS];
+
+        ob_start();
+        testable_keepalive_cron::run_main_process(10);
+        ob_end_clean();
+
+        $calls = testable_keepalive_cron::$methodcalls;
+
+        $scheduledcalls = array_values(array_filter(
+            $calls,
+            fn($c) => $c['method'] === 'run_scheduled_tasks',
+        ));
+        $adhoccalls = array_values(array_filter(
+            $calls,
+            fn($c) => $c['method'] === 'run_adhoc_tasks',
+        ));
+
+        // Scheduled tasks must run exactly once — on the very first iteration.
+        $this->assertCount(
+            1,
+            $scheduledcalls,
+            'Scheduled tasks should run once then be skipped until the next due time arrives',
+        );
+
+        // Adhoc tasks must be polled on every iteration.
+        $this->assertGreaterThan(
+            1,
+            count($adhoccalls),
+            'Adhoc tasks should be polled on every keepalive loop iteration while time remains',
+        );
+    }
+
+    /**
+     * When get_next_scheduled_task_time() returns a time that falls within the keepalive
+     * window, scheduled tasks should run a second time once the clock reaches that time,
+     * then be skipped again for the remainder of the window.
+     *
+     * Adhoc tasks must be polled on every iteration regardless.
+     */
+    public function test_keepalive_runs_scheduled_again_when_next_task_time_arrives(): void {
+        $this->resetAfterTest();
+
+        $startofminute = (int)(time() / MINSECS) * MINSECS;
+        $clock = $this->mock_clock_with_incrementing($startofminute + 30);
+
+        // The incrementing clock advances by ~3 seconds per loop iteration
+        // (one time() call at the top + one at the bottom + one bump from sleep).
+        // Set the next scheduled time to 5 seconds ahead so it falls within iteration 3
+        // (at ~T+7), then return a far-future time so no further runs occur.
+        $nexttasktime = $startofminute + 30 + 5;
+        testable_keepalive_cron::$nextscheduledtimes = [$nexttasktime, $startofminute + 30 + HOURSECS];
+
+        ob_start();
+        testable_keepalive_cron::run_main_process(10);
+        ob_end_clean();
+
+        $calls = testable_keepalive_cron::$methodcalls;
+
+        $scheduledcalls = array_values(array_filter(
+            $calls,
+            fn($c) => $c['method'] === 'run_scheduled_tasks',
+        ));
+        $adhoccalls = array_values(array_filter(
+            $calls,
+            fn($c) => $c['method'] === 'run_adhoc_tasks',
+        ));
+
+        // Scheduled tasks must run exactly twice: once immediately, then again when the
+        // next-task time is reached.
+        $this->assertCount(
+            2,
+            $scheduledcalls,
+            'Scheduled tasks should fire again when the next scheduled task time is reached',
+        );
+
+        // The second run must be at or after the time returned by get_next_scheduled_task_time().
+        $this->assertGreaterThanOrEqual(
+            $nexttasktime,
+            $scheduledcalls[1]['time'],
+            'The second scheduled run should not happen before the next-task time',
+        );
+
+        // Adhoc tasks are polled every iteration regardless.
+        $this->assertGreaterThan(
+            1,
+            count($adhoccalls),
+            'Adhoc tasks should be polled on every keepalive loop iteration',
+        );
+    }
+
+    /**
+     * When scheduled tasks run in the same iteration as adhoc tasks, run_adhoc_tasks()
+     * must receive a fresh start time, not the stale time captured before scheduled
+     * tasks ran. This matters because scheduled task processing can be slow and using
+     * a stale start time would make adhoc tasks think they have already consumed most
+     * or all of their time budget.
+     */
+    public function test_keepalive_adhoc_tasks_receive_fresh_time_after_scheduled_tasks(): void {
+        $this->resetAfterTest();
+
+        $startofminute = (int)(time() / MINSECS) * MINSECS;
+        // The incrementing clock returns a new, higher value on every time() call.
+        $clock = $this->mock_clock_with_incrementing($startofminute + 30);
+
+        // Return a far-future scheduled time so only one iteration runs scheduled tasks,
+        // then the loop exits quickly (keepalive of 1 second with an incrementing clock).
+        testable_keepalive_cron::$nextscheduledtimes = [$startofminute + 30 + HOURSECS];
+
+        ob_start();
+        testable_keepalive_cron::run_main_process(1);
+        ob_end_clean();
+
+        $calls = testable_keepalive_cron::$methodcalls;
+
+        // Find the first iteration where both scheduled and adhoc tasks were called.
+        $scheduledcall = null;
+        $adhoccall = null;
+        foreach ($calls as $call) {
+            if ($call['method'] === 'run_scheduled_tasks' && $scheduledcall === null) {
+                $scheduledcall = $call;
+            } else if ($call['method'] === 'run_adhoc_tasks' && $scheduledcall !== null && $adhoccall === null) {
+                $adhoccall = $call;
+                break;
+            }
+        }
+
+        $this->assertNotNull($scheduledcall, 'Expected at least one scheduled task run');
+        $this->assertNotNull($adhoccall, 'Expected an adhoc task run after the scheduled task run');
+
+        // The adhoc call must use a time strictly after the scheduled call's time,
+        // proving that $now was refreshed after scheduled tasks finished.
+        $this->assertGreaterThan(
+            $scheduledcall['time'],
+            $adhoccall['time'],
+            'run_adhoc_tasks() should receive a fresh start time captured after scheduled tasks ran',
+        );
+    }
+
+    /**
+     * When get_next_scheduled_task_time() returns a time <= now after a scheduled task run
+     * (indicating that tasks were left behind due to lock contention, max runtime, etc.),
+     * the keepalive loop must treat them as immediately due and re-run scheduled tasks on
+     * the very next iteration rather than waiting for a future due time.
+     */
+    public function test_keepalive_reruns_scheduled_tasks_when_still_due_tasks_remain(): void {
+        $this->resetAfterTest();
+
+        $startofminute = (int)(time() / MINSECS) * MINSECS;
+        $start = $startofminute + 30;
+        // The incrementing clock returns a new, higher value on each time() call,
+        // so $clock->time() will be > $start by the time the first iteration finishes.
+        $clock = $this->mock_clock_with_incrementing($start);
+
+        // First post-run query: return a time in the past (simulating still-due tasks).
+        // Second post-run query: return a far-future time so the loop stops re-running.
+        testable_keepalive_cron::$nextscheduledtimes = [
+            $start - 1, // Still-due: forces an immediate re-run.
+            $start + HOURSECS, // No more due tasks: stop scheduling.
+        ];
+
+        ob_start();
+        testable_keepalive_cron::run_main_process(10);
+        ob_end_clean();
+
+        $scheduledcalls = array_values(array_filter(
+            testable_keepalive_cron::$methodcalls,
+            fn($c) => $c['method'] === 'run_scheduled_tasks',
+        ));
+
+        // Scheduled tasks must have run at least twice: once on the first iteration and
+        // again after the still-due tasks were detected via the past nextscheduledtime.
+        $this->assertGreaterThanOrEqual(
+            2,
+            count($scheduledcalls),
+            'Scheduled tasks should re-run immediately when still-due tasks are detected after a partial run',
+        );
+    }
+
+    /**
+     * The keepalive loop must pass $clock->time() - 1 (not $clock->time()) to
+     * get_next_scheduled_task_time() so that currently-due tasks left behind by a
+     * partial run_scheduled_tasks() are included in the look-ahead query.
+     *
+     * Using a frozen clock (advances only on bump/sleep, not on time() calls) gives
+     * us a deterministic clock value to assert against.
+     */
+    public function test_keepalive_passes_correct_after_offset_to_get_next_scheduled_task_time(): void {
+        $this->resetAfterTest();
+
+        $start = (int)(time() / MINSECS) * MINSECS; // Current minute boundary.
+        // Frozen clock: time() always returns the same value; only bump() advances it.
+        $clock = $this->mock_clock_with_frozen($start);
+
+        // Let get_next_scheduled_task_time return a far-future time so nothing unusual
+        // happens to the loop; we only care about the $after argument it received.
+        testable_keepalive_cron::$nextscheduledtimes = [$start + HOURSECS];
+
+        ob_start();
+        // Keepalive=1: one sleep(1) bumps the clock to $start+1; the second iteration
+        // sees remaining=0 and exits, ensuring get_next_scheduled_task_time is called once.
+        testable_keepalive_cron::run_main_process(1);
+        ob_end_clean();
+
+        $nexttasktimecalls = array_values(array_filter(
+            testable_keepalive_cron::$methodcalls,
+            fn($c) => $c['method'] === 'get_next_scheduled_task_time',
+        ));
+
+        $this->assertNotEmpty($nexttasktimecalls, 'Expected get_next_scheduled_task_time to be called');
+
+        // After sleep(1) the frozen clock is at $start+1. The correct call is
+        // get_next_scheduled_task_time($clock->time() - 1) = ($start+1) - 1 = $start.
+        // If the offset were 0 instead of -1, $after would be $start+1 and the
+        // assertion would fail.
+        foreach ($nexttasktimecalls as $call) {
+            $this->assertEquals(
+                $start,
+                $call['after'],
+                'get_next_scheduled_task_time() must be called with $clock->time() - 1 so currently-due tasks are not missed',
+            );
+        }
     }
 }
