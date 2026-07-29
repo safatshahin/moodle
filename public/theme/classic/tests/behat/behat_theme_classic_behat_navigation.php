@@ -297,7 +297,8 @@ class behat_theme_classic_behat_navigation extends behat_navigation {
             $tabxpath = '//ul[@role=\'tablist\']/li/a[contains(normalize-space(.), ' . $tabname . ')]';
             $menubarxpath = '//ul[@role=\'menubar\']/li/a[contains(normalize-space(.), ' . $tabname . ')]';
             $linkname = behat_context_helper::escape(get_string('moremenu'));
-            $menubarmorexpath = '//ul[@role=\'menubar\']/li/a[contains(normalize-space(.), ' . $linkname . ')]';
+            $menubarmorexpath = '//ul[@role=\'menubar\']//a[contains(@class,\'dropdown-toggle\')]' .
+                '[contains(normalize-space(.), ' . $linkname . ')]';
             $tabnode = $this->getSession()->getPage()->find('xpath', $tabxpath);
             $menunode = $this->getSession()->getPage()->find('xpath', $menubarxpath);
             $menubuttons = $this->getSession()->getPage()->findAll('xpath', $menubarmorexpath);
@@ -321,7 +322,7 @@ class behat_theme_classic_behat_navigation extends behat_navigation {
                     } catch (Exception $e) {
                         $this->execute('behat_general::i_click_on', [$menubuttons[0], 'NodeElement']);
                     }
-                    $moreitemxpath = '//ul[@data-region=\'moredropdown\']/li/a[contains(normalize-space(.), ' . $tabname . ')]';
+                    $moreitemxpath = '//div[@data-region=\'moredropdown\']/a[contains(normalize-space(.), ' . $tabname . ')]';
                     if ($morenode = $this->getSession()->getPage()->find('xpath', $moreitemxpath)) {
                         $this->execute('behat_general::i_click_on', [$morenode, 'NodeElement']);
                         $xpath .= '//div[contains(@class,\'active\')]';
