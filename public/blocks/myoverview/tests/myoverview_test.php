@@ -25,9 +25,10 @@ namespace block_myoverview;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class myoverview_test extends \advanced_testcase {
-
     /**
      * Test getting block configuration
+     *
+     * @covers \block_myoverview::get_config_for_external
      */
     public function test_get_block_config_for_external(): void {
         global $PAGE, $CFG, $OUTPUT;
@@ -114,5 +115,196 @@ final class myoverview_test extends \advanced_testcase {
         $this->assertFalse($fields[1]->active);
         $this->assertEquals('No Custom field', $fields[2]->name);
         $this->assertFalse($fields[2]->active);
+    }
+
+    /**
+     * The request-course URL must use the 'category' parameter, not 'categoryid'.
+     *
+     * course/request.php reads the pre-selected category via optional_param('category', ...),
+     * so a 'categoryid' key would silently drop the selection. This pins the fix in place.
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_get_request_course_url_uses_category_param(): void {
+        global $CFG, $PAGE;
+        $this->resetAfterTest();
+
+        // Enable course requests and grant the request capability (but not create) in a category.
+        $CFG->enablecourserequests = 1;
+        $category = $this->getDataGenerator()->create_category();
+        $catcontext = \context_coursecat::instance($category->id);
+
+        $user = $this->getDataGenerator()->create_user();
+        $roleid = $this->getDataGenerator()->create_role();
+        assign_capability('moodle/course:request', CAP_ALLOW, $roleid, $catcontext->id, true);
+        role_assign($roleid, $user->id, $catcontext->id);
+
+        $this->setUser($user);
+        $PAGE->set_url('/my/courses.php');
+
+        $builder = new \block_myoverview\local\props_builder(null, null, null);
+        $props = $builder->get_props();
+
+        $this->assertNotNull($props['requestcourseurl']);
+        $this->assertStringContainsString('category=' . $category->id, $props['requestcourseurl']);
+        $this->assertStringNotContainsString('categoryid=', $props['requestcourseurl']);
+    }
+
+    /**
+     * The mount props are data-only: no language strings travel to the client, the
+     * illustration URL resolves to the block's pix asset, and the zero-state is built
+     * only for courseless users (MDL-89070 review, points 1, 2 and 4).
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_props_are_minimal_and_zerostate_conditional(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $user = $generator->create_user();
+        $this->setUser($user);
+        $PAGE->set_url('/my/courses.php');
+
+        $builder = new \block_myoverview\local\props_builder(null, null, null);
+        $props = $builder->get_props();
+
+        // Minimal props: strings are fetched client-side, never serialised.
+        $this->assertArrayNotHasKey('strings', $props);
+
+        // The illustration resolves to the block's courses.svg pix asset.
+        $this->assertStringContainsString('block_myoverview', $props['illustrationurl']);
+        $this->assertStringEndsWith('courses', $props['illustrationurl']);
+
+        // Courseless user: the zero-state carries data only (variant + URLs, no HTML).
+        $this->assertIsArray($props['zerostate']);
+        $this->assertArrayHasKey('variant', $props['zerostate']);
+        $this->assertArrayNotHasKey('title', $props['zerostate']);
+        $this->assertArrayNotHasKey('intro', $props['zerostate']);
+
+        // Enrolled user: the zero-state is not built at all.
+        $course = $generator->create_course();
+        $generator->enrol_user($user->id, $course->id);
+        $builder = new \block_myoverview\local\props_builder(null, null, null);
+        $props = $builder->get_props();
+        $this->assertNull($props['zerostate']);
+    }
+
+    /**
+     * The site default sort follows $CFG->courselistshortnames so the client's sort
+     * control only lights up when the user changed something (MDL-89070 review, point 10).
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_defaultsort_follows_courselistshortnames(): void {
+        global $CFG, $PAGE;
+        $this->resetAfterTest();
+
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/my/courses.php');
+
+        $CFG->courselistshortnames = 0;
+        $props = (new \block_myoverview\local\props_builder(null, null, null))->get_props();
+        $this->assertEquals('title', $props['config']['defaultsort']);
+
+        $CFG->courselistshortnames = 1;
+        $props = (new \block_myoverview\local\props_builder(null, null, null))->get_props();
+        $this->assertEquals('shortname', $props['config']['defaultsort']);
+    }
+
+    /**
+     * The exported defaultfilter is the grouping a preference-less user starts on: 'all'
+     * when enabled, otherwise the ordered fallback — so the client's zero-state and
+     * active-control logic work under admin configs whose default is not 'all'.
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_defaultfilter_follows_enabled_groupings(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/my/courses.php');
+
+        // Default config: 'all' is enabled and is the fallback.
+        $props = (new \block_myoverview\local\props_builder(null, null, null))->get_props();
+        $this->assertEquals(BLOCK_MYOVERVIEW_GROUPING_ALL, $props['config']['defaultfilter']);
+
+        // Disable 'all': the fallback order reaches the next enabled grouping.
+        set_config('displaygroupingall', 0, 'block_myoverview');
+        set_config('displaygroupingallincludinghidden', 0, 'block_myoverview');
+        $props = (new \block_myoverview\local\props_builder(null, null, null))->get_props();
+        $this->assertEquals(BLOCK_MYOVERVIEW_GROUPING_INPROGRESS, $props['config']['defaultfilter']);
+        // And the seeded preference falls back with it.
+        $this->assertEquals(BLOCK_MYOVERVIEW_GROUPING_INPROGRESS, $props['preferences']['filter']);
+    }
+
+    /**
+     * A stored customfield grouping preference without a configured field must not be
+     * exported (the web service would reject the classification without a field name):
+     * both the seeded preference and the enabled filters fall back (MDL-89070 review).
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_customfield_grouping_requires_configured_field(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/my/courses.php');
+
+        // Admin enables the customfield grouping but never selects a field.
+        set_config('displaygroupingcustomfield', 1, 'block_myoverview');
+        set_config('customfiltergrouping', '', 'block_myoverview');
+
+        // A user with a stale customfield preference is seeded onto the fallback instead.
+        $builder = new \block_myoverview\local\props_builder(BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD, null, null);
+        $props = $builder->get_props();
+        $this->assertEquals(BLOCK_MYOVERVIEW_GROUPING_ALL, $props['preferences']['filter']);
+        $this->assertNotContains(BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD, $props['config']['enabledfilters']);
+        $this->assertNull($props['config']['customfieldname']);
+    }
+
+    /**
+     * The PHP-built mount attribute must round-trip: JSON with quotes, unicode and
+     * script-closing tags survives html_writer's attribute escaping and parses back
+     * identically, as core/react_autoinit will JSON.parse it (MDL-88287 mount pattern).
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_mount_props_attribute_roundtrip(): void {
+        $props = [
+            'quote' => 'He said "hi" & <script>alert(1)</script>',
+            'unicode' => 'café — ♥ 日本語',
+            'nested' => ['arr' => [1, 2, 3], 'nullval' => null, 'bool' => true],
+        ];
+        $json = json_encode($props, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
+        $html = \html_writer::div('', 'block-myoverview-app', [
+            'data-react-component' => '@moodle/lms/block_myoverview/app',
+            'data-react-props' => $json,
+        ]);
+
+        $doc = new \DOMDocument();
+        $doc->loadHTML('<?xml encoding="utf-8"?>' . $html);
+        $raw = $doc->getElementsByTagName('div')->item(0)->getAttribute('data-react-props');
+        $this->assertSame($props, json_decode($raw, true));
+    }
+
+    /**
+     * The per-course control labels are parameterised client-side with the course name, so their
+     * source strings must retain the {$a} placeholder for the React app to substitute (MDL-89070).
+     * The client fetches these strings raw (no $a supplied), so the placeholder must survive.
+     *
+     * @covers \block_myoverview\local\props_builder
+     */
+    public function test_percourse_aria_labels_carry_placeholder(): void {
+        // Star, unstar and overflow-menu labels are ".replace('{$a}', coursename)" in the client.
+        foreach (['aria:courseactionsfor', 'aria:addtofavouritesfor', 'aria:removefromfavouritesfor'] as $key) {
+            $this->assertStringContainsString(
+                '{$a}',
+                get_string($key, 'block_myoverview'),
+                "String '{$key}' must keep the placeholder for client-side substitution."
+            );
+        }
     }
 }
