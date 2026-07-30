@@ -29,6 +29,8 @@
  * @param int $oldversion
  */
 function xmldb_block_myoverview_upgrade($oldversion) {
+    global $DB;
+
     // Automatically generated Moodle v4.4.0 release upgrade line.
     // Put any upgrade step following this.
 
@@ -43,6 +45,15 @@ function xmldb_block_myoverview_upgrade($oldversion) {
 
     // Automatically generated Moodle v5.2.0 release upgrade line.
     // Put any upgrade step following this.
+
+    if ($oldversion < 2026072700) {
+        // The per-user paging preference was removed with the React rewrite (the course
+        // list is paged server-side with a fixed page size). Delete the stored rows so
+        // no undeclared, unexported personal data is left behind (MDL-89070).
+        $DB->delete_records('user_preferences', ['name' => 'block_myoverview_user_paging_preference']);
+
+        upgrade_block_savepoint(true, 2026072700, 'myoverview');
+    }
 
     return true;
 }
