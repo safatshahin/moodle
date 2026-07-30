@@ -1,0 +1,1 @@
+import t from"@moodle/lms/block_myoverview/components/CourseItem";import{jsx as s}from"react/jsx-runtime";function u({courses:r,view:e,displaycategories:i}){return s("div",{className:`courseoverview-list courseoverview-list--${e}`,children:r.map(o=>s(t,{course:o,view:e,displaycategories:i},o.id))})}export{u as default};
