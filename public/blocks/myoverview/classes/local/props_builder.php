@@ -24,8 +24,6 @@
 namespace block_myoverview\local;
 defined('MOODLE_INTERNAL') || die();
 
-use stdClass;
-
 require_once($CFG->dirroot . '/blocks/myoverview/lib.php');
 
 /**
@@ -275,35 +273,6 @@ class props_builder {
         } else {
             $this->layouts = [BLOCK_MYOVERVIEW_VIEW_CARD];
         }
-    }
-
-    /**
-     * Format a layout into an object for export as a Context variable to template.
-     *
-     * @param string $layoutname
-     *
-     * @return \stdClass $layout an object representation of a layout
-     * @throws \coding_exception
-     */
-    public function format_layout_for_export($layoutname) {
-        $layout = new stdClass();
-
-        $layout->id = $layoutname;
-        $layout->name = get_string($layoutname, 'block_myoverview');
-        $layout->active = $this->view == $layoutname ? true : false;
-        $layout->arialabel = get_string('aria:' . $layoutname, 'block_myoverview');
-
-        return $layout;
-    }
-
-    /**
-     * Get the available layouts formatted for export.
-     *
-     * @return array an array of objects representing available layouts
-     */
-    public function get_formatted_available_layouts_for_export() {
-
-        return array_map([$this, 'format_layout_for_export'], $this->layouts);
     }
 
     /**
