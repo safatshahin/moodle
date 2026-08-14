@@ -208,9 +208,11 @@ class props_builder {
             $this->displaycategories = BLOCK_MYOVERVIEW_DISPLAY_CATEGORIES_ON;
         }
 
-        // Get and remember the available layouts.
+        // Get and remember the available layouts. Fall back to the first enabled layout
+        // when there is no stored preference or the stored layout has since been
+        // disabled by the admin.
         $this->set_available_layouts();
-        $this->view = $view ? $view : reset($this->layouts);
+        $this->view = ($view && in_array($view, $this->layouts)) ? $view : reset($this->layouts);
 
         // Check and remember if the particular grouping options should be shown or not.
         $this->displaygroupingallincludinghidden = $config->displaygroupingallincludinghidden;
