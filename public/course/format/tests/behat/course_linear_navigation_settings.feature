@@ -42,7 +42,7 @@ Feature: Enable course linear navigation setting
     And the following config values are set as admin:
       | enablelinearnav | <defaultweeks>  | format_weeks  |
     When I am on the "Homepage" page logged in as "admin"
-    And I click on "Create course" "button" in the "Course overview" "block"
+    And I click on "Create course" "link" in the "Course overview" "block"
     And I expand all fieldsets
     Then the field "Enable linear navigation" matches value "<expectedtopics>"
     # For new courses, the linear navigation setting should be pre-filled based on the course format default.
