@@ -95,8 +95,10 @@ jest.mock("../src/repository", () => {
 // Resolve every UI string to its key so assertions are locale-independent.
 // Routed through a jest.fn so individual tests can make the fetch fail.
 const mockLoadStrings = jest.fn();
+const mockLoadErrorString = jest.fn();
 jest.mock("../src/strings", () => ({
     loadStrings: () => mockLoadStrings(),
+    loadErrorString: () => mockLoadErrorString(),
 }));
 const stringsResolvingToKeys = () => Promise.resolve(new Proxy({}, {
     get: (_, key) => String(key),
@@ -157,6 +159,8 @@ describe("block_myoverview/app paging orchestration", () => {
         mockSetPreference.mockReset();
         mockLoadStrings.mockReset();
         mockLoadStrings.mockImplementation(stringsResolvingToKeys);
+        mockLoadErrorString.mockReset();
+        mockLoadErrorString.mockImplementation(() => Promise.reject(new Error("nothing cached")));
     });
 
     it("fetches page 1 then silently prefetches page 2 from the returned nextoffset", async() => {
@@ -356,6 +360,27 @@ describe("block_myoverview/app paging orchestration", () => {
 
             expect(screen.getByRole("alert")).toHaveTextContent(/reload the page/i);
             expect(container.querySelector(".block-myoverview__loading")).toBeNull();
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it("prefers the cached translated message for the terminal strings error", async() => {
+        jest.useFakeTimers();
+        try {
+            mockLoadStrings.mockImplementation(() => Promise.reject(new Error("strings service down")));
+            mockLoadErrorString.mockImplementation(() => Promise.resolve("Fout bij het laden van je cursussen."));
+            mockGetCourses.mockResolvedValue({courses: [], nextoffset: 0});
+
+            render(<App {...PROPS} />);
+
+            for (let i = 0; i < 4; i++) {
+                await act(async() => {
+                    await jest.advanceTimersByTimeAsync(2000);
+                });
+            }
+
+            expect(screen.getByRole("alert")).toHaveTextContent("Fout bij het laden van je cursussen.");
         } finally {
             jest.useRealTimers();
         }
