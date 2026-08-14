@@ -52,7 +52,14 @@ class block_myoverview extends block_base {
         $customfieldvalue = get_user_preferences('block_myoverview_user_grouping_customfieldvalue_preference');
 
         $builder = new \block_myoverview\local\props_builder($group, $sort, $view, $customfieldvalue);
-        $props = json_encode($builder->get_props(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
+        // JSON_HEX_TAG is the flag the attribute round trip relies on; JSON_UNESCAPED_UNICODE
+        // matches the block_timeline mount so the pattern stays copy-pasteable. THROW_ON_ERROR
+        // surfaces unencodable props (e.g. invalid UTF-8 in a custom-field value) instead of
+        // silently rendering an empty block.
+        $props = json_encode(
+            $builder->get_props(),
+            JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_THROW_ON_ERROR,
+        );
 
         // Mount the React component directly — no renderer, no template (the block_timeline
         // reference pattern, MDL-88287). core/react_autoinit mounts any element carrying

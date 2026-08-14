@@ -21,7 +21,11 @@
  * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace block_myoverview\local;
+
+// The guard stays (unlike other classes in this plugin): the file-scope require_once
+// below is a global side effect, which the coding-style sniff only allows behind it.
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/blocks/myoverview/lib.php');
@@ -29,7 +33,8 @@ require_once($CFG->dirroot . '/blocks/myoverview/lib.php');
 /**
  * Builds the React mount-point props for the my overview block.
  *
- * @copyright  2018 Bas Brands <bas@moodle.com>
+ * @package    block_myoverview
+ * @copyright  2017 Ryan Wyllie <ryan@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class props_builder {
@@ -262,14 +267,10 @@ class props_builder {
     /**
      * Set the available layouts based on the config table settings,
      * if none are available, defaults to the cards view.
-     *
-     * @throws \dml_exception
-     *
      */
-    public function set_available_layouts() {
-
-        if ($config = get_config('block_myoverview', 'layouts')) {
-            $this->layouts = explode(',', $config);
+    private function set_available_layouts() {
+        if (!empty($this->config->layouts)) {
+            $this->layouts = explode(',', $this->config->layouts);
         } else {
             $this->layouts = [BLOCK_MYOVERVIEW_VIEW_CARD];
         }
@@ -363,19 +364,23 @@ class props_builder {
         $hasanycourses = !empty(enrol_get_my_courses(['id'], null, 1));
 
         // Resolve the custom field values once, falling back if the stored value is stale.
+        // The fallback is kept in locals rather than written back to the instance state so
+        // that repeated get_props() calls on one builder return the same result.
         $customfieldvalues = $this->get_customfield_values_for_export();
-        if ($this->grouping == BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD) {
+        $grouping = $this->grouping;
+        $customfieldvalue = $this->customfieldvalue;
+        if ($grouping == BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD) {
             $found = false;
             foreach ($customfieldvalues as $field) {
-                if ($field->value == $this->customfieldvalue) {
+                if ($field->value == $customfieldvalue) {
                     $found = true;
                     break;
                 }
             }
             if (!$found) {
-                $this->grouping = $this->get_fallback_grouping($this->config);
-                if ($this->grouping == BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD && ($firstfield = reset($customfieldvalues))) {
-                    $this->customfieldvalue = $firstfield->value;
+                $grouping = $this->get_fallback_grouping($this->config);
+                if ($grouping == BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD && ($firstfield = reset($customfieldvalues))) {
+                    $customfieldvalue = $firstfield->value;
                 }
             }
         }
@@ -383,13 +388,13 @@ class props_builder {
         $props = [
             'preferences' => [
                 'view' => $this->view,
-                'filter' => $this->grouping,
+                'filter' => $grouping,
                 'sort' => $this->sort,
-                'customfieldvalue' => $this->customfieldvalue,
+                'customfieldvalue' => $customfieldvalue,
             ],
             'config' => [
                 'enabledviews' => array_values($this->layouts),
-                'enabledfilters' => $this->get_enabled_groupings(),
+                'enabledfilters' => $this->get_enabled_groupings($customfieldvalues),
                 'displaycategories' => ($this->displaycategories === BLOCK_MYOVERVIEW_DISPLAY_CATEGORIES_ON),
                 'showshortname' => (bool) $CFG->courselistshortnames,
                 // The site-level default sort: shortname when extended course names are shown.
@@ -417,9 +422,10 @@ class props_builder {
     /**
      * Get the list of enabled grouping constants, in display order.
      *
+     * @param array $customfieldvalues Values from {@see get_customfield_values_for_export()}
      * @return string[]
      */
-    private function get_enabled_groupings(): array {
+    private function get_enabled_groupings(array $customfieldvalues): array {
         $map = [
             BLOCK_MYOVERVIEW_GROUPING_ALLINCLUDINGHIDDEN => $this->displaygroupingallincludinghidden,
             BLOCK_MYOVERVIEW_GROUPING_ALL => $this->displaygroupingall,
@@ -428,7 +434,9 @@ class props_builder {
             BLOCK_MYOVERVIEW_GROUPING_PAST => $this->displaygroupingpast,
             BLOCK_MYOVERVIEW_GROUPING_FAVOURITES => $this->displaygroupingfavourites,
             BLOCK_MYOVERVIEW_GROUPING_HIDDEN => $this->displaygroupinghidden,
-            BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD => $this->displaygroupingcustomfield,
+            // Only offer the customfield grouping when it actually has values to filter by,
+            // so the client never renders an empty custom-field group in the filter menu.
+            BLOCK_MYOVERVIEW_GROUPING_CUSTOMFIELD => $this->displaygroupingcustomfield && !empty($customfieldvalues),
         ];
         $enabled = [];
         foreach ($map as $key => $on) {
