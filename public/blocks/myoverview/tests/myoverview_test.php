@@ -213,6 +213,32 @@ final class myoverview_test extends \advanced_testcase {
     }
 
     /**
+     * A stored view preference for a layout the admin has since disabled must fall back
+     * to the first enabled layout instead of being exported verbatim, matching the
+     * guard the removed output\main class applied.
+     *
+     * @covers \block_myoverview\local\props_builder::get_props
+     */
+    public function test_view_preference_clamped_to_enabled_layouts(): void {
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $this->setUser($this->getDataGenerator()->create_user());
+        $PAGE->set_url('/my/courses.php');
+
+        // An enabled layout passes through unchanged.
+        set_config('layouts', 'card,list,summary', 'block_myoverview');
+        $props = (new \block_myoverview\local\props_builder(null, null, BLOCK_MYOVERVIEW_VIEW_SUMMARY))->get_props();
+        $this->assertEquals(BLOCK_MYOVERVIEW_VIEW_SUMMARY, $props['preferences']['view']);
+
+        // Once the admin disables that layout, the stored preference falls back to the
+        // first enabled layout and the client never receives an unoffered view.
+        set_config('layouts', 'card,list', 'block_myoverview');
+        $props = (new \block_myoverview\local\props_builder(null, null, BLOCK_MYOVERVIEW_VIEW_SUMMARY))->get_props();
+        $this->assertEquals(BLOCK_MYOVERVIEW_VIEW_CARD, $props['preferences']['view']);
+    }
+
+    /**
      * The exported defaultfilter is the grouping a preference-less user starts on: 'all'
      * when enabled, otherwise the ordered fallback — so the client's zero-state and
      * active-control logic work under admin configs whose default is not 'all'.
