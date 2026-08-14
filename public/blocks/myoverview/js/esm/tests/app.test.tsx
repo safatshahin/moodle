@@ -198,6 +198,31 @@ describe("block_myoverview/app paging orchestration", () => {
         expect(mockGetCourses).toHaveBeenCalledTimes(2);
     });
 
+    it("keeps the loaded pages and current position when toggling card and list layouts", async() => {
+        mockGetCourses.mockImplementation(({offset}) =>
+            Promise.resolve(offset === 0 ? pageAt(0, PAGE_SIZE) : pageAt(offset, 3)));
+
+        render(<App {...PROPS} />);
+        await waitFor(() => expect(mockGetCourses).toHaveBeenCalledTimes(2));
+
+        const next = await screen.findByRole("button", {name: "nextpage"});
+        await waitFor(() => expect(next).toBeEnabled());
+        fireEvent.click(next);
+        await waitFor(() => expect(screen.getByText(`Course ${PAGE_SIZE + 1}`)).toBeInTheDocument());
+
+        // Card and list request identical data: switching must not refetch or reset paging.
+        fireEvent.click(screen.getByRole("button", {name: /tooltipview/}));
+        fireEvent.click(screen.getByRole("menuitemradio", {name: /viewlist/}));
+        await waitFor(() => expect(screen.getByText(`Course ${PAGE_SIZE + 1}`)).toBeInTheDocument());
+        expect(mockGetCourses).toHaveBeenCalledTimes(2);
+
+        // Summary needs extra fields, so that switch DOES reset and refetch from page 1.
+        fireEvent.click(screen.getByRole("button", {name: /tooltipview/}));
+        fireEvent.click(screen.getByRole("menuitemradio", {name: /viewsummary/}));
+        await waitFor(() => expect(screen.getByText("Course 1")).toBeInTheDocument());
+        expect(mockGetCourses.mock.calls.length).toBeGreaterThan(2);
+    });
+
     it("hides the pagination entirely on a single short page", async() => {
         mockGetCourses.mockResolvedValue(pageAt(0, 3));
 
