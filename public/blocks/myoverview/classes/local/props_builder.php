@@ -358,7 +358,7 @@ class props_builder {
         $requestcourseurl = $this->get_request_course_url();
 
         // The zero-state is only visible when the user has no courses at all, so only compute
-        // it then — it walks the category tree and counts courses (MDL-89070 review). A limit-1
+        // it then — it walks the category tree and counts courses. A limit-1
         // enrolment lookup is the cheapest "has any course" check (as block_timeline does).
         $hasanycourses = !empty(enrol_get_my_courses(['id'], null, 1));
 
@@ -466,7 +466,7 @@ class props_builder {
      *
      * The category-tree walk in get_nearest_editable_subcategory() is expensive and the
      * same permission sets are needed by both the toolbar URLs and the zero-state data,
-     * so each distinct lookup runs at most once per request (MDL-89070 review).
+     * so each distinct lookup runs at most once per request.
      *
      * @param array $permissions Permission names as accepted by get_nearest_editable_subcategory().
      * @return \core_course_category|null
@@ -499,7 +499,7 @@ class props_builder {
     /**
      * Build the zero-state data for an empty course list.
      *
-     * Data only (MDL-89070 review): the variant, flags and URLs the client needs to
+     * Data only: the variant, flags and URLs the client needs to
      * compose the zero-state copy from language strings itself — no strings or
      * pre-rendered HTML travel as props.
      *
