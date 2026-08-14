@@ -4,7 +4,7 @@
     "wrap": "risky"
   },
   "components/CourseControls": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/CourseImage": {
@@ -24,11 +24,11 @@
     "wrap": "safe"
   },
   "components/EllipsisMenu": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/EmptyState": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/Icon": {
@@ -36,23 +36,23 @@
     "wrap": "safe"
   },
   "components/Pagination": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/ProgressIndicator": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/SearchInput": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/StarButton": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   },
   "components/Toolbar": {
-    "eject": "safe",
+    "eject": "prohibited",
     "wrap": "safe"
   }
 }
