@@ -118,9 +118,9 @@ export type Strings = {
 };
 
 /**
- * Zero-state data for an empty course list — data only, no strings or HTML
- * (MDL-89070 review): the server resolves which variant applies and the URLs it
- * needs; EmptyState composes the copy from language strings client-side.
+ * Zero-state data for an empty course list — data only, no strings or HTML:
+ * the server resolves which variant applies and the URLs it needs; EmptyState
+ * composes the copy from language strings client-side.
  *
  * Variants mirror the server's capability checks: 'request' (user can request a
  * course), 'create' (user can create one; optional manage button), 'default'
@@ -150,7 +150,7 @@ export type Config = {
     /**
      * The site-level default sort ('shortname' when extended course names are shown, else
      * 'title'). The sort control's active state compares against this, so it is not lit
-     * when the user has changed nothing (MDL-89070 review).
+     * when the user has changed nothing.
      */
     defaultsort: Sort;
     /**

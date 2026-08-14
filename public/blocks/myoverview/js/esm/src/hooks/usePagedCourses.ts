@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Server-side paging orchestration for the course overview block (MDL-89070).
+ * Server-side paging orchestration for the course overview block.
  *
  * Each page is fetched with limit PAGE_SIZE, chaining offsets through the web
  * service's returned nextoffset — the only offset arithmetic valid for every

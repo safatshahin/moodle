@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Client-side language strings for the course overview block (MDL-89070 review).
+ * Client-side language strings for the course overview block.
  *
  * The UI strings are fetched here via @moodle/lms/core/stringUtils rather than
  * being serialised into the mount props, keeping the props minimal as the

@@ -1,5 +1,5 @@
 /*
- * Course overview block styles (MDL-89070).
+ * Course overview block styles.
  *
  * All CSS is inlined here rather than pulled in with @import: Moodle's CSS
  * optimiser aggregates a plugin's styles.css into the theme stylesheet and strips
@@ -663,7 +663,7 @@
     margin-top: auto;
 }
 
-/* --- Pagination (MDL-88977, prev/next model per MDL-89070 review) ---
+/* --- Pagination (MDL-88977, prev/next model) ---
    The buttons are DS Buttons; this wrapper only lays them out. */
 .block-myoverview .courseoverview-pagination {
     display: flex;
@@ -762,7 +762,7 @@
  * Boost compiles both design-system components natively (MDL-88891), but the
  * upstream vendoring script does not copy their SVG icon assets, so the DS
  * mask-image/background-image URLs fail and the icons render invisible. Rather
- * than duplicating those SVGs as plugin pix files (MDL-89070 review: no new
+ * than duplicating those SVGs as plugin pix files (no new
  * icons re-expressing concepts core already has), the icon is drawn as a Font
  * Awesome glyph in ::before — the same shipped FA6 set the block's other icons
  * use — inheriting currentColor so every DS state (hover/selected/disabled)

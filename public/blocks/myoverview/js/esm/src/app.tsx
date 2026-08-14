@@ -220,7 +220,7 @@ export default function App(props: AppProps) {
         illustrationurl,
     } = props;
 
-    // UI strings are fetched client-side in one batch (MDL-89070 review: props carry no
+    // UI strings are fetched client-side in one batch (props carry no
     // strings). Until they resolve, the block renders its loading state — core caches the
     // strings, so this is one round trip on first view and instant afterwards. A failed
     // fetch is retried with backoff: without it one transient error would leave the

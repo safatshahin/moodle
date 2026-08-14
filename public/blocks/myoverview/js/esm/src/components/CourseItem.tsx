@@ -47,7 +47,7 @@ type CourseItemProps = {
  */
 export default function CourseItem({course, view, displaycategories}: CourseItemProps) {
     // Progress is shown whenever the course reports it, regardless of role — parity with the
-    // pre-React block, which gated only on hasprogress (MDL-89070 review).
+    // pre-React block, which gated only on hasprogress.
     const showProgress = course.hasprogress && course.progress !== null;
 
     const titleId = `co-title-${course.id}`;

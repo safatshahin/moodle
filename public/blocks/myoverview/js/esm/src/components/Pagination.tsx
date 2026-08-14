@@ -14,12 +14,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Course list pagination (MDL-88977, reworked for server-side paging in MDL-89070).
+ * Course list pagination (MDL-88977, reworked for server-side paging).
  *
  * The design-system Pagination in its 'grouped' variant: previous/next controls
  * without page numbers, because the timeline web service returns no total count,
  * so the number of pages is unknowable without fetching the entire course set
- * (the unbounded fetch the MDL-89070 review rejected). The component receives
+ * (which would need an unbounded fetch). The component receives
  * totalPages = current page + 1 whenever the app's silent prefetch has confirmed
  * a non-empty next page, so "Next" never navigates onto an empty page, and the
  * DS component hides itself entirely on a single-page result.

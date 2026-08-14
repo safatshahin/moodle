@@ -17,8 +17,8 @@
  * Reducer, state shape and actions context for the course overview component.
  *
  * View, filter, sort and search are stored as independent slices; none of them
- * clears another (MDL-88973). Course data is paged server-side (MDL-89070
- * review): `pages` accumulates the loaded pages for the current query and
+ * clears another (MDL-88973). Course data is paged server-side:
+ * `pages` accumulates the loaded pages for the current query and
  * `pageOffsets` records the web service offset each page was (or will be)
  * fetched from, chained through the service's returned nextoffset. Any change
  * to the query resets the paged data via RESET_PAGES, dispatched by the fetch

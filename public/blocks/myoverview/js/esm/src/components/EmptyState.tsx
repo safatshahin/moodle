@@ -19,7 +19,7 @@
  * When zero-state data is supplied, renders the rich variant: an illustration,
  * a title, a small intro paragraph, and any contextual action links (Create /
  * Manage course). The server sends data only (variant, flags and URLs); the
- * copy is composed here from language strings (MDL-89070 review). The intro
+ * copy is composed here from language strings. The intro
  * strings embed documentation links, so the resolved lang-string HTML (never
  * user input) is injected via dangerouslySetInnerHTML, exactly as the old
  * Mustache template rendered the same strings. When no zero-state is supplied
@@ -138,7 +138,7 @@ export default function EmptyState({zerostate, variant, illustrationurl}: EmptyS
 
     // All-hidden: the user HAS courses but has removed every one from view. Not a
     // zero-state (they are enrolled) and not a no-results state (no active query) —
-    // the copy points them at the filter that restores their courses (MDL-89070).
+    // the copy points them at the filter that restores their courses.
     return (
         <div className="courseoverview-empty" data-variant="all-hidden">
             {illustration}
