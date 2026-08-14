@@ -29,8 +29,17 @@ notes:
         deleted on upgrade.
       type: removed
     - message: >-
-        The `aria:addtofavourites` and `aria:removefromfavourites` language
-        strings (whose replacements `aria:addtofavouritesfor` /
-        `aria:removefromfavouritesfor` carry the course name placeholder) and
-        `privacy:metadata:overviewpagingpreference` have been deprecated.
+        All language strings orphaned by the rewrite have been deprecated:
+        `addtofavourites`, `removefromfavourites` (replaced by
+        `aria:addtofavouritesfor` / `aria:removefromfavouritesfor`, which carry
+        the course name placeholder), `aria:addtofavourites`,
+        `aria:removefromfavourites`, `cards`, the per-grouping `aria:*` strings
+        (`aria:allcourses`, `aria:allcoursesincludinghidden`, `aria:controls`,
+        `aria:courseprogress`, `aria:coursesummary`, `aria:customfield`,
+        `aria:favourites`, `aria:future`, `aria:hiddencourses`,
+        `aria:hidecourse`, `aria:inprogress`, `aria:past`, `aria:showcourse`),
+        the per-layout `aria:card` / `aria:list` / `aria:summary` strings, the
+        `sortbytitle` / `sortbylastaccessed` / `sortbyshortname` /
+        `sortbystartdate` strings, and
+        `privacy:metadata:overviewpagingpreference`.
       type: deprecated
