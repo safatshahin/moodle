@@ -1,5 +1,17 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+/**
+ * Client-side language strings for the course overview block.
+ *
+ * The UI strings are fetched here via @moodle/lms/core/stringUtils rather than
+ * being serialised into the mount props, keeping the props minimal as the
+ * frontend docs require. One batched request resolves every string the block
+ * needs; the results are cached by core (M.str / localStorage), so this costs at
+ * most one round trip per session.
+ *
+ * @module     block_myoverview/strings
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { getString, getStrings } from "@moodle/lms/core/stringUtils";
 const COMPONENT = "block_myoverview";
 const STRING_MAP = {

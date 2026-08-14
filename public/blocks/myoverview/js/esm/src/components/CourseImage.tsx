@@ -18,9 +18,10 @@
  *
  * Renders the course image cover-cropped into a fixed-height block, or a
  * checkerboard fallback when no image is set. Height follows the Figma redesign
- * (160px); see plan open item re: the 7rem ticket value.
+ * (160px, --co-image-h in styles.css).
  *
  * @module     block_myoverview/components/CourseImage
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useEffect, useState} from "react";

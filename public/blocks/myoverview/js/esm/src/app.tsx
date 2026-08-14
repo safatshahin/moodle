@@ -25,10 +25,11 @@
  * server. Favourite/hidden toggles are optimistic with revert-on-error.
  *
  * @module     block_myoverview/app
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState} from "react";
-import {AppProps, Strings} from "./types";
+import type {AppProps, Strings} from "./types";
 import {loadErrorString, loadStrings} from "./strings";
 import {
     setFavourite, setCourseHidden, setPreference,

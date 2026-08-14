@@ -26,10 +26,11 @@
  * it falls back to a simple single-message variant.
  *
  * @module     block_myoverview/components/EmptyState
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useEffect, useState} from "react";
-import {ZeroStateData} from "../types";
+import type {ZeroStateData} from "../types";
 import {resolveZeroStateCopy} from "../strings";
 import {useStrings} from "../state";
 

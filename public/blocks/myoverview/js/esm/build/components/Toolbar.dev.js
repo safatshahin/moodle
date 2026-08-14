@@ -1,9 +1,21 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { jsxDEV } from "react/jsx-dev-runtime";
-import {
-  DEFAULT_VIEW
-} from "../types";
+/**
+ * Course overview toolbar (MDL-88972, MDL-88976).
+ *
+ * Left: server-computed action links (Manage / Create / Request course), shown
+ * whenever the matching URL is supplied by PHP (capability-gated server-side).
+ * Right: search, a labelled filter dropdown, and icon-only sort and layout
+ * dropdowns. When the custom-field grouping is active a value selector appears.
+ * Filter/sort/layout show an active state when their value is non-default;
+ * defaults are filter = All, sort = A-Z, view = card. The available filter and
+ * view options are limited to those enabled in the block's admin settings.
+ *
+ * @module     block_myoverview/components/Toolbar
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+import { DEFAULT_VIEW } from "../types";
 import { useStrings } from "../state";
 import Dropdown from "@moodle/lms/block_myoverview/components/Dropdown";
 import SearchInput from "@moodle/lms/block_myoverview/components/SearchInput";

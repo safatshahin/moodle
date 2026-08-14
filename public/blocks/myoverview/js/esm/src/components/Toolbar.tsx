@@ -25,11 +25,11 @@
  * view options are limited to those enabled in the block's admin settings.
  *
  * @module     block_myoverview/components/Toolbar
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {
-    Config, DEFAULT_VIEW, Filter, Sort, View,
-} from "../types";
+import type {Config, Filter, Sort, View} from "../types";
+import {DEFAULT_VIEW} from "../types";
 import {useStrings} from "../state";
 import Dropdown from "@moodle/lms/block_myoverview/components/Dropdown";
 import SearchInput from "@moodle/lms/block_myoverview/components/SearchInput";

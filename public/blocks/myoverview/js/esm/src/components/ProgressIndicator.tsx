@@ -27,6 +27,7 @@
  * aria-valuenow), so it is passed as aria-label in both variants.
  *
  * @module     block_myoverview/components/ProgressIndicator
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {ProgressBar} from "@moodlehq/design-system";

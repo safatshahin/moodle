@@ -26,9 +26,10 @@
  * ellipsis (MDL-88978); CSS `order`/grid restores the visual layout.
  *
  * @module     block_myoverview/components/CourseItem
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {Course, View} from "../types";
+import type {Course, View} from "../types";
 import CourseImage from "@moodle/lms/block_myoverview/components/CourseImage";
 import CourseControls from "@moodle/lms/block_myoverview/components/CourseControls";
 import ProgressIndicator from "@moodle/lms/block_myoverview/components/ProgressIndicator";
@@ -67,7 +68,7 @@ export default function CourseItem({course, view, displaycategories}: CourseItem
                         <div className="courseoverview-card__category">{course.coursecategory}</div>
                     )}
                 </div>
-                {view === "summary" && course.summary !== "" && (
+                {view === "summary" && !!course.summary && (
                     // The web service returns the summary as formatted, server-filtered HTML
                     // (external_format_text with summaryformat), which the old template rendered
                     // raw with {{{summary}}} — rendering it as text would show literal tags.

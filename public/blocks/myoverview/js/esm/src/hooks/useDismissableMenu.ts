@@ -23,6 +23,7 @@
  * and the card overflow menu (menuitem items).
  *
  * @module     block_myoverview/hooks/useDismissableMenu
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {KeyboardEvent, useEffect, useRef, useState} from "react";

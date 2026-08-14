@@ -1,13 +1,34 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+/**
+ * Data-access layer for the course overview block (MDL-88965).
+ *
+ * All AJAX calls live here — components never talk to @moodle/lms/core/ajax or
+ * core/fetch directly (the block_timeline reference pattern, MDL-88287).
+ *
+ * Two mechanisms, matching the block's original AMD split:
+ *  - Course data + favourites use classic web services via @moodle/lms/core/ajax's
+ *    fetchOne (same request shape as amd/src/repository.js), which gives the
+ *    platform's error shape, GET/POST fallback and session-timeout handling.
+ *  - Preference writes use REST v2 via @moodle/lms/core/fetch, POSTing to
+ *    current/preferences/{name} exactly as core_user/repository.js does. Passing
+ *    `value: null` unsets the preference — essential for un-hiding a course, since
+ *    course/lib.php reads the hidden preference with a plain PHP truthy check and a
+ *    literal "false" string would read as truthy.
+ *
+ * The site root URL and session key are not read here: fetchOne and
+ * Fetch.performPost both resolve them from @moodle/lms/core/config internally, so
+ * they are neither props nor arguments.
+ *
+ * @module     block_myoverview/repository
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { fetchOne } from "@moodle/lms/core/ajax";
 import Fetch from "@moodle/lms/core/fetch";
 const CARDLIST_REQUIRED_FIELDS = [
   "id",
   "fullname",
   "shortname",
-  "coursecategory",
-  "showshortname",
   "visible",
   "enddate"
 ];

@@ -29,6 +29,7 @@
  * does not re-render when unrelated courses are toggled.
  *
  * @module     block_myoverview/components/EllipsisMenu
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useDismissableMenu} from "../hooks/useDismissableMenu";

@@ -1,5 +1,17 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+/**
+ * Shared keyboard/pointer behaviour for a pop-up menu with a trigger button.
+ *
+ * Encapsulates the open state, the container/trigger/menu refs, focusing the
+ * first item on open, closing on outside click or Escape (Escape returns focus
+ * to the trigger), and roving focus across items via arrow/Home/End keys with
+ * Tab closing the menu. Used by both the toolbar Dropdown (menuitemradio items)
+ * and the card overflow menu (menuitem items).
+ *
+ * @module     block_myoverview/hooks/useDismissableMenu
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { useEffect, useRef, useState } from "react";
 function useDismissableMenu(itemRole) {
   const [open, setOpen] = useState(false);

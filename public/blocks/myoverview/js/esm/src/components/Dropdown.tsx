@@ -24,6 +24,7 @@
  * first/last; Escape closes and returns focus to trigger; Tab closes.
  *
  * @module     block_myoverview/components/Dropdown
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useDismissableMenu} from "../hooks/useDismissableMenu";

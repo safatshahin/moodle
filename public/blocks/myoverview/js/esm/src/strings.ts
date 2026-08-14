@@ -23,10 +23,11 @@
  * most one round trip per session.
  *
  * @module     block_myoverview/strings
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {getString, getStrings} from "@moodle/lms/core/stringUtils";
-import {Strings, ZeroStateData} from "./types";
+import type {Strings, ZeroStateData} from "./types";
 
 const COMPONENT = "block_myoverview";
 

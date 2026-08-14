@@ -1,6 +1,21 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { jsxDEV } from "react/jsx-dev-runtime";
+/**
+ * A single course as a card, list row or summary row (MDL-88966).
+ *
+ * One component renders all three views; CSS keys off the view modifier class
+ * for layout. Anatomy (top to bottom in card view): image with star + ellipsis
+ * at top-right, course name, category, then progress (when the course reports it).
+ *
+ * The whole surface is clickable (MDL-88971) via a stretched link on the title:
+ * clicking anywhere navigates to the course, except on the star/ellipsis which
+ * stop propagation. DOM order is body-first so tab order is link -> star ->
+ * ellipsis (MDL-88978); CSS `order`/grid restores the visual layout.
+ *
+ * @module     block_myoverview/components/CourseItem
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import CourseImage from "@moodle/lms/block_myoverview/components/CourseImage";
 import CourseControls from "@moodle/lms/block_myoverview/components/CourseControls";
 import ProgressIndicator from "@moodle/lms/block_myoverview/components/ProgressIndicator";
@@ -18,20 +33,20 @@ function CourseItem({ course, view, displaycategories }) {
           /* @__PURE__ */ jsxDEV("div", { className: "courseoverview-card__text", children: [
             /* @__PURE__ */ jsxDEV("a", { id: titleId, className: "courseoverview-card__title stretched-link", href: course.viewurl, children: course.fullnamedisplay }, void 0, false, {
               fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-              lineNumber: 63,
+              lineNumber: 64,
               columnNumber: 21
             }, this),
             displaycategories && course.coursecategory && /* @__PURE__ */ jsxDEV("div", { className: "courseoverview-card__category", children: course.coursecategory }, void 0, false, {
               fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-              lineNumber: 67,
+              lineNumber: 68,
               columnNumber: 25
             }, this)
           ] }, void 0, true, {
             fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-            lineNumber: 62,
+            lineNumber: 63,
             columnNumber: 17
           }, this),
-          view === "summary" && course.summary !== "" && // The web service returns the summary as formatted, server-filtered HTML
+          view === "summary" && !!course.summary && // The web service returns the summary as formatted, server-filtered HTML
           // (external_format_text with summaryformat), which the old template rendered
           // raw with {{{summary}}} — rendering it as text would show literal tags.
           /* @__PURE__ */ jsxDEV(
@@ -44,7 +59,7 @@ function CourseItem({ course, view, displaycategories }) {
             false,
             {
               fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-              lineNumber: 74,
+              lineNumber: 75,
               columnNumber: 21
             },
             this
@@ -61,30 +76,30 @@ function CourseItem({ course, view, displaycategories }) {
             false,
             {
               fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-              lineNumber: 82,
+              lineNumber: 83,
               columnNumber: 21
             },
             this
           )
         ] }, void 0, true, {
           fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-          lineNumber: 61,
+          lineNumber: 62,
           columnNumber: 13
         }, this),
         /* @__PURE__ */ jsxDEV("div", { className: "courseoverview-card__media", children: [
           /* @__PURE__ */ jsxDEV(CourseImage, { src: course.courseimage }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-            lineNumber: 89,
+            lineNumber: 90,
             columnNumber: 17
           }, this),
           /* @__PURE__ */ jsxDEV(CourseControls, { course }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-            lineNumber: 90,
+            lineNumber: 91,
             columnNumber: 17
           }, this)
         ] }, void 0, true, {
           fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-          lineNumber: 88,
+          lineNumber: 89,
           columnNumber: 13
         }, this)
       ]
@@ -93,7 +108,7 @@ function CourseItem({ course, view, displaycategories }) {
     true,
     {
       fileName: "public/blocks/myoverview/js/esm/src/components/CourseItem.tsx",
-      lineNumber: 56,
+      lineNumber: 57,
       columnNumber: 9
     },
     this

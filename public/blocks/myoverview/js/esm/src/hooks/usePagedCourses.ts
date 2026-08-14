@@ -35,12 +35,14 @@
  * duplicate fetches of the same page.
  *
  * @module     block_myoverview/hooks/usePagedCourses
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {Dispatch, useCallback, useLayoutEffect, useRef, useState} from "react";
 import {getCourses} from "../repository";
-import {Action, State} from "../state";
-import {Config, Course, PAGE_SIZE} from "../types";
+import type {Action, State} from "../state";
+import type {Config, Course} from "../types";
+import {PAGE_SIZE} from "../types";
 
 /** How often a failed silent prefetch is retried before giving up. */
 const MAX_PREFETCH_ATTEMPTS = 3;

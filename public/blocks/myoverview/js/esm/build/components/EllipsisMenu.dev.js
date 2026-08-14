@@ -1,6 +1,24 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { jsxDEV } from "react/jsx-dev-runtime";
+/**
+ * Card overflow (ellipsis) menu (MDL-88968).
+ *
+ * Always visible (not hover-reveal). Opens on click/tap, closes on outside
+ * click or Escape, and returns focus to the trigger on close. The star/favourite
+ * action is intentionally NOT here (it is the standalone StarButton, MDL-88969);
+ * the menu retains Hide/Show course, which drives the "removed from view" filter.
+ *
+ * Keyboard: Tab closes the menu; Escape closes and returns focus to trigger.
+ * Roving focus is provided by the shared useDismissableMenu hook.
+ *
+ * Receives isHidden as a prop (resolved by CourseControls from the membership
+ * context) so this component subscribes only to the stable callbacks context and
+ * does not re-render when unrelated courses are toggled.
+ *
+ * @module     block_myoverview/components/EllipsisMenu
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { useDismissableMenu } from "../hooks/useDismissableMenu";
 import { useDismissableTooltip } from "../hooks/useDismissableTooltip";
 import { useCourseCallbacks, useStrings } from "../state";
@@ -33,12 +51,12 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
         children: [
           /* @__PURE__ */ jsxDEV(Icon, { name: "ellipsis-vertical" }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 80,
+            lineNumber: 81,
             columnNumber: 17
           }, this),
           /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: actionsLabel }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 84,
+            lineNumber: 85,
             columnNumber: 17
           }, this)
         ]
@@ -47,7 +65,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
       true,
       {
         fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-        lineNumber: 67,
+        lineNumber: 68,
         columnNumber: 13
       },
       this
@@ -75,7 +93,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
             children: [
               /* @__PURE__ */ jsxDEV(Icon, { name: isHidden ? "eye" : "eye-slash", className: "courseoverview-menu__icon" }, void 0, false, {
                 fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-                lineNumber: 105,
+                lineNumber: 106,
                 columnNumber: 25
               }, this),
               isHidden ? strings.showcourse : strings.hidecourse
@@ -85,7 +103,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
           true,
           {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 94,
+            lineNumber: 95,
             columnNumber: 21
           },
           this
@@ -95,14 +113,14 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
       false,
       {
         fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-        lineNumber: 87,
+        lineNumber: 88,
         columnNumber: 17
       },
       this
     )
   ] }, void 0, true, {
     fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-    lineNumber: 66,
+    lineNumber: 67,
     columnNumber: 9
   }, this);
 }

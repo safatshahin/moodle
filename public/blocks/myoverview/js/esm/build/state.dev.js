@@ -1,11 +1,21 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+/**
+ * Reducer, state shape and actions context for the course overview component.
+ *
+ * View, filter, sort and search are stored as independent slices; none of them
+ * clears another (MDL-88973). Course data is paged server-side:
+ * `pages` accumulates the loaded pages for the current query and
+ * `pageOffsets` records the web service offset each page was (or will be)
+ * fetched from, chained through the service's returned nextoffset. Any change
+ * to the query resets the paged data via RESET_PAGES, dispatched by the fetch
+ * orchestration in app.tsx when its query key changes.
+ *
+ * @module     block_myoverview/state
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { createContext, useContext } from "react";
-import {
-  DEFAULT_FILTER,
-  DEFAULT_SORT,
-  DEFAULT_VIEW
-} from "./types";
+import { DEFAULT_FILTER, DEFAULT_SORT, DEFAULT_VIEW } from "./types";
 const initState = /* @__PURE__ */ __name((prefs, hiddenids = []) => ({
   view: prefs.view ?? DEFAULT_VIEW,
   filter: prefs.filter ?? DEFAULT_FILTER,

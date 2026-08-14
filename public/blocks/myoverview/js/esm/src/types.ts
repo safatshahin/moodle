@@ -18,9 +18,10 @@
  *
  * The Course shape mirrors the fields returned by the web service
  * core_course_get_enrolled_courses_by_timeline_classification, so the live data
- * layer (api.ts) maps onto it directly.
+ * layer (repository.ts) maps onto it directly.
  *
  * @module     block_myoverview/types
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /** A single enrolled course, shaped like the web-service course summary export. */
@@ -32,8 +33,8 @@ export type Course = {
     viewurl: string;
     /** Overview image URL, or null when no image is set (fallback rendered). */
     courseimage: string | null;
-    /** Optional summary description, shown in summary view. */
-    summary: string;
+    /** Optional summary description, shown in summary view. Nullable in the WS export. */
+    summary: string | null;
     coursecategory: string;
     showshortname: boolean;
     showcoursecategory: boolean;
@@ -176,16 +177,16 @@ export type ServerPreferences = {
  * Props passed from the block's React mount point.
  *
  * Data only — no language strings (they are fetched client-side, see strings.ts)
- * and no HTML. The site root URL and session key are intentionally absent: api.ts
- * reads them from @moodle/lms/core/config, the same as core/ajax and core/fetch do
- * internally.
+ * and no HTML. The site root URL and session key are intentionally absent:
+ * repository.ts reads them from @moodle/lms/core/config, the same as core/ajax
+ * and core/fetch do internally.
  */
 export type LiveAppProps = {
     preferences: ServerPreferences;
     config: Config;
     /**
      * Pre-computed server URLs for persistent toolbar actions (always available
-     * regardless of course count, matching the current AMD toolbar behaviour).
+     * regardless of course count, matching the pre-rewrite toolbar behaviour).
      */
     createcourseurl?: string | null;
     managecourseurl?: string | null;
@@ -202,7 +203,7 @@ export type LiveAppProps = {
     illustrationurl: string;
 };
 
-/** Props passed from the Mustache mount point. */
+/** Props passed from the block's React mount point (see block_myoverview.php). */
 export type AppProps = LiveAppProps;
 
 /** Number of courses per page — 9 for the 3x3 grid (MDL-88977). */

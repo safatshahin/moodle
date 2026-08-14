@@ -24,6 +24,7 @@
  * does not re-render when unrelated courses are toggled.
  *
  * @module     block_myoverview/components/StarButton
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {FavouriteButton} from "@moodlehq/design-system";
@@ -35,6 +36,12 @@ type StarButtonProps = {
     isFavourite: boolean;
 };
 
+/**
+ * Render the star/unstar toggle for a course card.
+ *
+ * @param props The course id, name (for the accessible label) and current state.
+ * @returns The favourite button.
+ */
 export default function StarButton({courseId, courseName, isFavourite}: StarButtonProps) {
     const {toggleFavourite} = useCourseCallbacks();
     const strings = useStrings();

@@ -25,12 +25,12 @@
  * orchestration in app.tsx when its query key changes.
  *
  * @module     block_myoverview/state
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {createContext, useContext} from "react";
-import {
-    Course, DEFAULT_FILTER, DEFAULT_SORT, DEFAULT_VIEW, Filter, ServerPreferences, Sort, Strings, View,
-} from "./types";
+import type {Course, Filter, ServerPreferences, Sort, Strings, View} from "./types";
+import {DEFAULT_FILTER, DEFAULT_SORT, DEFAULT_VIEW} from "./types";
 
 /** The full UI state. */
 export type State = {

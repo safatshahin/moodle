@@ -1,6 +1,16 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { jsxDEV } from "react/jsx-dev-runtime";
+/**
+ * Course overview image (MDL-88967).
+ *
+ * Renders the course image cover-cropped into a fixed-height block, or a
+ * checkerboard fallback when no image is set. Height follows the Figma redesign
+ * (160px, --co-image-h in styles.css).
+ *
+ * @module     block_myoverview/components/CourseImage
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { useEffect, useState } from "react";
 function CourseImage({ src, className = "" }) {
   const [errored, setErrored] = useState(false);
@@ -19,13 +29,13 @@ function CourseImage({ src, className = "" }) {
     false,
     {
       fileName: "public/blocks/myoverview/js/esm/src/components/CourseImage.tsx",
-      lineNumber: 48,
+      lineNumber: 49,
       columnNumber: 17
     },
     this
   ) }, void 0, false, {
     fileName: "public/blocks/myoverview/js/esm/src/components/CourseImage.tsx",
-    lineNumber: 46,
+    lineNumber: 47,
     columnNumber: 9
   }, this);
 }

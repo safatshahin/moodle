@@ -28,6 +28,7 @@
  * vendors its CSS (MDL-89292).
  *
  * @module     block_myoverview/hooks/useDismissableTooltip
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useCallback, useEffect, useRef, useState} from "react";

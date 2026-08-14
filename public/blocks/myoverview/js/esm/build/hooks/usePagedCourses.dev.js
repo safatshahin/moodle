@@ -1,5 +1,29 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+/**
+ * Server-side paging orchestration for the course overview block.
+ *
+ * Each page is fetched with limit PAGE_SIZE, chaining offsets through the web
+ * service's returned nextoffset — the only offset arithmetic valid for every
+ * classification (favourites/customfield filter after retrieval, so the number
+ * of records kept is smaller than the number processed). Whenever the current
+ * page is full, the next page is silently prefetched, matching the old AMD
+ * block's two-pages-per-fetch model; "Next" only enables once that prefetch
+ * confirms a non-empty page. A failed prefetch is retried a bounded number of
+ * times so a transient error cannot permanently disable "Next".
+ *
+ * A search is mutually exclusive with the grouping filter (the search
+ * classification overrides it, as the old block behaved) and never touches the
+ * filter preference.
+ *
+ * Guards: queryKeyRef ignores responses that land after the query changed
+ * (fetchOne has no per-call cancellation); generationRef ignores responses that
+ * land after refetchAfterToggle() replaced the paged data; inflightRef prevents
+ * duplicate fetches of the same page.
+ *
+ * @module     block_myoverview/hooks/usePagedCourses
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getCourses } from "../repository";
 import { PAGE_SIZE } from "../types";

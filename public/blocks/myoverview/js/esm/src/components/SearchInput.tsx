@@ -21,6 +21,7 @@
  * intact.
  *
  * @module     block_myoverview/components/SearchInput
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {useId} from "react";
@@ -44,6 +45,8 @@ export default function SearchInput({value, onChange}: SearchInputProps) {
     const inputId = useId();
     return (
         <div className="courseoverview-search">
+            {/* The visually-hidden label is the accessible name (no aria-label duplicate):
+                a real label benefits voice-control users and speech recognition. */}
             <label htmlFor={inputId} className="visually-hidden">{strings.searchcourses}</label>
             <Icon name="magnifying-glass" className="courseoverview-search__icon" />
             <input
@@ -51,7 +54,6 @@ export default function SearchInput({value, onChange}: SearchInputProps) {
                 type="text"
                 className="courseoverview-search__input"
                 placeholder={strings.search}
-                aria-label={strings.searchcourses}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
             />

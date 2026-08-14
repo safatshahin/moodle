@@ -25,6 +25,7 @@
  * DS component hides itself entirely on a single-page result.
  *
  * @module     block_myoverview/components/Pagination
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {Pagination as DSPagination} from "@moodlehq/design-system";

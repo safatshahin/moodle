@@ -20,9 +20,10 @@
  * tablet up, max 9 per page); list and summary views render single-column rows.
  *
  * @module     block_myoverview/components/CourseList
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {Course, View} from "../types";
+import type {Course, View} from "../types";
 import CourseItem from "@moodle/lms/block_myoverview/components/CourseItem";
 
 type CourseListProps = {

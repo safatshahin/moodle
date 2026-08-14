@@ -34,16 +34,21 @@
  * they are neither props nor arguments.
  *
  * @module     block_myoverview/repository
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 import {fetchOne} from "@moodle/lms/core/ajax";
 import Fetch from "@moodle/lms/core/fetch";
-import {Course, Sort, View} from "./types";
+import type {Course, Sort, View} from "./types";
 
-// Requiredfields mirrors the current AMD split (amd/src/repository.js): summary view
-// needs summary/summaryformat, card/list views omit them to keep the payload small.
+// Summary view needs summary/summaryformat; card/list views omit them to keep the
+// payload small. The web service intersects this list with the exporter's declared
+// properties, so only names from course_summary_exporter::define_properties() belong
+// here; computed "other" properties (fullnamedisplay, coursecategory, showshortname,
+// courseimage, ...) are always exported and must not be listed — an all-invalid list
+// would fall back to selecting every field.
 const CARDLIST_REQUIRED_FIELDS = [
-    "id", "fullname", "shortname", "coursecategory", "showshortname", "visible", "enddate",
+    "id", "fullname", "shortname", "visible", "enddate",
 ];
 const SUMMARY_REQUIRED_FIELDS = [...CARDLIST_REQUIRED_FIELDS, "summary", "summaryformat"];
 

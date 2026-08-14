@@ -25,9 +25,10 @@
  * the stable callbacks context and do not re-render for unrelated card toggles.
  *
  * @module     block_myoverview/components/CourseControls
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import {Course} from "../types";
+import type {Course} from "../types";
 import {useCourseMemberships} from "../state";
 import StarButton from "@moodle/lms/block_myoverview/components/StarButton";
 import EllipsisMenu from "@moodle/lms/block_myoverview/components/EllipsisMenu";
