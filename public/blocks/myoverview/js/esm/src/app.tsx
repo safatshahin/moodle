@@ -82,7 +82,7 @@ const WIDTH_BREAKPOINTS = [480, 576, 992];
  * @param ref A ref to the element to observe.
  * @returns The width-tier class string.
  */
-function useContainerWidthClasses(ref: React.RefObject<HTMLElement>): string {
+function useContainerWidthClasses(ref: React.RefObject<HTMLElement | null>): string {
     const [width, setWidth] = useState(0);
     useLayoutEffect(() => {
         const el = ref.current;

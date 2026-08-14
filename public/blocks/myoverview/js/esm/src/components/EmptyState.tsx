@@ -177,7 +177,8 @@ export default function EmptyState({zerostate, variant, illustrationurl}: EmptyS
         );
     }
 
-    const copy: Record<EmptyVariant, string> = {
+    // The all-hidden variant returns earlier, so the copy map never needs a key for it.
+    const copy: Record<Exclude<EmptyVariant, "all-hidden">, string> = {
         student: strings.emptystudent,
         educator: strings.emptyeducator,
         "no-results": strings.emptynoresults,

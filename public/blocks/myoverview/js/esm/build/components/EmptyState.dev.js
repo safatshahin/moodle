@@ -155,12 +155,12 @@ function EmptyState({ zerostate, variant, illustrationurl }) {
     illustration,
     /* @__PURE__ */ jsxDEV("p", { className: "courseoverview-empty__text", children: copy[variant ?? "student"] }, void 0, false, {
       fileName: "public/blocks/myoverview/js/esm/src/components/EmptyState.tsx",
-      lineNumber: 188,
+      lineNumber: 189,
       columnNumber: 13
     }, this)
   ] }, void 0, true, {
     fileName: "public/blocks/myoverview/js/esm/src/components/EmptyState.tsx",
-    lineNumber: 186,
+    lineNumber: 187,
     columnNumber: 9
   }, this);
 }
