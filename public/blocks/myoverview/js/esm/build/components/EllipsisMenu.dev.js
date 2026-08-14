@@ -2,12 +2,14 @@ var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 import { jsxDEV } from "react/jsx-dev-runtime";
 import { useDismissableMenu } from "../hooks/useDismissableMenu";
+import { useDismissableTooltip } from "../hooks/useDismissableTooltip";
 import { useCourseCallbacks, useStrings } from "../state";
 import Icon from "@moodle/lms/block_myoverview/components/Icon";
 function EllipsisMenu({ courseId, courseName, isHidden }) {
   const { toggleHidden } = useCourseCallbacks();
   const strings = useStrings();
   const { open, setOpen, containerRef, triggerRef, menuRef, handleMenuKeyDown } = useDismissableMenu("menuitem");
+  const { tooltipAttr, tooltipTriggerProps } = useDismissableTooltip();
   const stop = /* @__PURE__ */ __name((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -22,20 +24,21 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
         className: "courseoverview-iconbtn",
         "aria-haspopup": "menu",
         "aria-expanded": open,
-        title: strings.courseactions,
+        "data-tooltip": tooltipAttr(strings.courseactions),
         onClick: (e) => {
           stop(e);
           setOpen((v) => !v);
         },
+        ...tooltipTriggerProps,
         children: [
           /* @__PURE__ */ jsxDEV(Icon, { name: "ellipsis-vertical" }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 77,
+            lineNumber: 80,
             columnNumber: 17
           }, this),
           /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: actionsLabel }, void 0, false, {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 81,
+            lineNumber: 84,
             columnNumber: 17
           }, this)
         ]
@@ -44,7 +47,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
       true,
       {
         fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-        lineNumber: 65,
+        lineNumber: 67,
         columnNumber: 13
       },
       this
@@ -72,7 +75,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
             children: [
               /* @__PURE__ */ jsxDEV(Icon, { name: isHidden ? "eye" : "eye-slash", className: "courseoverview-menu__icon" }, void 0, false, {
                 fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-                lineNumber: 102,
+                lineNumber: 105,
                 columnNumber: 25
               }, this),
               isHidden ? strings.showcourse : strings.hidecourse
@@ -82,7 +85,7 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
           true,
           {
             fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-            lineNumber: 91,
+            lineNumber: 94,
             columnNumber: 21
           },
           this
@@ -92,14 +95,14 @@ function EllipsisMenu({ courseId, courseName, isHidden }) {
       false,
       {
         fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-        lineNumber: 84,
+        lineNumber: 87,
         columnNumber: 17
       },
       this
     )
   ] }, void 0, true, {
     fileName: "public/blocks/myoverview/js/esm/src/components/EllipsisMenu.tsx",
-    lineNumber: 64,
+    lineNumber: 66,
     columnNumber: 9
   }, this);
 }

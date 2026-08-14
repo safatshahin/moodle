@@ -57,11 +57,30 @@ export default function EmptyState({zerostate, variant, illustrationurl}: EmptyS
 
     // The zero-state copy resolves asynchronously (string fetch); the card renders its
     // stable parts immediately and the text fills in when ready (cached after first view).
+    // The chain is several sequential getString calls, so it can outlive the component
+    // (any query change unmounts it): the cancelled flag guards the setState.
     const [copyState, setCopyState] = useState<{title: string; intro: string} | null>(null);
     useEffect(() => {
-        if (zerostate) {
-            resolveZeroStateCopy(zerostate).then(setCopyState).catch(() => setCopyState(null));
+        if (!zerostate) {
+            return undefined;
         }
+        let cancelled = false;
+        resolveZeroStateCopy(zerostate)
+            .then((copy) => {
+                if (!cancelled) {
+                    setCopyState(copy);
+                }
+                return null;
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setCopyState(null);
+                }
+                window.console.error("[block_myoverview] Failed to resolve zero-state copy", error);
+            });
+        return () => {
+            cancelled = true;
+        };
     }, [zerostate]);
 
     const illustration = (

@@ -27,6 +27,7 @@
  */
 
 import {useDismissableMenu} from "../hooks/useDismissableMenu";
+import {useDismissableTooltip} from "../hooks/useDismissableTooltip";
 import Icon from "@moodle/lms/block_myoverview/components/Icon";
 
 export type DropdownOption<T extends string> = {
@@ -80,6 +81,7 @@ export default function Dropdown<T extends string>({
 }: DropdownProps<T>) {
     const {open, setOpen, containerRef, triggerRef, menuRef, handleMenuKeyDown} =
         useDismissableMenu("menuitemradio");
+    const {tooltipAttr, tooltipTriggerProps} = useDismissableTooltip();
     const selected = options.find((o) => o.value === current);
 
     return (
@@ -95,8 +97,9 @@ export default function Dropdown<T extends string>({
                 aria-haspopup="menu"
                 aria-expanded={open}
                 aria-label={triggerAriaLabel ?? label}
-                data-tooltip={tooltip ?? label}
+                data-tooltip={tooltipAttr(tooltip ?? label)}
                 onClick={() => setOpen((v) => !v)}
+                {...tooltipTriggerProps}
             >
                 {icon && <Icon name={icon} />}
                 {showLabel && <span className="courseoverview-toolbtn__label">{selected?.label ?? label}</span>}

@@ -74,8 +74,15 @@ export function usePagedCourses(
 ): UsePagedCoursesResult {
     const {view, filter, sort, page, customfieldvalue, pages, pageOffsets} = state;
     const searching = debouncedSearch.trim() !== "";
+    // Only the summary view changes the request shape (its rows need the extra
+    // summary fields, see repository.ts requiredfields); card and list request
+    // byte-identical data, so switching between them must NOT reset the loaded
+    // pages or send the user back to page 1. Key on the boolean, not the view.
+    const needsSummaryFields = view === "summary";
     const queryKey = JSON.stringify(
-        searching ? ["search", sort, debouncedSearch, view] : [filter, sort, customfieldvalue, view],
+        searching
+            ? ["search", sort, debouncedSearch, needsSummaryFields]
+            : [filter, sort, customfieldvalue, needsSummaryFields],
     );
 
     const queryKeyRef = useRef<string | null>(null);

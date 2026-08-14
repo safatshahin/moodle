@@ -249,13 +249,17 @@
     background: color-mix(in srgb, var(--mds-color-gray-900) 12%, var(--mds-border-interactive-secondary-active));
 }
 
-/* CSS tooltip for icon-only tool buttons (replaces native browser title tooltip). */
-.courseoverview-toolbtn[data-tooltip] {
+/* CSS tooltip for icon-only tool buttons (replaces native browser title tooltip).
+   Escape dismissal is handled by useDismissableTooltip, which drops the
+   data-tooltip attribute while dismissed (WCAG 2.1 1.4.13). */
+.courseoverview-toolbtn[data-tooltip],
+.courseoverview-iconbtn[data-tooltip] {
     position: relative;
     overflow: visible;
 }
 
-.courseoverview-toolbtn[data-tooltip]::after {
+.courseoverview-toolbtn[data-tooltip]::after,
+.courseoverview-iconbtn[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 6px);
@@ -276,7 +280,9 @@
 }
 
 .courseoverview-toolbtn[data-tooltip]:hover::after,
-.courseoverview-toolbtn[data-tooltip]:focus-visible::after {
+.courseoverview-toolbtn[data-tooltip]:focus-visible::after,
+.courseoverview-iconbtn[data-tooltip]:hover::after,
+.courseoverview-iconbtn[data-tooltip]:focus-visible::after {
     opacity: 1;
 }
 

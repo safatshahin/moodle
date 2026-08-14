@@ -32,6 +32,7 @@
  */
 
 import {useDismissableMenu} from "../hooks/useDismissableMenu";
+import {useDismissableTooltip} from "../hooks/useDismissableTooltip";
 import {useCourseCallbacks, useStrings} from "../state";
 import Icon from "@moodle/lms/block_myoverview/components/Icon";
 
@@ -52,6 +53,7 @@ export default function EllipsisMenu({courseId, courseName, isHidden}: EllipsisM
     const strings = useStrings();
     const {open, setOpen, containerRef, triggerRef, menuRef, handleMenuKeyDown} =
         useDismissableMenu("menuitem");
+    const {tooltipAttr, tooltipTriggerProps} = useDismissableTooltip();
 
     const stop = (e: {preventDefault: () => void; stopPropagation: () => void}) => {
         e.preventDefault();
@@ -68,11 +70,12 @@ export default function EllipsisMenu({courseId, courseName, isHidden}: EllipsisM
                 className="courseoverview-iconbtn"
                 aria-haspopup="menu"
                 aria-expanded={open}
-                title={strings.courseactions}
+                data-tooltip={tooltipAttr(strings.courseactions)}
                 onClick={(e) => {
                     stop(e);
                     setOpen((v) => !v);
                 }}
+                {...tooltipTriggerProps}
             >
                 <Icon name="ellipsis-vertical" />
                 {/* The accessible name, as visually-hidden text rather than an aria-label: the

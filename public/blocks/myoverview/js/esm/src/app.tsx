@@ -147,7 +147,46 @@ function StringsFallback({failed, errorText}: {failed: boolean; errorText: strin
             </p>
         );
     }
-    return <div className="block-myoverview__loading" role="status" aria-busy="true" />;
+    // Decorative only: with the strings unavailable there is no translated text to
+    // announce yet; the post-strings loading state (in App's live region) is the
+    // one that narrates loading to assistive tech.
+    return <div className="block-myoverview__loading" aria-hidden="true" />;
+}
+
+type LiveRegionProps = {
+    loading: boolean;
+    error: string | null;
+    announcement: string | null;
+    strings: Strings;
+};
+
+/**
+ * The block's single polite live region: loading, load errors, and hide/restore
+ * feedback. The gradient bar is decorative (aria-hidden); the visually-hidden
+ * text is what the region actually announces — an empty styled div would
+ * announce nothing. No nested role="status": the region itself is the live
+ * region.
+ *
+ * @param props The loading/error flags, the toggle announcement, and the strings.
+ * @returns The live region element.
+ */
+function LiveRegion({loading, error, announcement, strings}: LiveRegionProps) {
+    return (
+        <div aria-live="polite">
+            {loading && (
+                <>
+                    <div className="block-myoverview__loading" aria-hidden="true" />
+                    <span className="visually-hidden">{strings.loadingcourses}</span>
+                </>
+            )}
+            {error && (
+                <p className="block-myoverview__error">{strings.errorloadingcourses}</p>
+            )}
+            {!loading && !error && announcement && (
+                <span className="visually-hidden">{announcement}</span>
+            )}
+        </div>
+    );
 }
 
 /**
@@ -297,13 +336,37 @@ export default function App(props: AppProps) {
             });
     }, [favourites, filter, searching, refetchAfterToggle]);
 
+    // Announced through the aria-live region after a hide/restore. The action can
+    // unmount the card the user was operating on, so it must be narrated (and the
+    // lost focus caught) rather than silently changing the list.
+    const [announcement, setAnnouncement] = useState<string | null>(null);
+
     const toggleHidden = useCallback((id: number) => {
         const nowHidden = !hidden.has(id);
         dispatch({type: "TOGGLE_HIDDEN", id});
+        setAnnouncement((nowHidden ? strings?.courseremoved : strings?.courserestored) ?? null);
         setCourseHidden(id, nowHidden)
             .then(() => refetchAfterToggle())
             .catch(() => dispatch({type: "TOGGLE_HIDDEN", id}));
-    }, [hidden, refetchAfterToggle]);
+    }, [hidden, refetchAfterToggle, strings]);
+
+    useEffect(() => {
+        if (!announcement) {
+            return undefined;
+        }
+        // Hiding/restoring can unmount the card whose menu had focus (the course is
+        // filtered out of the current view), dropping focus to <body>. When that
+        // happened, catch it on the block root so keyboard users stay in the block.
+        // (EllipsisMenu's focus-return to its trigger still wins whenever the card
+        // survives, e.g. hiding under "All (including removed from view)".)
+        if (document.activeElement === document.body) {
+            rootRef.current?.focus();
+        }
+        // Clear after the announcement has been made so a second identical action
+        // re-announces (live regions only fire on content change).
+        const timer = setTimeout(() => setAnnouncement(null), 3000);
+        return () => clearTimeout(timer);
+    }, [announcement]);
 
     const callbacks = useMemo(() => ({toggleFavourite, toggleHidden}), [toggleFavourite, toggleHidden]);
     const memberships = useMemo(() => ({favourites, hidden}), [favourites, hidden]);
@@ -357,7 +420,7 @@ export default function App(props: AppProps) {
     // courseoverview-min-* width tiers (seen as a permanently single-column card grid).
     // Strings are fetched client-side; until they arrive only the loading indicator renders.
     return (
-        <section ref={rootRef} className={`block-myoverview ${widthClasses}`.trim()}>
+        <section ref={rootRef} tabIndex={-1} className={`block-myoverview ${widthClasses}`.trim()}>
             {!strings && <StringsFallback failed={stringsFailed} errorText={stringsErrorText} />}
             {strings && (
         <StringsContext.Provider value={strings}>
@@ -385,18 +448,12 @@ export default function App(props: AppProps) {
                             onSearch={(s) => dispatch({type: "SET_SEARCH", search: s})}
                             onCustomFieldValue={(v) => dispatch({type: "SET_CUSTOMFIELDVALUE", value: v})}
                         />
-                        {/* Aria-live announces loading/error to screen readers — the old block
-                            rendered synchronously server-side and never had a client loading/error
-                            state to announce, so this is new UI that must independently meet
-                            WCAG 2.1 AA. */}
-                        <div aria-live="polite">
-                            {loading && (
-                                <div className="block-myoverview__loading" role="status" aria-busy="true" />
-                            )}
-                            {error && (
-                                <p className="block-myoverview__error">{strings.errorloadingcourses}</p>
-                            )}
-                        </div>
+                        <LiveRegion
+                            loading={loading}
+                            error={error}
+                            announcement={announcement}
+                            strings={strings}
+                        />
                         {hasNoCourses && (
                             <EmptyStateChoice
                                 hasActiveQuery={hasActiveQuery}

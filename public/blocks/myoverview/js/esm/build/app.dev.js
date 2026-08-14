@@ -90,13 +90,48 @@ function StringsFallback({ failed, errorText }) {
       columnNumber: 13
     }, this);
   }
-  return /* @__PURE__ */ jsxDEV("div", { className: "block-myoverview__loading", role: "status", "aria-busy": "true" }, void 0, false, {
+  return /* @__PURE__ */ jsxDEV("div", { className: "block-myoverview__loading", "aria-hidden": "true" }, void 0, false, {
     fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-    lineNumber: 150,
+    lineNumber: 153,
     columnNumber: 12
   }, this);
 }
 __name(StringsFallback, "StringsFallback");
+function LiveRegion({ loading, error, announcement, strings }) {
+  return /* @__PURE__ */ jsxDEV("div", { "aria-live": "polite", children: [
+    loading && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "block-myoverview__loading", "aria-hidden": "true" }, void 0, false, {
+        fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+        lineNumber: 178,
+        columnNumber: 21
+      }, this),
+      /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: strings.loadingcourses }, void 0, false, {
+        fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+        lineNumber: 179,
+        columnNumber: 21
+      }, this)
+    ] }, void 0, true, {
+      fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+      lineNumber: 177,
+      columnNumber: 17
+    }, this),
+    error && /* @__PURE__ */ jsxDEV("p", { className: "block-myoverview__error", children: strings.errorloadingcourses }, void 0, false, {
+      fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+      lineNumber: 183,
+      columnNumber: 17
+    }, this),
+    !loading && !error && announcement && /* @__PURE__ */ jsxDEV("span", { className: "visually-hidden", children: announcement }, void 0, false, {
+      fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+      lineNumber: 186,
+      columnNumber: 17
+    }, this)
+  ] }, void 0, true, {
+    fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
+    lineNumber: 175,
+    columnNumber: 9
+  }, this);
+}
+__name(LiveRegion, "LiveRegion");
 function fetchTerminalErrorText(onText) {
   loadErrorString().then((text) => {
     onText(text);
@@ -206,11 +241,23 @@ function App(props) {
       dispatch({ type: "FAVOURITE_SETTLED", id });
     });
   }, [favourites, filter, searching, refetchAfterToggle]);
+  const [announcement, setAnnouncement] = useState(null);
   const toggleHidden = useCallback((id) => {
     const nowHidden = !hidden.has(id);
     dispatch({ type: "TOGGLE_HIDDEN", id });
+    setAnnouncement((nowHidden ? strings?.courseremoved : strings?.courserestored) ?? null);
     setCourseHidden(id, nowHidden).then(() => refetchAfterToggle()).catch(() => dispatch({ type: "TOGGLE_HIDDEN", id }));
-  }, [hidden, refetchAfterToggle]);
+  }, [hidden, refetchAfterToggle, strings]);
+  useEffect(() => {
+    if (!announcement) {
+      return void 0;
+    }
+    if (document.activeElement === document.body) {
+      rootRef.current?.focus();
+    }
+    const timer = setTimeout(() => setAnnouncement(null), 3e3);
+    return () => clearTimeout(timer);
+  }, [announcement]);
   const callbacks = useMemo(() => ({ toggleFavourite, toggleHidden }), [toggleFavourite, toggleHidden]);
   const memberships = useMemo(() => ({ favourites, hidden }), [favourites, hidden]);
   const pageCourses = (state.pages[page - 1] ?? []).filter((c) => {
@@ -235,10 +282,10 @@ function App(props) {
   const isZeroState = hasNoCourses && !hasActiveQuery && !userhascourses;
   const showControls = loading || state.pages.some((p) => p.length > 0) || hasActiveQuery || userhascourses;
   const hasNext = hasNextPage(state);
-  return /* @__PURE__ */ jsxDEV("section", { ref: rootRef, className: `block-myoverview ${widthClasses}`.trim(), children: [
+  return /* @__PURE__ */ jsxDEV("section", { ref: rootRef, tabIndex: -1, className: `block-myoverview ${widthClasses}`.trim(), children: [
     !strings && /* @__PURE__ */ jsxDEV(StringsFallback, { failed: stringsFailed, errorText: stringsErrorText }, void 0, false, {
       fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-      lineNumber: 361,
+      lineNumber: 424,
       columnNumber: 26
     }, this),
     strings && /* @__PURE__ */ jsxDEV(StringsContext.Provider, { value: strings, children: /* @__PURE__ */ jsxDEV(CourseCallbacksContext.Provider, { value: callbacks, children: /* @__PURE__ */ jsxDEV(CourseMembershipContext.Provider, { value: memberships, children: /* @__PURE__ */ jsxDEV(Fragment, { children: [
@@ -266,27 +313,28 @@ function App(props) {
         false,
         {
           fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-          lineNumber: 370,
+          lineNumber: 433,
           columnNumber: 25
         },
         this
       ),
-      /* @__PURE__ */ jsxDEV("div", { "aria-live": "polite", children: [
-        loading && /* @__PURE__ */ jsxDEV("div", { className: "block-myoverview__loading", role: "status", "aria-busy": "true" }, void 0, false, {
+      /* @__PURE__ */ jsxDEV(
+        LiveRegion,
+        {
+          loading,
+          error,
+          announcement,
+          strings
+        },
+        void 0,
+        false,
+        {
           fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-          lineNumber: 394,
-          columnNumber: 33
-        }, this),
-        error && /* @__PURE__ */ jsxDEV("p", { className: "block-myoverview__error", children: strings.errorloadingcourses }, void 0, false, {
-          fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-          lineNumber: 397,
-          columnNumber: 33
-        }, this)
-      ] }, void 0, true, {
-        fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-        lineNumber: 392,
-        columnNumber: 25
-      }, this),
+          lineNumber: 451,
+          columnNumber: 25
+        },
+        this
+      ),
       hasNoCourses && /* @__PURE__ */ jsxDEV(
         EmptyStateChoice,
         {
@@ -299,7 +347,7 @@ function App(props) {
         false,
         {
           fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-          lineNumber: 401,
+          lineNumber: 458,
           columnNumber: 29
         },
         this
@@ -316,7 +364,7 @@ function App(props) {
           false,
           {
             fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-            lineNumber: 410,
+            lineNumber: 467,
             columnNumber: 33
           },
           this
@@ -332,36 +380,36 @@ function App(props) {
           false,
           {
             fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-            lineNumber: 415,
+            lineNumber: 472,
             columnNumber: 33
           },
           this
         )
       ] }, void 0, true, {
         fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-        lineNumber: 409,
+        lineNumber: 466,
         columnNumber: 29
       }, this)
     ] }, void 0, true, {
       fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-      lineNumber: 369,
+      lineNumber: 432,
       columnNumber: 21
     }, this) }, void 0, false, {
       fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-      lineNumber: 365,
+      lineNumber: 428,
       columnNumber: 17
     }, this) }, void 0, false, {
       fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-      lineNumber: 364,
+      lineNumber: 427,
       columnNumber: 13
     }, this) }, void 0, false, {
       fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-      lineNumber: 363,
+      lineNumber: 426,
       columnNumber: 9
     }, this)
   ] }, void 0, true, {
     fileName: "public/blocks/myoverview/js/esm/src/app.tsx",
-    lineNumber: 360,
+    lineNumber: 423,
     columnNumber: 9
   }, this);
 }

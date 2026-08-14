@@ -7,8 +7,9 @@ const MAX_PREFETCH_ATTEMPTS = 3;
 function usePagedCourses({ state, dispatch, config, debouncedSearch }) {
   const { view, filter, sort, page, customfieldvalue, pages, pageOffsets } = state;
   const searching = debouncedSearch.trim() !== "";
+  const needsSummaryFields = view === "summary";
   const queryKey = JSON.stringify(
-    searching ? ["search", sort, debouncedSearch, view] : [filter, sort, customfieldvalue, view]
+    searching ? ["search", sort, debouncedSearch, needsSummaryFields] : [filter, sort, customfieldvalue, needsSummaryFields]
   );
   const queryKeyRef = useRef(null);
   const generationRef = useRef(0);

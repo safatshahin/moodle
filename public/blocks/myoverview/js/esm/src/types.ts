@@ -71,6 +71,8 @@ export type Strings = {
     courseactions: string;
     courseoverview: string;
     courseprogress: string;
+    courseremoved: string;
+    courserestored: string;
     createcourse: string;
     emptyallhiddenintro: string;
     emptyallhiddentitle: string;
@@ -88,6 +90,7 @@ export type Strings = {
     filterresults: string;
     filters: string;
     hidecourse: string;
+    loadingcourses: string;
     managecategories: string;
     managecourses: string;
     nextpage: string;
