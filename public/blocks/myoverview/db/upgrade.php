@@ -49,7 +49,7 @@ function xmldb_block_myoverview_upgrade($oldversion) {
     if ($oldversion < 2026072700) {
         // The per-user paging preference was removed with the React rewrite (the course
         // list is paged server-side with a fixed page size). Delete the stored rows so
-        // no undeclared, unexported personal data is left behind (MDL-89070).
+        // no undeclared, unexported personal data is left behind.
         $DB->delete_records('user_preferences', ['name' => 'block_myoverview_user_paging_preference']);
 
         upgrade_block_savepoint(true, 2026072700, 'myoverview');
