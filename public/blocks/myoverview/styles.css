@@ -8,6 +8,14 @@
  * (MDL-88891); the favourite/close buttons only need their icon glyphs supplied
  * locally (see the Font Awesome overrides below) because the DS vendoring script
  * does not copy the components' SVG assets.
+ *
+ * Every selector is scoped under .block-myoverview (the React app root): plugin
+ * styles are aggregated into the theme stylesheet and would otherwise apply
+ * site-wide to anything reusing these class names.
+ *
+ * Physical left/right properties are avoided in favour of logical (inline)
+ * properties so the layout mirrors correctly in RTL languages: Boost has no
+ * RTL flipping layer for plugin CSS.
  */
 
 /*
@@ -62,8 +70,7 @@
     /* Bootstrap .card-img-top rule for the old course listing, a different component.   */
     --co-image-h: 160px;
 
-    /* DS token has a typo: "Noto sans" (lowercase s). Use the correct name directly. */
-    font-family: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--mds-font-family-base, "Noto Sans"), system-ui, sans-serif;
     color: var(--co-text);
 }
 
@@ -74,7 +81,7 @@
 }
 
 /* --- Toolbar --- */
-.courseoverview-toolbar {
+.block-myoverview .courseoverview-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -82,7 +89,7 @@
     margin-bottom: var(--co-sp-md);
 }
 
-.courseoverview-toolbar__group {
+.block-myoverview .courseoverview-toolbar__group {
     display: flex;
     align-items: center;
     gap: var(--co-sp-xs);
@@ -92,55 +99,56 @@
    every width (Figma 5052-13740 — the tablet layout, confirmed for desktop too). They keep their
    natural width and wrap onto the next line when they do not all fit, rather than being crammed
    edge-to-edge against the block padding. */
-.courseoverview-toolbar__group--actions {
+.block-myoverview .courseoverview-toolbar__group--actions {
     width: 100%;
     flex-wrap: wrap;
 }
 
 /* Search expands to fill available space between actions and tools; full-width on its own
    row in the narrow base layout. */
-.courseoverview-toolbar__group--search {
+.block-myoverview .courseoverview-toolbar__group--search {
     flex: 1;
     width: 100%;
 }
 
-.courseoverview-min-480 .courseoverview-toolbar__group--search {
+.block-myoverview.courseoverview-min-480 .courseoverview-toolbar__group--search {
     width: auto;
 }
 
 /* Mobile-first: the tools row (filter + sort + view) takes its own line so the filter can grow to
    fill it. From courseoverview-min-480 it shares the search row and the filter takes a fixed width. */
-.courseoverview-toolbar__group--tools {
+.block-myoverview .courseoverview-toolbar__group--tools {
     width: 100%;
 }
 
-.courseoverview-min-480 .courseoverview-toolbar__group--tools {
+.block-myoverview.courseoverview-min-480 .courseoverview-toolbar__group--tools {
     width: auto;
 }
 
 /* --- Search --- */
 /* Fill the search group so the field is the widest control on the row (Figma: search flexes while
    the filter keeps a fixed width). Without width:100% the inline-flex box shrinks to its content. */
-.courseoverview-search {
+.block-myoverview .courseoverview-search {
     position: relative;
     display: flex;
     width: 100%;
     align-items: center;
 }
 
-.courseoverview-search__icon {
+.block-myoverview .courseoverview-search__icon {
     position: absolute;
-    left: var(--co-sp-sm);
+    inset-inline-start: var(--co-sp-sm);
     color: var(--co-muted);
     pointer-events: none;
     font-size: 12px; /* No MDS token at this size (smallest is paragraph-small 14px). */
 }
 
-.courseoverview-search__input {
+.block-myoverview .courseoverview-search__input {
     height: 28px;
     width: 100%;
     min-width: 120px; /* Allow the field to shrink in the narrow block drawer without overflowing. */
-    padding: 0 30px 0 28px;
+    padding-block: 0;
+    padding-inline: 28px 30px; /* Start: room for the search icon; end: room for the clear button. */
     border: 1px solid var(--co-border-interactive);
     border-radius: var(--co-r-sm); /* Figma: --border-radius/sm = 6px */
     background: var(--co-surface);
@@ -148,19 +156,19 @@
     font-size: var(--mds-font-size-paragraph-default); /* Figma: $font-size-body; larger than chip buttons */
 }
 
-.courseoverview-search__input:focus-visible {
+.block-myoverview .courseoverview-search__input:focus-visible {
     outline: 2px solid var(--co-primary);
     outline-offset: 1px;
 }
 
-.courseoverview-search__clear {
+.block-myoverview .courseoverview-search__clear {
     position: absolute;
-    right: var(--co-sp-xs);
+    inset-inline-end: var(--co-sp-xs);
     flex-shrink: 0;
 }
 
 /* --- Tool buttons / dropdowns --- */
-.courseoverview-dropdown {
+.block-myoverview .courseoverview-dropdown {
     position: relative;
 }
 
@@ -168,17 +176,17 @@
    layouts (min-width:0 lets it shrink in the block drawer) and holds a fixed 200px (Figma) once it
    shares the search row from courseoverview-min-480. The width lives on this wrapper — the direct
    flex child of the tools row — not on the inner button, whose flex would otherwise be ignored. */
-.courseoverview-dropdown--labelled {
+.block-myoverview .courseoverview-dropdown--labelled {
     flex: 1 1 auto;
     min-width: 0;
 }
 
-.courseoverview-min-480 .courseoverview-dropdown--labelled {
+.block-myoverview.courseoverview-min-480 .courseoverview-dropdown--labelled {
     flex: 0 0 200px;
     min-width: 200px;
 }
 
-.courseoverview-toolbtn {
+.block-myoverview .courseoverview-toolbtn {
     display: inline-flex;
     align-items: center;
     gap: var(--co-sp-xs);
@@ -194,10 +202,11 @@
     font-size: var(--mds-font-size-paragraph-small); /* 0.875rem / 14px */
 }
 
-/* Constrain the design-system Button (Bootstrap .btn) to the 28px toolbar height. The label uses
-   the DS paragraph-default size (1rem) to match the search field and the design system; the icon
-   gap matches the DS Button (--mds-spacing-xs). */
-.courseoverview-toolbar .btn {
+/* Constrain the design-system Button (Bootstrap .btn) to the 28px toolbar height. Scoped to the
+   actions group so only the Manage/Request/Create links are restyled, not any other button that
+   might ever render in the toolbar. The label uses the DS paragraph-default size (1rem) to match
+   the search field and the design system; the icon gap matches the DS Button (--mds-spacing-xs). */
+.block-myoverview .courseoverview-toolbar__group--actions .btn {
     display: inline-flex;
     align-items: center;
     gap: var(--co-sp-xs);
@@ -210,13 +219,13 @@
 
 /* Keep the leading icon (e.g. the Create "+") on the DS icon token rather than scaling it up with
    the label — the DS sizes button icons independently of the label. */
-.courseoverview-toolbar .btn i {
+.block-myoverview .courseoverview-toolbar__group--actions .btn i {
     font-size: var(--mds-icons-xs);
 }
 
 /* Fill the sizing wrapper (.courseoverview-dropdown--labelled) and lay the label out against the
-   caret so the selection sits left and the chevron right, like a select control. */
-.courseoverview-toolbtn--labelled {
+   caret so the selection sits at the start and the chevron at the end, like a select control. */
+.block-myoverview .courseoverview-toolbtn--labelled {
     width: 100%;
     justify-content: space-between;
     padding: 0 var(--co-sp-sm);
@@ -225,44 +234,45 @@
 /* The filter's text label uses the DS paragraph-default size (1rem) to match the other toolbar
    buttons and the search field. The caret keeps the smaller chip font-size. Truncate rather than
    overflow when the filter is squeezed in a narrow block drawer. */
-.courseoverview-toolbtn__label {
+.block-myoverview .courseoverview-toolbtn__label {
     overflow: hidden;
     font-size: var(--mds-font-size-paragraph-default);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.courseoverview-toolbtn:hover {
+.block-myoverview .courseoverview-toolbtn:hover {
     background: var(--co-surface-subtle);
     border-color: var(--co-muted);
     color: var(--co-text);
 }
 
 /* Pressed state. */
-.courseoverview-toolbtn:active {
+.block-myoverview .courseoverview-toolbtn:active {
     background: var(--co-surface-strong);
     border-color: var(--co-border-interactive);
     color: var(--co-text);
 }
 
-.courseoverview-toolbtn.is-active:active {
+.block-myoverview .courseoverview-toolbtn.is-active:active {
     background: color-mix(in srgb, var(--mds-color-gray-900) 12%, var(--mds-border-interactive-secondary-active));
 }
 
 /* CSS tooltip for icon-only tool buttons (replaces native browser title tooltip).
    Escape dismissal is handled by useDismissableTooltip, which drops the
    data-tooltip attribute while dismissed (WCAG 2.1 1.4.13). */
-.courseoverview-toolbtn[data-tooltip],
-.courseoverview-iconbtn[data-tooltip] {
+.block-myoverview .courseoverview-toolbtn[data-tooltip],
+.block-myoverview .courseoverview-iconbtn[data-tooltip] {
     position: relative;
     overflow: visible;
 }
 
-.courseoverview-toolbtn[data-tooltip]::after,
-.courseoverview-iconbtn[data-tooltip]::after {
+.block-myoverview .courseoverview-toolbtn[data-tooltip]::after,
+.block-myoverview .courseoverview-iconbtn[data-tooltip]::after {
     content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 6px);
+    /* left + translateX centre the bubble on the trigger; symmetric, so RTL-safe. */
     left: 50%;
     transform: translateX(-50%);
     background: var(--co-text);
@@ -279,48 +289,48 @@
     z-index: 300;
 }
 
-.courseoverview-toolbtn[data-tooltip]:hover::after,
-.courseoverview-toolbtn[data-tooltip]:focus-visible::after,
-.courseoverview-iconbtn[data-tooltip]:hover::after,
-.courseoverview-iconbtn[data-tooltip]:focus-visible::after {
+.block-myoverview .courseoverview-toolbtn[data-tooltip]:hover::after,
+.block-myoverview .courseoverview-toolbtn[data-tooltip]:focus-visible::after,
+.block-myoverview .courseoverview-iconbtn[data-tooltip]:hover::after,
+.block-myoverview .courseoverview-iconbtn[data-tooltip]:focus-visible::after {
     opacity: 1;
 }
 
-.courseoverview-toolbtn:focus-visible,
-.courseoverview-iconbtn:focus-visible,
-.courseoverview-menu__item:focus-visible,
-.courseoverview-card__title:focus-visible {
+.block-myoverview .courseoverview-toolbtn:focus-visible,
+.block-myoverview .courseoverview-iconbtn:focus-visible,
+.block-myoverview .courseoverview-menu__item:focus-visible,
+.block-myoverview .courseoverview-card__title:focus-visible {
     outline: 2px solid var(--co-primary);
     outline-offset: 2px;
 }
 
 /* Active state: a setting differs from its default (MDL-88972).
    Figma (4866:65941/65440/66058): --border/interactive/secondary/active bg, --text/inverse text. */
-.courseoverview-toolbtn.is-active {
+.block-myoverview .courseoverview-toolbtn.is-active {
     background: var(--mds-border-interactive-secondary-active); /* #495057 */
     border-color: var(--mds-border-interactive-secondary-active);
     color: var(--mds-text-inverse); /* #f8f9fa */
 }
 
-.courseoverview-toolbtn.is-active:hover {
+.block-myoverview .courseoverview-toolbtn.is-active:hover {
     background: var(--mds-border-interactive-secondary-active);
     border-color: var(--mds-border-interactive-secondary-active);
     color: var(--mds-text-inverse);
 }
 
-.courseoverview-toolbtn__caret {
+.block-myoverview .courseoverview-toolbtn__caret {
     font-size: 10px; /* No MDS token at this size (smallest is paragraph-small 14px). */
     color: var(--co-muted);
 }
 
 /* Caret inherits inverse colour when button is in active state. */
-.courseoverview-toolbtn.is-active .courseoverview-toolbtn__caret {
+.block-myoverview .courseoverview-toolbtn.is-active .courseoverview-toolbtn__caret {
     color: var(--mds-text-inverse);
 }
 
 /* --- Menus (dropdown + ellipsis) --- */
 /* Group label header inside a dropdown menu (Figma 4866:65906 / 4866:65507). */
-.courseoverview-menu__group-label {
+.block-myoverview .courseoverview-menu__group-label {
     padding: var(--co-sp-xs) var(--co-sp-sm);
     border-bottom: 1px solid var(--co-border-interactive);
     font-size: var(--mds-font-size-paragraph-small); /* Figma (4866:65507): $font-size-sm, medium — matches the menu items */
@@ -328,17 +338,17 @@
     color: var(--co-subtle);
 }
 
-.courseoverview-menu {
+.block-myoverview .courseoverview-menu {
     position: relative;
 }
 
 /* Items run full-bleed so their group separators are straight, edge-to-edge lines (Figma 4616:16251)
    rather than the inset, rounded borders that per-item padding + radius would produce. overflow:hidden
    clips the square item corners to the menu's rounded corners (it does not clip the box-shadow). */
-.courseoverview-menu__list {
+.block-myoverview .courseoverview-menu__list {
     position: absolute;
     top: calc(100% + 4px);
-    right: 0;
+    inset-inline-end: 0;
     z-index: 30;
     min-width: 200px;
     padding: 0;
@@ -349,17 +359,17 @@
     box-shadow: 0 6px 18px color-mix(in srgb, var(--mds-color-gray-900) 12%, transparent); /* No MDS shadow token yet. */
 }
 
-/* Left-anchored menu (filter). Opens under the button's left edge to match Figma and to stay
-   on-screen when the block is narrow (e.g. the block drawer), where the default right-anchored
-   menu would run off the left of the viewport. Sort/view stay right-anchored. */
-.courseoverview-menu__list--start {
-    right: auto;
-    left: 0;
+/* Start-anchored menu (filter). Opens under the button's start edge to match Figma and to stay
+   on-screen when the block is narrow (e.g. the block drawer), where the default end-anchored
+   menu would run off the edge of the viewport. Sort/view stay end-anchored. */
+.block-myoverview .courseoverview-menu__list--start {
+    inset-inline-end: auto;
+    inset-inline-start: 0;
 }
 
 /* Full-bleed rows (no border-radius) so group separators are straight full-width lines and the hover
    fill spans the menu width, matching Figma 4616:16251. */
-.courseoverview-menu__item {
+.block-myoverview .courseoverview-menu__item {
     display: flex;
     align-items: center;
     gap: var(--co-sp-xs);
@@ -369,43 +379,43 @@
     background: transparent;
     color: var(--co-subtle); /* Figma: --text/subtle */
     font-size: var(--mds-font-size-paragraph-small); /* Figma: $font-size-sm */
-    text-align: left;
+    text-align: start;
     cursor: pointer;
 }
 
-.courseoverview-menu__item:hover {
+.block-myoverview .courseoverview-menu__item:hover {
     background: var(--co-surface-subtle);
 }
 
 /* Draw the focus ring inside the full-bleed row so overflow:hidden on the list cannot clip it. */
-.courseoverview-menu__item:focus-visible {
+.block-myoverview .courseoverview-menu__item:focus-visible {
     outline-offset: -2px;
 }
 
 /* Divider drawn after the last item of a semantic group (Figma menu grouping). */
-.courseoverview-menu__item--group-end {
+.block-myoverview .courseoverview-menu__item--group-end {
     border-bottom: 1px solid var(--co-border-interactive); /* Figma: --border/interactive/secondary/default */
 }
 
-.courseoverview-menu__item.is-selected {
+.block-myoverview .courseoverview-menu__item.is-selected {
     color: var(--co-link); /* Figma: --text/link/primary */
     font-weight: 500;
 }
 
-.courseoverview-menu__check {
-    margin-left: auto;
+.block-myoverview .courseoverview-menu__check {
+    margin-inline-start: auto;
     color: var(--co-link);
     font-size: var(--mds-icons-sm); /* Figma: --icons/sm / 16px */
 }
 
-.courseoverview-menu__icon {
+.block-myoverview .courseoverview-menu__icon {
     width: 16px;
     text-align: center;
     color: var(--co-muted);
 }
 
 /* --- Course list layouts --- */
-.courseoverview-list--card {
+.block-myoverview .courseoverview-list--card {
     display: grid;
     grid-template-columns: 1fr; /* Mobile viewport / narrow block drawer: single column. */
     gap: var(--co-sp-md);
@@ -416,20 +426,20 @@
    single-column and looks unchanged. Combining the viewport @media with the container-width class
    keeps the drawer usable while giving the main page its full three-column layout. */
 @media (min-width: 768px) {
-    .courseoverview-min-480 .courseoverview-list--card {
+    .block-myoverview.courseoverview-min-480 .courseoverview-list--card {
         grid-template-columns: repeat(3, 1fr);
     }
 }
 
-.courseoverview-list--list,
-.courseoverview-list--summary {
+.block-myoverview .courseoverview-list--list,
+.block-myoverview .courseoverview-list--summary {
     display: flex;
     flex-direction: column;
     gap: var(--co-sp-sm);
 }
 
 /* --- Course card (shared) --- */
-.courseoverview-card {
+.block-myoverview .courseoverview-card {
     position: relative;
     background: var(--co-surface);
     border: 1px solid var(--co-border);
@@ -437,25 +447,25 @@
     padding: var(--co-sp-md);
 }
 
-.courseoverview-card:hover {
+.block-myoverview .courseoverview-card:hover {
     box-shadow: 0 4px 12px color-mix(in srgb, var(--mds-color-gray-900) 10%, transparent); /* No MDS shadow token yet. */
 }
 
-.courseoverview-card__body {
+.block-myoverview .courseoverview-card__body {
     display: flex;
     flex-direction: column;
     gap: var(--co-sp-xs); /* Figma (4902:13914): --spacing/xs = 8px between body children */
     min-width: 0;
 }
 
-.courseoverview-card__text {
+.block-myoverview .courseoverview-card__text {
     display: flex;
     flex-direction: column;
     gap: var(--co-sp-xxs); /* Figma: 4px between title and category. */
     min-width: 0;
 }
 
-.courseoverview-card__title {
+.block-myoverview .courseoverview-card__title {
     color: var(--co-link);
     font-size: var(--mds-font-size-paragraph-default); /* 1rem / 16px */
     font-weight: 500;
@@ -464,12 +474,12 @@
     word-break: break-word;
 }
 
-.courseoverview-card__title:hover {
+.block-myoverview .courseoverview-card__title:hover {
     text-decoration: underline;
 }
 
 /* Stretched link makes the whole card clickable (MDL-88971). */
-.courseoverview-card__title.stretched-link::after {
+.block-myoverview .courseoverview-card__title.stretched-link::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -477,13 +487,13 @@
 }
 
 
-.courseoverview-card__category {
+.block-myoverview .courseoverview-card__category {
     font-size: var(--mds-font-size-paragraph-small); /* 0.875rem / 14px */
     line-height: 17.4px;
     color: var(--co-muted);
 }
 
-.courseoverview-card__summary {
+.block-myoverview .courseoverview-card__summary {
     margin: 0;
     font-size: var(--mds-font-size-paragraph-small); /* 0.875rem / 14px */
     color: var(--co-subtle);
@@ -491,11 +501,11 @@
 
 
 /* --- Image block (MDL-88967) --- */
-.courseoverview-card__media {
+.block-myoverview .courseoverview-card__media {
     position: relative;
 }
 
-.courseoverview-image {
+.block-myoverview .courseoverview-image {
     height: var(--co-image-h);
     border-radius: var(--co-r-sm);
     overflow: hidden;
@@ -503,7 +513,7 @@
 }
 
 /* Checkerboard fallback when no image is set. */
-.courseoverview-image--empty {
+.block-myoverview .courseoverview-image--empty {
     background-image:
         linear-gradient(45deg, var(--mds-color-gray-200) 25%, transparent 25%),
         linear-gradient(-45deg, var(--mds-color-gray-200) 25%, transparent 25%),
@@ -513,18 +523,19 @@
     background-position: 0 0, 0 10px, 10px -10px, -10px 0;
 }
 
-.courseoverview-image__img {
+.block-myoverview .courseoverview-image__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
 
-/* --- Card controls (star + ellipsis), top-right (MDL-88968/88969) --- */
-.courseoverview-controls {
+/* --- Card controls (star + ellipsis), anchored at the card's top inline-end corner
+   (MDL-88968/88969) --- */
+.block-myoverview .courseoverview-controls {
     position: absolute;
     top: var(--co-sp-xs);
-    right: var(--co-sp-xs);
+    inset-inline-end: var(--co-sp-xs);
     z-index: 2;
     display: flex;
     gap: var(--co-sp-xs);
@@ -533,7 +544,7 @@
 /* --- Star / FavouriteButton sizing override ---
    The DS FavouriteButton fills a transparent circle; constrain it to the
    same 28px footprint as the legacy icon button so card-overlay layout is unchanged. */
-.courseoverview-iconbtn {
+.block-myoverview .courseoverview-iconbtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -548,11 +559,11 @@
     font-size: 12px; /* No MDS token at this size (smallest is paragraph-small 14px). */
 }
 
-.courseoverview-iconbtn:hover {
+.block-myoverview .courseoverview-iconbtn:hover {
     background: var(--co-surface-subtle);
 }
 
-.courseoverview-controls .mds-favourite-button {
+.block-myoverview .courseoverview-controls .mds-favourite-button {
     width: 28px;
     height: 28px;
     border-radius: var(--mds-border-radius-pill); /* MDS pill = circular at 28px */
@@ -561,24 +572,24 @@
 /* --- Card view layout (image on top, body below) ---
    The 1fr body row makes the body fill the card, so the progress bar's
    margin-top: auto (below) can anchor it to the card bottom. */
-.courseoverview-card--card {
+.block-myoverview .courseoverview-card--card {
     display: grid;
     grid-template-areas: "media" "body";
     grid-template-rows: auto 1fr;
     gap: var(--co-sp-md);
 }
 
-.courseoverview-card--card .courseoverview-card__media {
+.block-myoverview .courseoverview-card--card .courseoverview-card__media {
     grid-area: media;
 }
 
-.courseoverview-card--card .courseoverview-card__body {
+.block-myoverview .courseoverview-card--card .courseoverview-card__body {
     grid-area: body;
 }
 
-/* --- List & summary view layout (image left, body right) --- */
-.courseoverview-card--list,
-.courseoverview-card--summary {
+/* --- List & summary view layout (image at the inline start, body after) --- */
+.block-myoverview .courseoverview-card--list,
+.block-myoverview .courseoverview-card--summary {
     display: grid;
     grid-template-areas: "media body";
     gap: var(--co-sp-lg); /* Figma: --spacing/lg = 20px between image and body */
@@ -587,51 +598,51 @@
 
 /* Mobile-first: narrow image columns by default (scaled for the drawer/narrow container),
    widening to the Figma sizes once the container is wide enough (courseoverview-min-576). */
-.courseoverview-card--list {
+.block-myoverview .courseoverview-card--list {
     grid-template-columns: 72px 1fr; /* scaled from 120px at 60% */
 }
 
-.courseoverview-card--summary {
+.block-myoverview .courseoverview-card--summary {
     grid-template-columns: 56px 1fr; /* scaled from 93px at 60% */
 }
 
-.courseoverview-min-576 .courseoverview-card--list {
+.block-myoverview.courseoverview-min-576 .courseoverview-card--list {
     grid-template-columns: 120px 1fr; /* Figma (4866:65954): 7.5rem image column */
 }
 
-.courseoverview-min-576 .courseoverview-card--summary {
+.block-myoverview.courseoverview-min-576 .courseoverview-card--summary {
     grid-template-columns: 93px 1fr; /* Figma (4866:66077): 5.8125rem image column */
 }
 
-.courseoverview-card--list .courseoverview-card__media,
-.courseoverview-card--summary .courseoverview-card__media {
+.block-myoverview .courseoverview-card--list .courseoverview-card__media,
+.block-myoverview .courseoverview-card--summary .courseoverview-card__media {
     grid-area: media;
     /* Static positioning so .courseoverview-controls (position:absolute) escapes to
-       .courseoverview-card (position:relative) and anchors at the card's top-right
-       instead of the image column's top-right. */
+       .courseoverview-card (position:relative) and anchors at the card's top inline-end
+       corner instead of the image column's. */
     position: static;
 }
 
-.courseoverview-card--list .courseoverview-card__body,
-.courseoverview-card--summary .courseoverview-card__body {
+.block-myoverview .courseoverview-card--list .courseoverview-card__body,
+.block-myoverview .courseoverview-card--summary .courseoverview-card__body {
     grid-area: body;
-    /* Reserve space at the right for the controls that float over the card. */
-    padding-right: 72px;
+    /* Reserve space at the inline end for the controls that float over the card. */
+    padding-inline-end: 72px;
 }
 
-.courseoverview-card--summary .courseoverview-card__body {
+.block-myoverview .courseoverview-card--summary .courseoverview-card__body {
     gap: var(--co-sp-md); /* Figma (4866:66077): 16px between text group and description */
 }
 
-.courseoverview-card--list .courseoverview-image {
+.block-myoverview .courseoverview-card--list .courseoverview-image {
     height: 64px; /* scaled from 80px at 80% */
 }
 
-.courseoverview-min-576 .courseoverview-card--list .courseoverview-image {
+.block-myoverview.courseoverview-min-576 .courseoverview-card--list .courseoverview-image {
     height: 80px; /* Figma (4866:65954): 5rem */
 }
 
-.courseoverview-card--summary .courseoverview-image {
+.block-myoverview .courseoverview-card--summary .courseoverview-image {
     /* aspect-ratio enforces 1:1 at any column width — prevents empty placeholder
        from stretching to body height when no course image is present. */
     height: auto;
@@ -641,20 +652,20 @@
 /* --- Progress (MDL-88970) ---
    DS ProgressBar owns internal layout; this just constrains the wrapper width
    inside the card body so the track doesn't stretch beyond the text column. */
-.courseoverview-progress {
+.block-myoverview .courseoverview-progress {
     width: 100%;
 }
 
 /* Card view: anchor the progress bar to the card bottom (the body fills the
    card via the 1fr row above), so bars align across a row of cards whose
    titles wrap to different line counts. */
-.courseoverview-card--card .courseoverview-progress {
+.block-myoverview .courseoverview-card--card .courseoverview-progress {
     margin-top: auto;
 }
 
 /* --- Pagination (MDL-88977, prev/next model per MDL-89070 review) ---
    The buttons are DS Buttons; this wrapper only lays them out. */
-.courseoverview-pagination {
+.block-myoverview .courseoverview-pagination {
     display: flex;
     justify-content: center;
     gap: var(--co-sp-xs);
@@ -662,29 +673,29 @@
 }
 
 /* --- Empty / no-results states --- */
-.courseoverview-empty {
+.block-myoverview .courseoverview-empty {
     text-align: center;
     padding: var(--co-sp-xl) var(--co-sp-md);
     color: var(--co-muted);
 }
 
-.courseoverview-empty__illustration {
+.block-myoverview .courseoverview-empty__illustration {
     margin-bottom: var(--co-sp-md);
 }
 
-.courseoverview-empty__illustration img {
+.block-myoverview .courseoverview-empty__illustration img {
     width: 94px;
     height: auto;
 }
 
-.courseoverview-empty__text {
+.block-myoverview .courseoverview-empty__text {
     margin: 0 auto;
     max-width: 36rem;
     font-size: var(--mds-font-size-paragraph-default); /* 1rem / 16px */
 }
 
 /* --- Rich zero-state (server-built) additions --- */
-.courseoverview-empty__title {
+.block-myoverview .courseoverview-empty__title {
     margin: 0 0 var(--co-sp-xs);
     font-size: var(--mds-font-size-paragraph-default); /* 1rem / 16px */
     font-weight: 500;
@@ -693,11 +704,11 @@
 
 /* Underline links inside the zero-state intro so they are distinguishable from the
    surrounding muted text without relying on colour (axe link-in-text-block). */
-.courseoverview-empty__text a {
+.block-myoverview .courseoverview-empty__text a {
     text-decoration: underline;
 }
 
-.courseoverview-empty__actions {
+.block-myoverview .courseoverview-empty__actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--co-sp-xs);
@@ -706,7 +717,7 @@
 }
 
 /* --- Async loading / error region (new client-side states, MDL-88965) --- */
-.block-myoverview__loading {
+.block-myoverview .block-myoverview__loading {
     height: 3px;
     margin: var(--co-sp-md) 0;
     background: linear-gradient(90deg, var(--co-surface-strong) 0%, var(--co-primary) 50%, var(--co-surface-strong) 100%);
@@ -724,12 +735,25 @@
     }
 }
 
-.block-myoverview__error {
+.block-myoverview .block-myoverview__error {
     margin: var(--co-sp-md) 0;
     padding: var(--co-sp-sm) var(--co-sp-md);
     color: var(--co-danger);
     border: 1px solid var(--co-danger);
     border-radius: var(--co-r-sm);
+}
+
+/* Respect the user's motion preference: the loading bar becomes a static gradient
+   and the tooltip appears without a fade (WCAG 2.3.3). */
+@media (prefers-reduced-motion: reduce) {
+    .block-myoverview .block-myoverview__loading {
+        animation: none;
+    }
+
+    .block-myoverview .courseoverview-toolbtn[data-tooltip]::after,
+    .block-myoverview .courseoverview-iconbtn[data-tooltip]::after {
+        transition: none;
+    }
 }
 
 /*
