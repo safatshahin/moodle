@@ -23,60 +23,9 @@
 
 import {act, render, screen, waitFor, fireEvent} from "@testing-library/react";
 
-// The design-system package is ESM-only, so Jest cannot require it — mock the components
-// the tree renders, as the block_timeline reference tests do.
-jest.mock("@moodlehq/design-system", () => ({
-    Button: (props: {label: string; disabled?: boolean; onClick: () => void; "data-action"?: string}) => (
-        <button type="button" disabled={props.disabled} onClick={props.onClick} data-action={props["data-action"]}>
-            {props.label}
-        </button>
-    ),
-    CloseButton: (props: {"aria-label"?: string; onClick?: () => void}) => (
-        <button type="button" aria-label={props["aria-label"]} onClick={props.onClick} />
-    ),
-    FavouriteButton: (props: {"aria-label": string; selected?: boolean; onClick?: (e: unknown) => void}) => (
-        <button type="button" aria-label={props["aria-label"]} aria-pressed={!!props.selected} onClick={props.onClick} />
-    ),
-    // Mirrors the real DS contract the block relies on: the wrapper carries the
-    // label-variant modifier class, the 'title' variant renders the title line
-    // above the track, 'inline' renders the count beside it, and an explicit
-    // aria-label wins as the track's accessible name.
-    ProgressBar: (props: {
-        value?: number; labelVariant?: string; title?: string; count?: string;
-        "aria-label"?: string; className?: string;
-    }) => (
-        <div className={`mds-progress-bar mds-progress-bar--label-${props.labelVariant} ${props.className ?? ""}`}>
-            {props.labelVariant === "title" && <span className="mds-progress-bar-title">{props.title}</span>}
-            <div role="progressbar" aria-label={props["aria-label"] ?? props.title} aria-valuenow={props.value} />
-            {props.labelVariant === "inline" && <span className="mds-progress-bar-count">{props.count}</span>}
-        </div>
-    ),
-    // Mirrors the DS grouped-variant contract the block relies on: hides below two
-    // pages, disables prev/next at the bounds.
-    Pagination: (props: {
-        totalPages: number; currentPage: number; onPageChange: (p: number) => void;
-        ariaLabel?: string; previousPageLabel?: string; nextPageLabel?: string;
-    }) => (props.totalPages < 2 ? null : (
-        <nav aria-label={props.ariaLabel}>
-            <button
-                type="button"
-                className="mds-pagination__button mds-pagination__button--prev"
-                disabled={props.currentPage <= 1}
-                onClick={() => props.onPageChange(props.currentPage - 1)}
-            >
-                {props.previousPageLabel}
-            </button>
-            <button
-                type="button"
-                className="mds-pagination__button mds-pagination__button--next"
-                disabled={props.currentPage >= props.totalPages}
-                onClick={() => props.onPageChange(props.currentPage + 1)}
-            >
-                {props.nextPageLabel}
-            </button>
-        </nav>
-    )),
-}), {virtual: true});
+// The design-system package is ESM-only, so Jest cannot require it — every suite
+// shares the contract-faithful mock in helpers/dsMock.
+jest.mock("@moodlehq/design-system", () => require("./helpers/dsMock"), {virtual: true});
 
 
 const mockGetCourses = jest.fn();

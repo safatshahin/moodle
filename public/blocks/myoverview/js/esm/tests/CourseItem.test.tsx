@@ -22,24 +22,9 @@
 
 import {render, screen} from "@testing-library/react";
 
-// The design-system package is ESM-only, so Jest cannot require it — mock the components
-// the tree renders, as the block_timeline reference tests do.
-jest.mock("@moodlehq/design-system", () => ({
-    Button: (props: {label: string; disabled?: boolean; onClick: () => void; "data-action"?: string}) => (
-        <button type="button" disabled={props.disabled} onClick={props.onClick} data-action={props["data-action"]}>
-            {props.label}
-        </button>
-    ),
-    CloseButton: (props: {"aria-label"?: string; onClick?: () => void}) => (
-        <button type="button" aria-label={props["aria-label"]} onClick={props.onClick} />
-    ),
-    FavouriteButton: (props: {"aria-label": string; selected?: boolean; onClick?: (e: unknown) => void}) => (
-        <button type="button" aria-label={props["aria-label"]} aria-pressed={!!props.selected} onClick={props.onClick} />
-    ),
-    ProgressBar: (props: {value?: number; ariaLabel?: string}) => (
-        <div role="progressbar" aria-label={props.ariaLabel} aria-valuenow={props.value} />
-    ),
-}), {virtual: true});
+// The design-system package is ESM-only, so Jest cannot require it — every suite
+// shares the contract-faithful mock in helpers/dsMock.
+jest.mock("@moodlehq/design-system", () => require("./helpers/dsMock"), {virtual: true});
 
 import CourseItem from "../src/components/CourseItem";
 import {CourseCallbacksContext, CourseMembershipContext, StringsContext} from "../src/state";
