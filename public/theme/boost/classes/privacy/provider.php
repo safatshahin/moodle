@@ -46,6 +46,9 @@ class provider implements
     /** The user preferences for the blocks drawer. */
     const DRAWER_OPEN_BLOCK = 'drawer-open-block';
 
+    /** The user preference for the course index drawer width. */
+    const DRAWER_INDEX_WIDTH = \theme_boost\courseindex_resizer::PREFERENCE;
+
     /**
      * Returns meta data about this system.
      *
@@ -55,6 +58,7 @@ class provider implements
     public static function get_metadata(collection $items): collection {
         $items->add_user_preference(self::DRAWER_OPEN_INDEX, 'privacy:metadata:preference:draweropenindex');
         $items->add_user_preference(self::DRAWER_OPEN_BLOCK, 'privacy:metadata:preference:draweropenblock');
+        $items->add_user_preference(self::DRAWER_INDEX_WIDTH, 'privacy:metadata:preference:drawerindexwidth');
         return $items;
     }
 
@@ -92,6 +96,17 @@ class provider implements
                 self::DRAWER_OPEN_BLOCK,
                 $draweropenblockpref,
                 $preferencestring
+            );
+        }
+
+        $drawerindexwidthpref = get_user_preferences(self::DRAWER_INDEX_WIDTH, null, $userid);
+
+        if (isset($drawerindexwidthpref)) {
+            \core_privacy\local\request\writer::export_user_preference(
+                'theme_boost',
+                self::DRAWER_INDEX_WIDTH,
+                $drawerindexwidthpref,
+                get_string('privacy:drawerindexwidth', 'theme_boost', $drawerindexwidthpref)
             );
         }
     }
