@@ -29,7 +29,7 @@
 
 import {useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState} from "react";
 import {AppProps, Strings} from "./types";
-import {loadStrings} from "./strings";
+import {loadErrorString, loadStrings} from "./strings";
 import {
     setFavourite, setCourseHidden, setPreference,
     PREF_VIEW, PREF_FILTER, PREF_SORT, PREF_CFVALUE,
@@ -131,22 +131,41 @@ function EmptyStateChoice({hasActiveQuery, isZeroState, zerostate, illustrationu
 
 /**
  * What renders before the language strings arrive: the loading indicator, or a
- * terminal error once every bounded retry has failed. The error text is
- * untranslated by necessity — the language-string service is exactly what
- * could not be reached.
+ * terminal error once every bounded retry has failed. The error text comes from
+ * the cached lang string when one is available (see loadErrorString); the
+ * untranslated literal is only the last resort when the string service is
+ * unreachable AND nothing was ever cached.
  *
- * @param props Whether the bounded retries have been exhausted.
+ * @param props Whether the bounded retries have been exhausted, and the resolved error text.
  * @returns The loading or error element.
  */
-function StringsFallback({failed}: {failed: boolean}) {
+function StringsFallback({failed, errorText}: {failed: boolean; errorText: string | null}) {
     if (failed) {
         return (
             <p className="block-myoverview__error" role="alert">
-                An error occurred while loading. Please reload the page.
+                {errorText ?? "An error occurred while loading. Please reload the page."}
             </p>
         );
     }
     return <div className="block-myoverview__loading" role="status" aria-busy="true" />;
+}
+
+/**
+ * Resolve the translated terminal-error text, best effort.
+ *
+ * Kept outside the retry chain so the promise handling is flat: the cached copy
+ * of the string resolves without a request; when nothing is cached and the
+ * service is down, the rejection is swallowed and the caller's fallback stands.
+ *
+ * @param onText Receives the translated text if it resolves.
+ */
+function fetchTerminalErrorText(onText: (text: string) => void): void {
+    loadErrorString()
+        .then((text) => {
+            onText(text);
+            return null;
+        })
+        .catch(() => undefined);
 }
 
 /**
@@ -168,10 +187,10 @@ export default function App(props: AppProps) {
     // fetch is retried with backoff: without it one transient error would leave the
     // spinner forever (there is no fallback text to show — the strings ARE the text).
     // When every retry fails, the loading state ends in a terminal error instead of an
-    // eternal spinner. The message is untranslated by necessity: the language-string
-    // service is exactly what could not be reached.
+    // eternal spinner, translated via the string cache when one is available.
     const [strings, setStrings] = useState<Strings | null>(null);
     const [stringsFailed, setStringsFailed] = useState(false);
+    const [stringsErrorText, setStringsErrorText] = useState<string | null>(null);
     useEffect(() => {
         let cancelled = false;
         let timer: ReturnType<typeof setTimeout>;
@@ -191,6 +210,11 @@ export default function App(props: AppProps) {
                         timer = setTimeout(() => attempt(retriesLeft - 1), STRINGS_RETRY_DELAY_MS);
                     } else {
                         setStringsFailed(true);
+                        fetchTerminalErrorText((text) => {
+                            if (!cancelled) {
+                                setStringsErrorText(text);
+                            }
+                        });
                     }
                 });
         };
@@ -334,7 +358,7 @@ export default function App(props: AppProps) {
     // Strings are fetched client-side; until they arrive only the loading indicator renders.
     return (
         <section ref={rootRef} className={`block-myoverview ${widthClasses}`.trim()}>
-            {!strings && <StringsFallback failed={stringsFailed} />}
+            {!strings && <StringsFallback failed={stringsFailed} errorText={stringsErrorText} />}
             {strings && (
         <StringsContext.Provider value={strings}>
             <CourseCallbacksContext.Provider value={callbacks}>

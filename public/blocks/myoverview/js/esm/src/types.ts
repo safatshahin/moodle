@@ -74,10 +74,8 @@ export type Strings = {
     createcourse: string;
     emptyallhiddenintro: string;
     emptyallhiddentitle: string;
-    emptyeducator: string;
     emptynoresults: string;
     emptynoresultstitle: string;
-    emptystudent: string;
     errorloadingcourses: string;
     filterall: string;
     filterallincludinghidden: string;

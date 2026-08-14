@@ -25,8 +25,8 @@
  * @module     block_myoverview/strings
  */
 
-import {getStrings} from "@moodle/lms/core/stringUtils";
-import {Strings} from "./types";
+import {getString, getStrings} from "@moodle/lms/core/stringUtils";
+import {Strings, ZeroStateData} from "./types";
 
 const COMPONENT = "block_myoverview";
 
@@ -43,10 +43,8 @@ const STRING_MAP: Record<keyof Strings, {key: string; component?: string}> = {
     createcourse: {key: "createcourse", component: COMPONENT},
     emptyallhiddenintro: {key: "allhidden_intro", component: COMPONENT},
     emptyallhiddentitle: {key: "allhidden_title", component: COMPONENT},
-    emptyeducator: {key: "zero_default_intro", component: COMPONENT},
     emptynoresults: {key: "noresults_intro", component: COMPONENT},
     emptynoresultstitle: {key: "noresults_title", component: COMPONENT},
-    emptystudent: {key: "zero_default_intro", component: COMPONENT},
     errorloadingcourses: {key: "errorloadingcourses", component: COMPONENT},
     filterall: {key: "allcourses", component: COMPONENT},
     filterallincludinghidden: {key: "allincludinghidden", component: COMPONENT},
@@ -98,4 +96,64 @@ export async function loadStrings(): Promise<Strings> {
         strings[k] = values[i];
     });
     return strings;
+}
+
+/**
+ * Resolve a translated terminal-error message after the batched load has failed.
+ *
+ * getString reads the M.str / localStorage caches before going to the network, so
+ * on any site the user has visited before this resolves without a request even
+ * while the string service is unreachable. Rejects when nothing is cached and the
+ * service is still down; the caller keeps its last-resort text in that case.
+ *
+ * @returns The translated error message.
+ */
+export function loadErrorString(): Promise<string> {
+    return getString("errorloadingcourses", COMPONENT);
+}
+
+/**
+ * Resolve the zero-state title and intro copy for the given data.
+ *
+ * Mirrors the variant logic the PHP layer used when it pre-rendered this copy:
+ * 'request' and 'default' have fixed strings; 'create' picks its title/intro by
+ * whether the site has courses yet, and the intro embeds documentation links
+ * via the string's {$a} placeholders. Lives here rather than in EmptyState so
+ * every lang-string lookup in the block goes through this module.
+ *
+ * @param zerostate The zero-state data from the mount props.
+ * @returns The resolved title and intro (intro may contain lang-string HTML).
+ */
+export async function resolveZeroStateCopy(zerostate: ZeroStateData): Promise<{title: string; intro: string}> {
+    if (zerostate.variant === "request") {
+        return {
+            title: await getString("zero_request_title", COMPONENT),
+            intro: await getString("zero_request_intro_short", COMPONENT),
+        };
+    }
+    if (zerostate.variant === "create") {
+        const titlekey = zerostate.sitehascourses ? "zero_default_title" : "zero_nocourses_title";
+        let introkey = "zero_default_intro";
+        if (!zerostate.sitehascourses) {
+            introkey = zerostate.quickstarturl ? "zero_request_intro" : "zero_nocourses_intro";
+        }
+        const docparams: Record<string, string> = {
+            dochref: zerostate.docsurl,
+            doctitle: await getString("documentation"),
+            doctarget: zerostate.docstarget,
+        };
+        if (zerostate.quickstarturl) {
+            docparams.quickhref = zerostate.quickstarturl;
+            docparams.quicktitle = await getString("viewquickstart", COMPONENT);
+            docparams.quicktarget = "_blank";
+        }
+        return {
+            title: await getString(titlekey, COMPONENT),
+            intro: await getString(introkey, COMPONENT, docparams),
+        };
+    }
+    return {
+        title: await getString("zero_default_title", COMPONENT),
+        intro: await getString("zero_default_intro", COMPONENT),
+    };
 }

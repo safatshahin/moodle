@@ -105,6 +105,3 @@ moodlenetprofile_help,core_user
 privacy:metadata:moodlenetprofile,core_user
 categorymove,core_question
 courseindexoptions,core_courseformat
-aria:addtofavourites,block_myoverview
-aria:removefromfavourites,block_myoverview
-privacy:metadata:overviewpagingpreference,block_myoverview

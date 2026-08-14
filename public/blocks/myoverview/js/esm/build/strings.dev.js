@@ -1,6 +1,6 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-import { getStrings } from "@moodle/lms/core/stringUtils";
+import { getString, getStrings } from "@moodle/lms/core/stringUtils";
 const COMPONENT = "block_myoverview";
 const STRING_MAP = {
   actionsfor: { key: "aria:courseactionsfor", component: COMPONENT },
@@ -12,10 +12,8 @@ const STRING_MAP = {
   createcourse: { key: "createcourse", component: COMPONENT },
   emptyallhiddenintro: { key: "allhidden_intro", component: COMPONENT },
   emptyallhiddentitle: { key: "allhidden_title", component: COMPONENT },
-  emptyeducator: { key: "zero_default_intro", component: COMPONENT },
   emptynoresults: { key: "noresults_intro", component: COMPONENT },
   emptynoresultstitle: { key: "noresults_title", component: COMPONENT },
-  emptystudent: { key: "zero_default_intro", component: COMPONENT },
   errorloadingcourses: { key: "errorloadingcourses", component: COMPONENT },
   filterall: { key: "allcourses", component: COMPONENT },
   filterallincludinghidden: { key: "allincludinghidden", component: COMPONENT },
@@ -63,7 +61,47 @@ async function loadStrings() {
   return strings;
 }
 __name(loadStrings, "loadStrings");
+function loadErrorString() {
+  return getString("errorloadingcourses", COMPONENT);
+}
+__name(loadErrorString, "loadErrorString");
+async function resolveZeroStateCopy(zerostate) {
+  if (zerostate.variant === "request") {
+    return {
+      title: await getString("zero_request_title", COMPONENT),
+      intro: await getString("zero_request_intro_short", COMPONENT)
+    };
+  }
+  if (zerostate.variant === "create") {
+    const titlekey = zerostate.sitehascourses ? "zero_default_title" : "zero_nocourses_title";
+    let introkey = "zero_default_intro";
+    if (!zerostate.sitehascourses) {
+      introkey = zerostate.quickstarturl ? "zero_request_intro" : "zero_nocourses_intro";
+    }
+    const docparams = {
+      dochref: zerostate.docsurl,
+      doctitle: await getString("documentation"),
+      doctarget: zerostate.docstarget
+    };
+    if (zerostate.quickstarturl) {
+      docparams.quickhref = zerostate.quickstarturl;
+      docparams.quicktitle = await getString("viewquickstart", COMPONENT);
+      docparams.quicktarget = "_blank";
+    }
+    return {
+      title: await getString(titlekey, COMPONENT),
+      intro: await getString(introkey, COMPONENT, docparams)
+    };
+  }
+  return {
+    title: await getString("zero_default_title", COMPONENT),
+    intro: await getString("zero_default_intro", COMPONENT)
+  };
+}
+__name(resolveZeroStateCopy, "resolveZeroStateCopy");
 export {
-  loadStrings
+  loadErrorString,
+  loadStrings,
+  resolveZeroStateCopy
 };
 //# sourceMappingURL=strings.dev.js.map
