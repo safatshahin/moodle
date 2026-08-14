@@ -18,6 +18,7 @@
  * zero-state copy (including the lang-string HTML path), CTA rules, and the
  * failure path.
  *
+ * @module     block_myoverview/tests/EmptyState
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

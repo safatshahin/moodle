@@ -16,6 +16,7 @@
 /**
  * Tests for the course item's role-independent progress display.
  *
+ * @module     block_myoverview/tests/CourseItem
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

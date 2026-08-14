@@ -16,6 +16,7 @@
 /**
  * Tests for the reducer's paged-course state.
  *
+ * @module     block_myoverview/tests/state
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

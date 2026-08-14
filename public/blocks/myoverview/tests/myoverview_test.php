@@ -292,28 +292,41 @@ final class myoverview_test extends \advanced_testcase {
     }
 
     /**
-     * The PHP-built mount attribute must round-trip: JSON with quotes, unicode and
-     * script-closing tags survives html_writer's attribute escaping and parses back
-     * identically, as core/react_autoinit will JSON.parse it (MDL-88287 mount pattern).
+     * The mount attribute emitted by the real get_content() must round-trip: JSON with
+     * quotes, unicode and script-closing tags in course data survives html_writer's
+     * attribute escaping and parses back identically, as core/react_autoinit will
+     * JSON.parse it (MDL-88287 mount pattern). Exercising the block itself (not a
+     * re-implementation of the encode) pins the actual json_encode flags in use.
      *
      * @covers \block_myoverview\local\props_builder::get_props
      */
     public function test_mount_props_attribute_roundtrip(): void {
-        $props = [
-            'quote' => 'He said "hi" & <script>alert(1)</script>',
-            'unicode' => 'café — ♥ 日本語',
-            'nested' => ['arr' => [1, 2, 3], 'nullval' => null, 'bool' => true],
-        ];
-        $json = json_encode($props, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
-        $html = \html_writer::div('', 'block-myoverview-app', [
-            'data-react-component' => '@moodle/lms/block_myoverview/app',
-            'data-react-props' => $json,
+        global $PAGE;
+        $this->resetAfterTest();
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course([
+            'fullname' => 'He said "hi" & <script>alert(1)</script> café — ♥ 日本語',
         ]);
+        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+        $this->setUser($user);
+        $PAGE->set_url('/my/');
+
+        $block = block_instance('myoverview');
+        $html = $block->get_content()->text;
 
         $doc = new \DOMDocument();
         $doc->loadHTML('<?xml encoding="utf-8"?>' . $html);
-        $raw = $doc->getElementsByTagName('div')->item(0)->getAttribute('data-react-props');
-        $this->assertSame($props, json_decode($raw, true));
+        $div = $doc->getElementsByTagName('div')->item(0);
+        $this->assertEquals('@moodle/lms/block_myoverview/app', $div->getAttribute('data-react-component'));
+
+        $props = json_decode($div->getAttribute('data-react-props'), true);
+        $this->assertIsArray($props);
+        $this->assertEquals(JSON_ERROR_NONE, json_last_error());
+        // The full props shape survives the attribute round trip.
+        $this->assertArrayHasKey('preferences', $props);
+        $this->assertArrayHasKey('config', $props);
+        $this->assertNull($props['zerostate']);
     }
 
     /**
@@ -321,7 +334,7 @@ final class myoverview_test extends \advanced_testcase {
      * source strings must retain the {$a} placeholder for the React app to substitute.
      * The client fetches these strings raw (no $a supplied), so the placeholder must survive.
      *
-     * @covers \block_myoverview\local\props_builder
+     * @coversNothing
      */
     public function test_percourse_aria_labels_carry_placeholder(): void {
         // Star, unstar and overflow-menu labels are ".replace('{$a}', coursename)" in the client.

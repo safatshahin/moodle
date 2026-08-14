@@ -18,6 +18,7 @@
  * totalPages contract is prefetch-driven (current page + 1 only once a next
  * page is confirmed), never a full count.
  *
+ * @module     block_myoverview/tests/Pagination
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

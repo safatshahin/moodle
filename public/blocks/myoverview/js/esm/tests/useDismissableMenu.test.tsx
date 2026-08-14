@@ -16,6 +16,7 @@
 /**
  * Tests for the shared dismissable-menu hook.
  *
+ * @module     block_myoverview/tests/useDismissableMenu
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

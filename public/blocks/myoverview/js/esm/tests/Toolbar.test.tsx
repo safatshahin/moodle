@@ -17,6 +17,7 @@
  * Tests for the toolbar: custom-field filter encode/decode, filter option
  * gating by admin config, and the zero-state CTA rules.
  *
+ * @module     block_myoverview/tests/Toolbar
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

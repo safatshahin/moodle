@@ -17,6 +17,7 @@
  * Tests for the dropdown: menuitemradio semantics, group dividers, and the
  * Escape-dismissable CSS tooltip (WCAG 2.1 1.4.13).
  *
+ * @module     block_myoverview/tests/Dropdown
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

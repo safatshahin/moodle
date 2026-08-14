@@ -22,6 +22,7 @@
  * "[identifier, component]", which pins exactly which lang string and
  * component every entry requests — a wrong attribution changes the value.
  *
+ * @module     block_myoverview/tests/strings
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

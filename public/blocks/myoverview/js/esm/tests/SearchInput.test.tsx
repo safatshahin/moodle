@@ -16,6 +16,7 @@
 /**
  * Tests for the controlled search input and its clear button.
  *
+ * @module     block_myoverview/tests/SearchInput
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

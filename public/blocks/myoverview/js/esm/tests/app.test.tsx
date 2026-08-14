@@ -17,6 +17,7 @@
  * Tests for the app root's server-side paging orchestration and the
  * search/filter exclusivity.
  *
+ * @module     block_myoverview/tests/app
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

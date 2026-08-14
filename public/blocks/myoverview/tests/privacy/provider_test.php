@@ -79,6 +79,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
             ['block_myoverview_user_sort_preference', 'lastaccessed', ''],
             ['block_myoverview_user_sort_preference', 'title', ''],
             ['block_myoverview_user_sort_preference', 'shortname', ''],
+            ['block_myoverview_user_sort_preference', 'startdate', ''],
             ['block_myoverview_user_grouping_preference', 'allincludinghidden', ''],
             ['block_myoverview_user_grouping_preference', 'all', ''],
             ['block_myoverview_user_grouping_preference', 'inprogress', ''],
