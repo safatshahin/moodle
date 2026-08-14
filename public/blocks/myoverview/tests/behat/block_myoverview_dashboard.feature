@@ -135,7 +135,7 @@ Feature: The my overview block allows users to easily access their courses
 
   Scenario: View favourite courses - w/ persistence
     Given I am on the "My courses" page logged in as "student1"
-    And I click on ".mds-favourite-button" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 2')]" "xpath_element"
+    And I click on "Star for Course 2" "button" in the "Course overview" "block"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "Starred" "button" in the ".courseoverview-menu__list" "css_element"
     And I reload the page
@@ -207,7 +207,7 @@ Feature: The my overview block allows users to easily access their courses
     Given I am on the "My courses" page logged in as "student1"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "In progress" "button" in the ".courseoverview-menu__list" "css_element"
-    And I click on ".courseoverview-iconbtn" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 2')]" "xpath_element"
+    And I click on "Actions for course Course 2" "button" in the "Course overview" "block"
     And I click on "Remove from view" "button" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 2')]" "xpath_element"
     And I reload the page
     Then I should see "Course 3" in the "Course overview" "block"
@@ -220,7 +220,7 @@ Feature: The my overview block allows users to easily access their courses
     Given I am on the "My courses" page logged in as "student1"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "Past" "button" in the ".courseoverview-menu__list" "css_element"
-    And I click on ".courseoverview-iconbtn" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 1')]" "xpath_element"
+    And I click on "Actions for course Course 1" "button" in the "Course overview" "block"
     And I click on "Remove from view" "button" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 1')]" "xpath_element"
     And I reload the page
     Then I should not see "Course 1 & < ' \" >" in the "Course overview" "block"
@@ -233,7 +233,7 @@ Feature: The my overview block allows users to easily access their courses
     Given I am on the "My courses" page logged in as "student1"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "Future" "button" in the ".courseoverview-menu__list" "css_element"
-    And I click on ".courseoverview-iconbtn" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
+    And I click on "Actions for course Course 5" "button" in the "Course overview" "block"
     And I click on "Remove from view" "button" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
     And I reload the page
     Then I should not see "Course 5" in the "Course overview" "block"
@@ -246,7 +246,7 @@ Feature: The my overview block allows users to easily access their courses
     Given I am on the "My courses" page logged in as "student1"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "All courses" "button" in the ".courseoverview-menu__list" "css_element"
-    And I click on ".courseoverview-iconbtn" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
+    And I click on "Actions for course Course 5" "button" in the "Course overview" "block"
     And I click on "Remove from view" "button" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
     And I reload the page
     Then I should not see "Course 5" in the "Course overview" "block"
@@ -262,7 +262,7 @@ Feature: The my overview block allows users to easily access their courses
     And I am on the "My courses" page logged in as "student1"
     And I click on "Grouping drop-down menu" "button" in the "Course overview" "block"
     When I click on "All (including removed from view)" "button" in the ".courseoverview-menu__list" "css_element"
-    And I click on ".courseoverview-iconbtn" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
+    And I click on "Actions for course Course 5" "button" in the "Course overview" "block"
     And I click on "Remove from view" "button" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 5')]" "xpath_element"
     And I reload the page
     Then I should see "Course 5" in the "Course overview" "block"

@@ -76,7 +76,7 @@ Feature: My overview block searching
   Scenario: Searching overrides the active filter, and clearing the search restores it
     Given I am on the "My courses" page logged in as "student1"
     # Star a course and reload so the favourite is loaded from the server.
-    And I click on ".mds-favourite-button" "css_element" in the "//article[contains(concat(' ', normalize-space(@class), ' '), ' courseoverview-card ') and contains(.,'Course 01')]" "xpath_element"
+    And I click on "Star for Course 01" "button" in the "Course overview" "block"
     And I reload the page
     And I wait until "Course 01" "text" exists
     # Apply the Starred filter.

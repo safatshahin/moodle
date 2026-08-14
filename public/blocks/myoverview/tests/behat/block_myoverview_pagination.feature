@@ -88,9 +88,9 @@ Feature: My overview block pagination
       | student1 | C12 | student |
       | student1 | C13 | student |
     When I am on the "My courses" page logged in as "student1"
-    And I wait until ".block_myoverview .mds-pagination__button--prev" "css_element" exists
-    Then ".block_myoverview .mds-pagination__button--prev[disabled]" "css_element" should exist
-    And ".block_myoverview .mds-pagination__button--next[disabled]" "css_element" should not exist
+    And I wait until "Previous page" "button" exists
+    Then the "Previous page" "button" should be disabled
+    And the "Next page" "button" should be enabled
     And I log out
 
   Scenario: Next page button should be disabled when on the last page of courses
@@ -110,10 +110,10 @@ Feature: My overview block pagination
       | student1 | C12 | student |
       | student1 | C13 | student |
     When I am on the "My courses" page logged in as "student1"
-    And I wait until ".block_myoverview .mds-pagination__button--next" "css_element" exists
+    And I wait until "Next page" "button" exists
     And I click on "Next page" "button" in the "Course overview" "block"
-    Then ".block_myoverview .mds-pagination__button--next[disabled]" "css_element" should exist
-    And ".block_myoverview .mds-pagination__button--prev[disabled]" "css_element" should not exist
+    Then the "Next page" "button" should be disabled
+    And the "Previous page" "button" should be enabled
     And I log out
 
   Scenario: Next and previous page buttons should both be enabled when not on last or first page of courses
@@ -145,10 +145,10 @@ Feature: My overview block pagination
       | student1 | C24 | student |
       | student1 | C25 | student |
     When I am on the "My courses" page logged in as "student1"
-    And I wait until ".block_myoverview .mds-pagination__button--next" "css_element" exists
+    And I wait until "Next page" "button" exists
     And I click on "Next page" "button" in the "Course overview" "block"
-    Then ".block_myoverview .mds-pagination__button--next[disabled]" "css_element" should not exist
-    And ".block_myoverview .mds-pagination__button--prev[disabled]" "css_element" should not exist
+    Then the "Next page" "button" should be enabled
+    And the "Previous page" "button" should be enabled
     And I should see "Course 10" in the "Course overview" "block"
     And I should see "Course 18" in the "Course overview" "block"
     But I should not see "Course 09" in the "Course overview" "block"
@@ -177,8 +177,8 @@ Feature: My overview block pagination
       | user     | preference                                | value        |
       | student1 | block_myoverview_user_sort_preference     | lastaccessed |
     When I am on the "My courses" page logged in as "student1"
-    And I wait until ".block_myoverview .mds-pagination__button--next" "css_element" exists
-    Then ".block_myoverview .mds-pagination__button--next[disabled]" "css_element" should not exist
+    And I wait until "Next page" "button" exists
+    Then the "Next page" "button" should be enabled
     And I click on "Next page" "button" in the "Course overview" "block"
-    And ".block_myoverview .mds-pagination__button--next[disabled]" "css_element" should exist
+    And the "Next page" "button" should be disabled
     And I log out
