@@ -135,6 +135,12 @@ function theme_boost_user_preferences(): array {
             'default' => true,
             'permissioncallback' => [core_user::class, 'is_current_user'],
         ],
+        \theme_boost\courseindex_resizer::PREFERENCE => [
+            'type' => PARAM_INT,
+            'null' => NULL_NOT_ALLOWED,
+            'default' => \theme_boost\courseindex_resizer::DEFAULT_WIDTH,
+            'permissioncallback' => [core_user::class, 'is_current_user'],
+        ],
     ];
 }
 
