@@ -14,8 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for the course item's role-independent progress display (MDL-89070
- * review, point 9).
+ * Tests for the course item's role-independent progress display.
  *
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

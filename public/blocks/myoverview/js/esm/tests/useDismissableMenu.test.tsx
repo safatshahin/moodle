@@ -99,7 +99,7 @@ describe("block_myoverview/hooks/useDismissableMenu", () => {
         expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     });
 
-    it("closes even when the outside click's handler stops propagation (MDL-89070 review pt 12)", () => {
+    it("closes even when the outside click's handler stops propagation", () => {
         // The card controls call stopPropagation so clicks don't trigger the card's stretched
         // link. That swallowed bubble-phase clicks: opening a second card's menu left the first
         // menu open. The hook listens in the capture phase, so it must close regardless.

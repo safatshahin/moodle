@@ -15,7 +15,7 @@
 
 /**
  * Tests for the app root's server-side paging orchestration and the
- * search/filter exclusivity restored by the MDL-89070 review.
+ * search/filter exclusivity.
  *
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

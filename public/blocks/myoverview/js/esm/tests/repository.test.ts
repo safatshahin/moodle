@@ -15,7 +15,7 @@
 
 /**
  * Tests for the repository's web-service argument mapping and preference
- * semantics (MDL-89070).
+ * semantics.
  *
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

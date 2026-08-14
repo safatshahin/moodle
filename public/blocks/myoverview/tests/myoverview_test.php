@@ -153,7 +153,7 @@ final class myoverview_test extends \advanced_testcase {
     /**
      * The mount props are data-only: no language strings travel to the client, the
      * illustration URL resolves to the block's pix asset, and the zero-state is built
-     * only for courseless users (MDL-89070 review, points 1, 2 and 4).
+     * only for courseless users.
      *
      * @covers \block_myoverview\local\props_builder::get_props
      */
@@ -192,7 +192,7 @@ final class myoverview_test extends \advanced_testcase {
 
     /**
      * The site default sort follows $CFG->courselistshortnames so the client's sort
-     * control only lights up when the user changed something (MDL-89070 review, point 10).
+     * control only lights up when the user changed something.
      *
      * @covers \block_myoverview\local\props_builder::get_props
      */
@@ -268,7 +268,7 @@ final class myoverview_test extends \advanced_testcase {
     /**
      * A stored customfield grouping preference without a configured field must not be
      * exported (the web service would reject the classification without a field name):
-     * both the seeded preference and the enabled filters fall back (MDL-89070 review).
+     * both the seeded preference and the enabled filters fall back.
      *
      * @covers \block_myoverview\local\props_builder::get_props
      */
@@ -318,7 +318,7 @@ final class myoverview_test extends \advanced_testcase {
 
     /**
      * The per-course control labels are parameterised client-side with the course name, so their
-     * source strings must retain the {$a} placeholder for the React app to substitute (MDL-89070).
+     * source strings must retain the {$a} placeholder for the React app to substitute.
      * The client fetches these strings raw (no $a supplied), so the placeholder must survive.
      *
      * @covers \block_myoverview\local\props_builder

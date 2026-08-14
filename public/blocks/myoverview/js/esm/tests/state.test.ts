@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Tests for the reducer's paged-course state (MDL-89070).
+ * Tests for the reducer's paged-course state.
  *
  * @copyright  2026 Kieran Gray <kieran@productised.com.au>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -123,7 +123,7 @@ describe("block_myoverview/state paging", () => {
 
     it("hiding a course keeps the user on their current page", () => {
         // The optimistic filter gives instant feedback and the post-toggle refetch
-        // trues the pages up — no page-1 bounce (MDL-89070 follow-up review).
+        // trues the pages up — no page-1 bounce.
         let state = reducer(base(), {type: "SET_PAGE", page: 3});
         state = reducer(state, {type: "TOGGLE_HIDDEN", id: 42});
         expect(state.page).toBe(3);
