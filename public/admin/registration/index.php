@@ -90,10 +90,15 @@ echo $OUTPUT->header();
 $notificationtype = \core\output\notification::NOTIFY_ERROR;
 if ($siteisregistered) {
     $lastupdated = \core\hub\registration::get_last_updated();
+    $pausedreason = \core\hub\registration::get_reporting_paused_reason();
     if ($lastupdated == 0) {
         $registrationmessage = get_string('pleaserefreshregistrationunknown', 'admin');
-    } else if (\core\hub\registration::get_new_registration_fields()) {
+    } else if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_NEW_FIELDS) {
         $registrationmessage = get_string('pleaserefreshregistrationnewdata', 'admin');
+    } else if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED) {
+        $notificationtype = \core\output\notification::NOTIFY_WARNING;
+        $taskurl = new moodle_url('/admin/tool/task/scheduledtasks.php');
+        $registrationmessage = get_string('registrationtaskdisabled', 'admin', $taskurl->out(false));
     } else {
         $lastupdated = userdate($lastupdated, get_string('strftimedate', 'langconfig'));
         $registrationmessage = get_string('pleaserefreshregistration', 'admin', $lastupdated);

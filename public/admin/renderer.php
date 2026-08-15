@@ -857,7 +857,11 @@ class core_admin_renderer extends plugin_renderer_base {
      */
     protected function registration_warning($registered) {
 
-        if (!$registered && site_is_public()) {
+        if (!$registered) {
+            if (!site_is_public()) {
+                return '';
+            }
+
             if (has_capability('moodle/site:config', context_system::instance())) {
                 $registerbutton = $this->single_button(new moodle_url('/admin/registration/index.php'),
                     get_string('register', 'admin'));
@@ -870,6 +874,26 @@ class core_admin_renderer extends plugin_renderer_base {
             }
 
             return $this->warning( get_string($str, 'admin') . '&nbsp;' . $registerbutton , $type);
+        }
+
+        // The site is registered but may have paused reporting; only admins can act on that.
+        if (!has_capability('moodle/site:config', context_system::instance())) {
+            return '';
+        }
+
+        $pausedreason = \core\hub\registration::get_reporting_paused_reason();
+        if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_NEW_FIELDS) {
+            $actionbutton = $this->single_button(
+                new moodle_url('/admin/registration/index.php'),
+                get_string('registerwithmoodleorgupdate', 'core_hub'),
+            );
+            return $this->warning(get_string('registrationreportingpausednewfields', 'admin') . '&nbsp;' . $actionbutton);
+        } else if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED) {
+            $actionbutton = $this->single_button(
+                new moodle_url('/admin/tool/task/scheduledtasks.php'),
+                get_string('scheduledtasks', 'tool_task'),
+            );
+            return $this->warning(get_string('registrationreportingpausedtaskdisabled', 'admin') . '&nbsp;' . $actionbutton);
         }
 
         return '';

@@ -286,4 +286,110 @@ final class registration_test extends \advanced_testcase {
         $fs->create_file_from_string($record + ['itemid' => 3, 'filename' => 'anotherfile.txt'], $content);
         $this->assertEquals($expectedsize, registration::get_filepool_usage());
     }
+
+    /**
+     * Register the site locally so is_registered() returns true.
+     *
+     * @return int id of the inserted registration_hubs record
+     */
+    private function register_site(): int {
+        global $DB;
+
+        return $DB->insert_record('registration_hubs', [
+            'token' => 'abc123',
+            'hubname' => 'Moodle.org',
+            'huburl' => HUB_MOODLEORGHUBURL,
+            'confirmed' => 1,
+            'secret' => 'secret123',
+            'timemodified' => time(),
+        ]);
+    }
+
+    /**
+     * Test get_reporting_paused_reason() for an unregistered site.
+     *
+     * @covers \core\hub\registration::get_reporting_paused_reason
+     */
+    public function test_get_reporting_paused_reason_not_registered(): void {
+        $this->resetAfterTest();
+
+        $this->assertSame('', registration::get_reporting_paused_reason());
+    }
+
+    /**
+     * Test get_reporting_paused_reason() for a registered site reporting normally.
+     *
+     * @covers \core\hub\registration::get_reporting_paused_reason
+     */
+    public function test_get_reporting_paused_reason_reporting_normally(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', max(array_keys(registration::CONFIRM_NEW_FIELDS)), 'hub');
+
+        $this->assertSame('', registration::get_reporting_paused_reason());
+    }
+
+    /**
+     * Test get_reporting_paused_reason() when new registration fields need confirming.
+     *
+     * @covers \core\hub\registration::get_reporting_paused_reason
+     */
+    public function test_get_reporting_paused_reason_new_fields(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', 0, 'hub');
+
+        $this->assertSame(registration::REPORTING_PAUSED_NEW_FIELDS, registration::get_reporting_paused_reason());
+    }
+
+    /**
+     * Test get_reporting_paused_reason() when the registration cron task is disabled.
+     *
+     * @covers \core\hub\registration::get_reporting_paused_reason
+     */
+    public function test_get_reporting_paused_reason_task_disabled(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', max(array_keys(registration::CONFIRM_NEW_FIELDS)), 'hub');
+
+        $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
+        $task->set_disabled(true);
+        \core\task\manager::configure_scheduled_task($task);
+
+        $this->assertSame(registration::REPORTING_PAUSED_TASK_DISABLED, registration::get_reporting_paused_reason());
+    }
+
+    /**
+     * Test that check_reporting_paused_notification() notifies admins once and does not repeat until cleared.
+     *
+     * @covers \core\hub\registration::check_reporting_paused_notification
+     */
+    public function test_check_reporting_paused_notification(): void {
+        $this->resetAfterTest();
+        $sink = $this->redirectMessages();
+
+        $this->register_site();
+        set_config('site_regupdateversion', 0, 'hub');
+
+        // First check should send a notification to the admin(s).
+        registration::check_reporting_paused_notification();
+        $messages = $sink->get_messages();
+        $this->assertCount(1, $messages);
+        $this->assertSame('registrationreportingpaused', $messages[0]->eventtype);
+
+        // A second check while still paused for the same reason should not send another notification.
+        registration::check_reporting_paused_notification();
+        $this->assertCount(1, $sink->get_messages());
+
+        // Once reporting resumes, the flag is cleared and a fresh pause notifies again.
+        set_config('site_regupdateversion', max(array_keys(registration::CONFIRM_NEW_FIELDS)), 'hub');
+        registration::check_reporting_paused_notification();
+        $this->assertCount(1, $sink->get_messages());
+
+        set_config('site_regupdateversion', 0, 'hub');
+        registration::check_reporting_paused_notification();
+        $this->assertCount(2, $sink->get_messages());
+
+        $sink->close();
+    }
 }

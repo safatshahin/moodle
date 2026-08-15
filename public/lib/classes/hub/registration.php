@@ -74,6 +74,12 @@ class registration {
         2026012200 => ['defaulthomepage'],
     ];
 
+    /** @var string Registration reporting is paused because new registration fields need manual confirmation */
+    public const REPORTING_PAUSED_NEW_FIELDS = 'newfields';
+
+    /** @var string Registration reporting is paused because the registration cron task is disabled */
+    public const REPORTING_PAUSED_TASK_DISABLED = 'taskdisabled';
+
     /** @var string Site privacy: not displayed */
     const HUB_SITENOTPUBLISHED = 'notdisplayed';
 
@@ -680,6 +686,97 @@ class registration {
             }
         }
         return $fieldsneedconfirm;
+    }
+
+    /**
+     * Returns why a registered site has stopped sending registration updates, if at all.
+     *
+     * A registered site can stop reporting either because new registration fields are awaiting manual
+     * confirmation, or because the {@see \core\task\registration_cron_task} scheduled task has been disabled.
+     * Both cases leave the site reporting as "registered" with no other indication that updates have stopped.
+     *
+     * @return string one of the self::REPORTING_PAUSED_* constants, or '' if the site is not registered or is
+     *     reporting normally
+     */
+    public static function get_reporting_paused_reason(): string {
+        if (!self::is_registered()) {
+            return '';
+        }
+
+        if (self::get_new_registration_fields()) {
+            return self::REPORTING_PAUSED_NEW_FIELDS;
+        }
+
+        $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
+        if ($task && $task->get_disabled()) {
+            return self::REPORTING_PAUSED_TASK_DISABLED;
+        }
+
+        return '';
+    }
+
+    /**
+     * Checks whether registration reporting has stopped since the last check and, if so, notifies site admins.
+     *
+     * Intended to be called periodically (see {@see \core\task\registration_reporting_check_task}) so the
+     * paused state is surfaced even if no administrator happens to visit a page that checks it directly.
+     */
+    public static function check_reporting_paused_notification(): void {
+        $reason = self::get_reporting_paused_reason();
+        $previouslynotified = get_config('hub', 'reportingpausednotifiedreason');
+
+        if ($reason === '') {
+            if ($previouslynotified !== false) {
+                unset_config('reportingpausednotifiedreason', 'hub');
+            }
+            return;
+        }
+
+        if ($previouslynotified === $reason) {
+            // Already notified admins for this reason since it started; do not repeat every run.
+            return;
+        }
+
+        self::send_reporting_paused_notification($reason);
+        set_config('reportingpausednotifiedreason', $reason, 'hub');
+    }
+
+    /**
+     * Sends the registration-reporting-paused notification to all site admins.
+     *
+     * @param string $reason one of the self::REPORTING_PAUSED_* constants
+     */
+    protected static function send_reporting_paused_notification(string $reason): void {
+        $admins = get_admins();
+        if (empty($admins)) {
+            return;
+        }
+
+        $stringkey = $reason === self::REPORTING_PAUSED_TASK_DISABLED
+            ? 'registrationreportingpausedtaskdisabledmessage'
+            : 'registrationreportingpausednewfieldsmessage';
+
+        $a = (object) ['siteurl' => (new moodle_url('/admin/registration/index.php'))->out(false)];
+        $messagetext = get_string($stringkey, 'admin', $a);
+        $subject = get_string('registrationreportingpausedsubject', 'admin');
+
+        foreach ($admins as $admin) {
+            $message = new \core\message\message();
+            $message->courseid          = SITEID;
+            $message->component         = 'moodle';
+            $message->name              = 'registrationreportingpaused';
+            $message->userfrom          = get_admin();
+            $message->userto            = $admin;
+            $message->subject           = $subject;
+            $message->fullmessage       = $messagetext;
+            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->fullmessagehtml   = html_writer::tag('p', $messagetext);
+            $message->smallmessage      = $subject;
+            $message->notification      = 1;
+            $message->contexturl        = $a->siteurl;
+            $message->contexturlname    = get_string('registerwithmoodleorgupdate', 'core_hub');
+            message_send($message);
+        }
     }
 
     /**
