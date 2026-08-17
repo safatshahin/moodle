@@ -34292,7 +34292,7 @@ table.calendartable caption {
   padding-bottom: 1rem;
 }
 .course-section .section-item .course-content-item-content .section-content-inner {
-  padding: 1rem;
+  padding: 0.5rem;
   border-top: 1px solid var(--bs-gray-200);
   background-color: var(--bs-gray-100);
   border-bottom-right-radius: 1rem;
@@ -34397,7 +34397,6 @@ table.calendartable caption {
 /* Activities */
 .activity {
   list-style: none;
-  margin-top: 1rem;
 }
 .activity.indented .activity-item {
   margin-left: 1rem;
@@ -34410,14 +34409,9 @@ table.calendartable caption {
 .activity-item {
   padding: 1.25rem;
   border-radius: 1rem;
-  border: 0.0625rem solid #e9ecef;
-  background-color: #f8f9fa;
 }
-.activity-item:hover:not(:has(.delegated-section)) {
-  background-color: #ffffff;
-}
-.activity-item:focus-within:not(:has(.delegated-section)) {
-  outline: 0.125rem solid #0f6cbf;
+.activity-item.hiddenactivity {
+  background-color: var(--bs-gray-200);
 }
 .activity-item.hiddenactivity .activityiconcontainer {
   mix-blend-mode: multiply;
@@ -34426,25 +34420,22 @@ table.calendartable caption {
   mix-blend-mode: screen;
 }
 
-.activity-item.hiddenactivity .activity-name-area .activityname {
-  color: #6a737b;
-}
-.activity-item.hiddenactivity .activity-name-area .activityname .aalink, .activity-item.hiddenactivity .activity-name-area .activityname a.autolink {
-  color: #6a737b;
-}
 .activity-item.hiddenactivity .badge {
   background-color: transparent;
   color: var(--bs-gray-700);
   border: 1px solid var(--bs-gray-300);
 }
 .activity-item.hiddenactivity .activity-altcontent.activity-description {
-  color: #6a737b;
+  color: var(--bs-gray-700);
 }
 .editing .activity-item {
   cursor: move;
 }
 .editing .activity-item .a {
   cursor: pointer;
+}
+.editing .activity-item:hover:not(:has(.activity:hover)), .editing .activity-item.selected {
+  outline: 2px solid #0f6cbf;
 }
 .editing .activity-item:hover:not(:has(.activity:hover)) .activityiconcontainer,
 .editing .activity-item:hover:not(:has(.activity:hover)) .badge, .editing .activity-item.selected .activityiconcontainer,
@@ -34908,14 +34899,18 @@ body:not(.editing) .single-section > ul > .course-section .section-item .activit
 
 /* Subsections */
 .activity.subsection > .activity-item {
-  padding: 0;
-  border: 0;
+  padding: 1.25rem 0.5rem;
 }
 .activity.subsection > .activity-item > .activity-grid > .activity-altcontent {
   margin-top: 0;
 }
 .activity.subsection .section {
   margin-top: 0;
+}
+.activity.subsection .section .icons-collapse-expand:has(+ h4, + .h4) {
+  height: 24px;
+  width: 24px;
+  font-size: 0.875rem;
 }
 .activity.subsection .section h4, .activity.subsection .section .h4 {
   font-size: 1.25rem;
