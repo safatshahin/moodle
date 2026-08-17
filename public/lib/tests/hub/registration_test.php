@@ -392,4 +392,97 @@ final class registration_test extends \advanced_testcase {
 
         $sink->close();
     }
+
+    /**
+     * Test get_registration_page_notification() for an unregistered, non-initial-registration site.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_unregistered(): void {
+        $this->resetAfterTest();
+
+        $notification = registration::get_registration_page_notification(false, false);
+        $this->assertSame(get_string('registrationwarning', 'admin'), $notification['message']);
+        $this->assertSame(\core\output\notification::NOTIFY_ERROR, $notification['type']);
+    }
+
+    /**
+     * Test get_registration_page_notification() for an unregistered site pending its initial registration.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_initial_registration(): void {
+        $this->resetAfterTest();
+
+        $notification = registration::get_registration_page_notification(false, true);
+        $this->assertSame('', $notification['message']);
+    }
+
+    /**
+     * Test get_registration_page_notification() for a registered site that has never successfully updated.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_unknown_last_updated(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        $id = $this->register_site();
+        $DB->set_field('registration_hubs', 'timemodified', 0, ['id' => $id]);
+
+        $notification = registration::get_registration_page_notification(true, false);
+        $this->assertSame(get_string('pleaserefreshregistrationunknown', 'admin'), $notification['message']);
+        $this->assertSame(\core\output\notification::NOTIFY_ERROR, $notification['type']);
+    }
+
+    /**
+     * Test get_registration_page_notification() for a registered site with new fields pending confirmation.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_new_fields(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', 0, 'hub');
+
+        $notification = registration::get_registration_page_notification(true, false);
+        $this->assertSame(get_string('pleaserefreshregistrationnewdata', 'admin'), $notification['message']);
+        $this->assertSame(\core\output\notification::NOTIFY_ERROR, $notification['type']);
+    }
+
+    /**
+     * Test get_registration_page_notification() when the registration cron task is disabled.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_task_disabled(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', max(array_keys(registration::CONFIRM_NEW_FIELDS)), 'hub');
+
+        $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
+        $task->set_disabled(true);
+        \core\task\manager::configure_scheduled_task($task);
+
+        $notification = registration::get_registration_page_notification(true, false);
+        $this->assertSame(get_string('registrationtaskdisabled', 'admin', (new \moodle_url(
+            '/admin/tool/task/scheduledtasks.php'
+        ))->out(false)), $notification['message']);
+        $this->assertSame(\core\output\notification::NOTIFY_WARNING, $notification['type']);
+    }
+
+    /**
+     * Test get_registration_page_notification() for a registered site reporting normally.
+     *
+     * @covers \core\hub\registration::get_registration_page_notification
+     */
+    public function test_get_registration_page_notification_reporting_normally(): void {
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', max(array_keys(registration::CONFIRM_NEW_FIELDS)), 'hub');
+
+        $notification = registration::get_registration_page_notification(true, false);
+        $this->assertSame(\core\output\notification::NOTIFY_INFO, $notification['type']);
+        $this->assertNotSame('', $notification['message']);
+    }
 }

@@ -96,6 +96,38 @@ final class renderer_test extends \advanced_testcase {
     }
 
     /**
+     * When new-fields warnings are suppressed, a registered site with unconfirmed new fields shows nothing.
+     *
+     * Mirrors public/admin/index.php and public/admin/search.php, which both call
+     * \core\hub\registration::registration_reminder() first and would already have redirected the admin
+     * away for this exact cause, so this warning must not render there.
+     */
+    public function test_warn_if_not_registered_new_fields_pending_suppressed(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $this->register_site();
+        set_config('site_regupdateversion', 0, 'hub');
+
+        $this->assertSame('', $this->get_renderer()->warn_if_not_registered(false));
+    }
+
+    /**
+     * Suppressing the new-fields warning must not affect the unrelated task-disabled warning.
+     */
+    public function test_warn_if_not_registered_task_disabled_not_suppressed(): void {
+        $this->resetAfterTest();
+        $this->setAdminUser();
+        $this->register_site();
+
+        $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
+        $task->set_disabled(true);
+        \core\task\manager::configure_scheduled_task($task);
+
+        $warning = $this->get_renderer()->warn_if_not_registered(false);
+        $this->assertStringContainsString(get_string('registrationreportingpausedtaskdisabled', 'admin'), $warning);
+    }
+
+    /**
      * An unregistered public site still shows the original registration warning.
      */
     public function test_warn_if_not_registered_unregistered(): void {
