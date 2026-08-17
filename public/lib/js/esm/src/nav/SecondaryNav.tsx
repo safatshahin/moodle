@@ -22,7 +22,7 @@
  */
 
 import {Fragment, cloneElement, isValidElement, useEffect, useId, useLayoutEffect, useRef, useState,
-    type ReactElement, type ReactNode} from 'react';
+    type MouseEvent, type ReactElement, type ReactNode} from 'react';
 import {NavPill} from '@moodlehq/design-system';
 import {requireAsync} from '@moodle/lms/core/amd';
 
@@ -42,14 +42,24 @@ export interface SecondaryNavNode {
     showchildreninsubmenu: boolean;
     children: SecondaryNavNode[];
     id?: string | null;
+    title?: string | null;
     attributes?: {name: string; value: unknown}[];
     actions?: SecondaryNavActionLinkAction[];
+    /**
+     * A separator rather than a real item. Only ever set on children, and rendered as a
+     * Bootstrap dropdown-divider, matching legacy moremenu_children.mustache.
+     */
+    divider?: boolean;
 }
 
 export interface SecondaryNavProps {
     items: SecondaryNavNode[];
     morelabel: string;
     istablist: boolean;
+    /** Extra class for the <ul>, e.g. "navbar-nav" for the primary navigation. */
+    navbarstyle?: string;
+    /** Class added to the mount point once the overflow split has settled. */
+    measuredclass?: string;
 }
 
 /**
@@ -148,6 +158,61 @@ const useActionLinkBehavior = (items: SecondaryNavNode[]): void => {
 };
 
 /**
+ * Keeps the enclosing "More" dropdown open when a nested submenu inside it is clicked, as legacy
+ * moremenu.js did with a capturing listener on each nested .dropdown. Bootstrap's own toggle
+ * handler is delegated from the document in the capture phase, so it has already opened the
+ * submenu by the time this runs; only its bubble-phase clearMenus() is cut off.
+ *
+ * @param event The click event.
+ */
+const keepParentMenuOpen = (event: MouseEvent): void => event.stopPropagation();
+
+/**
+ * A submenu nested inside the "More" dropdown, for a node whose children belong in a submenu but
+ * which has itself been collapsed into the overflow. Legacy moremenu.js moved the whole
+ * <li class="dropdown"> into the "More" dropdown rather than flattening it, because such a node
+ * has no url of its own: a plain link would be a dead entry with its children unreachable.
+ *
+ * @param props Component props.
+ * @param props.node The collapsed node whose children belong in a submenu.
+ * @param props.istablist Whether the navigation is rendered as an ARIA tablist.
+ * @returns The rendered submenu toggle and dropdown.
+ */
+function DropdownSubmenu({node, istablist = false}: {node: SecondaryNavNode; istablist?: boolean}) {
+    const id = useId();
+    const toggleId = `${id}-toggle`;
+    const menuId = `${id}-menu`;
+
+    return (
+        // The wrapper only exists to give Bootstrap's dropdown JS a container, so role="none"
+        // keeps the toggle a valid child of the enclosing role="menu", as the legacy <li> did.
+        <div className="dropdown dropdown-submenu" role="none" onClickCapture={keepParentMenuOpen}>
+            <a
+                id={toggleId}
+                className={`dropdown-item dropdown-toggle${isNodeActive(node) ? ' active' : ''}`}
+                href="#"
+                title={node.title ?? undefined}
+                role="menuitem"
+                data-bs-toggle="dropdown"
+                // Bootstrap only skips Popper's absolute positioning by itself inside a .navbar,
+                // so ask for it explicitly: the submenu expands in place (see moremenu.scss)
+                // rather than floating over the "More" menu it belongs to.
+                data-bs-display="static"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls={menuId}
+                aria-current={isNodeActive(node) ? 'page' : undefined}
+            >
+                {node.text}
+            </a>
+            <div className="dropdown-menu" id={menuId} role="menu" aria-labelledby={toggleId}>
+                <DropdownItems items={node.children} istablist={istablist} />
+            </div>
+        </div>
+    );
+}
+
+/**
  * Plain dropdown-item links for the "More" overflow menu and submenu dropdowns.
  *
  * @moodlehq/design-system has no menu/dropdown component yet, so this reuses Bootstrap's
@@ -158,29 +223,46 @@ const useActionLinkBehavior = (items: SecondaryNavNode[]): void => {
  * @param props.items The nodes to render as dropdown items.
  * @param props.istablist Whether these items belong to an istablist secondary nav's top-level
  *                        overflow dropdown (as opposed to a SubmenuTrigger's nested dropdown).
+ * @param props.submenus Whether a node whose children belong in a submenu renders as a nested
+ *                       submenu rather than a plain link. Only set for the "More" dropdown itself:
+ *                       legacy moremenu_children.mustache went no deeper either.
  * @returns The rendered dropdown items.
  */
-function DropdownItems({items, istablist = false}: {items: SecondaryNavNode[]; istablist?: boolean}) {
+function DropdownItems(
+    {items, istablist = false, submenus = false}:
+    {items: SecondaryNavNode[]; istablist?: boolean; submenus?: boolean},
+) {
     useActionLinkBehavior(items);
 
     return (
         <>
-            {items.map((item) => (
-                <a
-                    key={item.key}
-                    id={item.id ?? undefined}
-                    className={`dropdown-item${item.active ? ' active' : ''}`}
-                    href={item.href ?? '#'}
-                    aria-current={item.active ? 'page' : undefined}
-                    role="menuitem"
-                    data-bs-toggle={istablist ? 'tab' : undefined}
-                    data-text={istablist ? item.text : undefined}
-                    data-disableactive={istablist ? 'true' : undefined}
-                    {...toAttributeRecord(item.attributes)}
-                >
-                    {item.text}
-                </a>
-            ))}
+            {items.map((item) => {
+                if (item.divider) {
+                    return <div key={item.key} className="dropdown-divider" />;
+                }
+
+                if (submenus && item.showchildreninsubmenu && item.children.length > 0) {
+                    return <DropdownSubmenu key={item.key} node={item} istablist={istablist} />;
+                }
+
+                return (
+                    <a
+                        key={item.key}
+                        id={item.id ?? undefined}
+                        className={`dropdown-item${item.active ? ' active' : ''}`}
+                        href={item.href ?? '#'}
+                        title={item.title ?? undefined}
+                        aria-current={item.active ? 'page' : undefined}
+                        role="menuitem"
+                        data-bs-toggle={istablist ? 'tab' : undefined}
+                        data-text={istablist ? item.text : undefined}
+                        data-disableactive={istablist ? 'true' : undefined}
+                        {...toAttributeRecord(item.attributes)}
+                    >
+                        {item.text}
+                    </a>
+                );
+            })}
         </>
     );
 }
@@ -204,6 +286,7 @@ function DropdownItems({items, istablist = false}: {items: SecondaryNavNode[]; i
  * @param props Component props.
  * @param props.label The visible label for the toggle.
  * @param props.selected Whether one of the dropdown's own items is currently active.
+ * @param props.title The toggle's tooltip, when the node carries one that differs from its label.
  * @param props.istablist Whether the toggle sits inside an `istablist` secondary nav. When true,
  *                        the toggle gets `role="tab"` to be a valid tablist child; when false it
  *                        gets `role="menuitem"` to be a valid child of the top-level `<ul
@@ -215,7 +298,8 @@ function DropdownItems({items, istablist = false}: {items: SecondaryNavNode[]; i
  * @returns The rendered dropdown toggle and menu.
  */
 function PillDropdownToggle(
-    {label, selected, istablist = false, children}: {label: string; selected: boolean; istablist?: boolean; children: ReactNode},
+    {label, selected, title, istablist = false, children}:
+    {label: string; selected: boolean; title?: string; istablist?: boolean; children: ReactNode},
 ) {
     const classes = ['mds-nav-pill', 'dropdown-toggle', selected ? 'mds-nav-pill--selected' : null]
         .filter(Boolean)
@@ -239,6 +323,7 @@ function PillDropdownToggle(
                 href="#"
                 id={toggleId}
                 className={classes}
+                title={title}
                 role={istablist ? 'tab' : 'menuitem'}
                 data-bs-toggle="dropdown"
                 aria-haspopup="true"
@@ -269,6 +354,7 @@ function TabPill({node}: {node: SecondaryNavNode}) {
         <a
             href={node.href ?? '#'}
             className={`mds-nav-pill${selected ? ' active' : ''}`}
+            title={node.title ?? undefined}
             role="tab"
             data-bs-toggle="tab"
             data-text={node.text}
@@ -291,7 +377,12 @@ function TabPill({node}: {node: SecondaryNavNode}) {
  */
 function SubmenuTrigger({node, istablist = false}: {node: SecondaryNavNode; istablist?: boolean}) {
     return (
-        <PillDropdownToggle label={node.text} selected={isNodeActive(node)} istablist={istablist}>
+        <PillDropdownToggle
+            label={node.text}
+            selected={isNodeActive(node)}
+            title={node.title ?? undefined}
+            istablist={istablist}
+        >
             <div className="dropdown-menu">
                 <DropdownItems items={node.children} istablist={istablist} />
             </div>
@@ -313,11 +404,19 @@ const renderPill = (item: SecondaryNavNode, istablist: boolean) => {
     if (istablist) {
         return <TabPill node={item} />;
     }
-    return <NavPill label={item.text} href={item.href ?? '#'} selected={isNodeActive(item)} />;
+    return (
+        <NavPill
+            label={item.text}
+            href={item.href ?? '#'}
+            title={item.title ?? undefined}
+            selected={isNodeActive(item)}
+        />
+    );
 };
 
 /**
- * CSS class toggled on the React mount-point container.
+ * Default for the `measuredclass` prop: the CSS class toggled on the React mount-point container
+ * once the overflow split has settled.
  */
 const MEASURED_CLASS = 'secondarynav-measured';
 
@@ -328,11 +427,18 @@ const MEASURED_CLASS = 'secondarynav-measured';
  * @param props.items The top-level secondary navigation nodes.
  * @param props.morelabel The localised label for the "More" overflow dropdown.
  * @param props.istablist Whether the secondary nav is rendered as an ARIA tablist.
+ * @param props.navbarstyle Extra class for the <ul>, e.g. "navbar-nav" for the primary navigation.
+ * @param props.measuredclass Class added to the mount point once the overflow split has settled.
  * @returns The rendered secondary navigation pill.
  */
-export default function SecondaryNav({items, morelabel, istablist}: SecondaryNavProps) {
-    const forced = items.filter((item) => item.forceintomoremenu);
-    const rest = items.filter((item) => !item.forceintomoremenu);
+export default function SecondaryNav(
+    {items, morelabel, istablist, navbarstyle, measuredclass = MEASURED_CLASS}: SecondaryNavProps,
+) {
+    // Dividers are a dropdown-only concept (see DropdownItems); the server side export already
+    // drops them at the top level, but guard here too so one could never render as a bare pill.
+    const toplevel = items.filter((item) => !item.divider);
+    const forced = toplevel.filter((item) => item.forceintomoremenu);
+    const rest = toplevel.filter((item) => !item.forceintomoremenu);
 
     const menuRef = useRef<HTMLUListElement>(null);
     const [autoOverflowCount, setAutoOverflowCount] = useState(0);
@@ -409,7 +515,7 @@ export default function SecondaryNav({items, morelabel, istablist}: SecondaryNav
 
         const reveal = () => {
             if (!measured) {
-                container.classList.add(MEASURED_CLASS);
+                container.classList.add(measuredclass);
             }
         };
 
@@ -454,24 +560,36 @@ export default function SecondaryNav({items, morelabel, istablist}: SecondaryNav
         setMeasured(true);
     });
 
-    // Re-measures when the container's width changes (resize, drawer toggle, etc). Observes the
-    // container, not the <ul>, so it doesn't fire from the measurement effect's own re-renders.
+    // Re-measures whenever the space available to the menu may have changed. Both triggers are
+    // needed:
+    //
+    // - The ResizeObserver catches width changes that don't come from the viewport, e.g. a drawer
+    //   opening beside the secondary navigation. It observes the container rather than the <ul> so
+    //   it doesn't fire on the measurement effect's own re-renders.
+    // - The window resize listener, all legacy moremenu.js used, catches viewport changes that
+    //   leave the container's box untouched. The primary navigation's mount point is a
+    //   shrink-to-fit flex item, so once items have collapsed into "More" it is only as wide as
+    //   what's left: widening the window resizes it by nothing, and they would never come back out.
     useEffect(() => {
-        const container = menuRef.current?.parentElement;
-        if (!container || typeof ResizeObserver === 'undefined') {
-            return undefined;
-        }
-
-        const observer = new ResizeObserver(() => {
+        const remeasure = () => {
             stepsRef.current = 0;
             lastActionRef.current = null;
             shrinkExhaustedRef.current = false;
             forceRemeasure((tick) => tick + 1);
-        });
-        observer.observe(container);
+        };
+
+        window.addEventListener('resize', remeasure);
+
+        const container = menuRef.current?.parentElement;
+        let observer: ResizeObserver | null = null;
+        if (container && typeof ResizeObserver !== 'undefined') {
+            observer = new ResizeObserver(remeasure);
+            observer.observe(container);
+        }
 
         return () => {
-            observer.disconnect();
+            window.removeEventListener('resize', remeasure);
+            observer?.disconnect();
         };
     }, []);
 
@@ -487,7 +605,11 @@ export default function SecondaryNav({items, morelabel, istablist}: SecondaryNav
     const itemRole = 'none';
 
     return (
-        <ul ref={menuRef} className="nav more-nav" role={istablist ? 'tablist' : 'menubar'}>
+        <ul
+            ref={menuRef}
+            className={['nav', 'more-nav', navbarstyle].filter(Boolean).join(' ')}
+            role={istablist ? 'tablist' : 'menubar'}
+        >
             {visible.map((item) => {
                 const isSubmenuTrigger = item.showchildreninsubmenu && item.children.length > 0;
                 return (
@@ -506,7 +628,7 @@ export default function SecondaryNav({items, morelabel, istablist}: SecondaryNav
             >
                 <PillDropdownToggle label={morelabel} selected={overflow.some(isNodeActive)} istablist={istablist}>
                     <div className="dropdown-menu dropdown-menu-start" data-region="moredropdown">
-                        <DropdownItems items={overflow} istablist={istablist} />
+                        <DropdownItems items={overflow} istablist={istablist} submenus />
                     </div>
                 </PillDropdownToggle>
             </li>

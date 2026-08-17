@@ -63,38 +63,106 @@ const useActionLinkBehavior = /* @__PURE__ */ __name((items) => {
     };
   }, [items]);
 }, "useActionLinkBehavior");
-function DropdownItems({ items, istablist = false }) {
-  useActionLinkBehavior(items);
-  return /* @__PURE__ */ jsxDEV(Fragment, { children: items.map((item) => /* @__PURE__ */ jsxDEV(
-    "a",
-    {
-      id: item.id ?? void 0,
-      className: `dropdown-item${item.active ? " active" : ""}`,
-      href: item.href ?? "#",
-      "aria-current": item.active ? "page" : void 0,
-      role: "menuitem",
-      "data-bs-toggle": istablist ? "tab" : void 0,
-      "data-text": istablist ? item.text : void 0,
-      "data-disableactive": istablist ? "true" : void 0,
-      ...toAttributeRecord(item.attributes),
-      children: item.text
-    },
-    item.key,
-    false,
-    {
+const keepParentMenuOpen = /* @__PURE__ */ __name((event) => event.stopPropagation(), "keepParentMenuOpen");
+function DropdownSubmenu({ node, istablist = false }) {
+  const id = useId();
+  const toggleId = `${id}-toggle`;
+  const menuId = `${id}-menu`;
+  return (
+    // The wrapper only exists to give Bootstrap's dropdown JS a container, so role="none"
+    // keeps the toggle a valid child of the enclosing role="menu", as the legacy <li> did.
+    /* @__PURE__ */ jsxDEV("div", { className: "dropdown dropdown-submenu", role: "none", onClickCapture: keepParentMenuOpen, children: [
+      /* @__PURE__ */ jsxDEV(
+        "a",
+        {
+          id: toggleId,
+          className: `dropdown-item dropdown-toggle${isNodeActive(node) ? " active" : ""}`,
+          href: "#",
+          title: node.title ?? void 0,
+          role: "menuitem",
+          "data-bs-toggle": "dropdown",
+          "data-bs-display": "static",
+          "aria-haspopup": "true",
+          "aria-expanded": "false",
+          "aria-controls": menuId,
+          "aria-current": isNodeActive(node) ? "page" : void 0,
+          children: node.text
+        },
+        void 0,
+        false,
+        {
+          fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+          lineNumber: 190,
+          columnNumber: 13
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu", id: menuId, role: "menu", "aria-labelledby": toggleId, children: /* @__PURE__ */ jsxDEV(DropdownItems, { items: node.children, istablist }, void 0, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 209,
+        columnNumber: 17
+      }, this) }, void 0, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 208,
+        columnNumber: 13
+      }, this)
+    ] }, void 0, true, {
       fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-      lineNumber: 169,
-      columnNumber: 17
-    },
-    this
-  )) }, void 0, false, {
+      lineNumber: 189,
+      columnNumber: 9
+    }, this)
+  );
+}
+__name(DropdownSubmenu, "DropdownSubmenu");
+function DropdownItems({ items, istablist = false, submenus = false }) {
+  useActionLinkBehavior(items);
+  return /* @__PURE__ */ jsxDEV(Fragment, { children: items.map((item) => {
+    if (item.divider) {
+      return /* @__PURE__ */ jsxDEV("div", { className: "dropdown-divider" }, item.key, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 241,
+        columnNumber: 28
+      }, this);
+    }
+    if (submenus && item.showchildreninsubmenu && item.children.length > 0) {
+      return /* @__PURE__ */ jsxDEV(DropdownSubmenu, { node: item, istablist }, item.key, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 245,
+        columnNumber: 28
+      }, this);
+    }
+    return /* @__PURE__ */ jsxDEV(
+      "a",
+      {
+        id: item.id ?? void 0,
+        className: `dropdown-item${item.active ? " active" : ""}`,
+        href: item.href ?? "#",
+        title: item.title ?? void 0,
+        "aria-current": item.active ? "page" : void 0,
+        role: "menuitem",
+        "data-bs-toggle": istablist ? "tab" : void 0,
+        "data-text": istablist ? item.text : void 0,
+        "data-disableactive": istablist ? "true" : void 0,
+        ...toAttributeRecord(item.attributes),
+        children: item.text
+      },
+      item.key,
+      false,
+      {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 249,
+        columnNumber: 21
+      },
+      this
+    );
+  }) }, void 0, false, {
     fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 167,
+    lineNumber: 238,
     columnNumber: 9
   }, this);
 }
 __name(DropdownItems, "DropdownItems");
-function PillDropdownToggle({ label, selected, istablist = false, children }) {
+function PillDropdownToggle({ label, selected, title, istablist = false, children }) {
   const classes = ["mds-nav-pill", "dropdown-toggle", selected ? "mds-nav-pill--selected" : null].filter(Boolean).join(" ");
   const id = useId();
   const toggleId = `${id}-toggle`;
@@ -111,6 +179,7 @@ function PillDropdownToggle({ label, selected, istablist = false, children }) {
         href: "#",
         id: toggleId,
         className: classes,
+        title,
         role: istablist ? "tab" : "menuitem",
         "data-bs-toggle": "dropdown",
         "aria-haspopup": "true",
@@ -120,12 +189,12 @@ function PillDropdownToggle({ label, selected, istablist = false, children }) {
         children: [
           selected && /* @__PURE__ */ jsxDEV("span", { className: "mds-nav-pill__indicator", "aria-hidden": "true" }, void 0, false, {
             fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-            lineNumber: 249,
+            lineNumber: 334,
             columnNumber: 30
           }, this),
           /* @__PURE__ */ jsxDEV("span", { className: "mds-nav-pill__label", children: label }, void 0, false, {
             fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-            lineNumber: 250,
+            lineNumber: 335,
             columnNumber: 17
           }, this)
         ]
@@ -134,7 +203,7 @@ function PillDropdownToggle({ label, selected, istablist = false, children }) {
       true,
       {
         fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-        lineNumber: 238,
+        lineNumber: 322,
         columnNumber: 13
       },
       this
@@ -142,7 +211,7 @@ function PillDropdownToggle({ label, selected, istablist = false, children }) {
     menu
   ] }, void 0, true, {
     fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 237,
+    lineNumber: 321,
     columnNumber: 9
   }, this);
 }
@@ -154,6 +223,7 @@ function TabPill({ node }) {
     {
       href: node.href ?? "#",
       className: `mds-nav-pill${selected ? " active" : ""}`,
+      title: node.title ?? void 0,
       role: "tab",
       "data-bs-toggle": "tab",
       "data-text": node.text,
@@ -162,7 +232,7 @@ function TabPill({ node }) {
       tabIndex: selected ? 0 : -1,
       children: /* @__PURE__ */ jsxDEV("span", { className: "mds-nav-pill__label", children: node.text }, void 0, false, {
         fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-        lineNumber: 279,
+        lineNumber: 365,
         columnNumber: 13
       }, this)
     },
@@ -170,7 +240,7 @@ function TabPill({ node }) {
     false,
     {
       fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-      lineNumber: 269,
+      lineNumber: 354,
       columnNumber: 9
     },
     this
@@ -178,46 +248,71 @@ function TabPill({ node }) {
 }
 __name(TabPill, "TabPill");
 function SubmenuTrigger({ node, istablist = false }) {
-  return /* @__PURE__ */ jsxDEV(PillDropdownToggle, { label: node.text, selected: isNodeActive(node), istablist, children: /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu", children: /* @__PURE__ */ jsxDEV(DropdownItems, { items: node.children, istablist }, void 0, false, {
-    fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 296,
-    columnNumber: 17
-  }, this) }, void 0, false, {
-    fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 295,
-    columnNumber: 13
-  }, this) }, void 0, false, {
-    fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 294,
-    columnNumber: 9
-  }, this);
+  return /* @__PURE__ */ jsxDEV(
+    PillDropdownToggle,
+    {
+      label: node.text,
+      selected: isNodeActive(node),
+      title: node.title ?? void 0,
+      istablist,
+      children: /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu", children: /* @__PURE__ */ jsxDEV(DropdownItems, { items: node.children, istablist }, void 0, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 387,
+        columnNumber: 17
+      }, this) }, void 0, false, {
+        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+        lineNumber: 386,
+        columnNumber: 13
+      }, this)
+    },
+    void 0,
+    false,
+    {
+      fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+      lineNumber: 380,
+      columnNumber: 9
+    },
+    this
+  );
 }
 __name(SubmenuTrigger, "SubmenuTrigger");
 const renderPill = /* @__PURE__ */ __name((item, istablist) => {
   if (item.showchildreninsubmenu && item.children.length > 0) {
     return /* @__PURE__ */ jsxDEV(SubmenuTrigger, { node: item, istablist }, void 0, false, {
       fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-      lineNumber: 311,
+      lineNumber: 402,
       columnNumber: 16
     });
   }
   if (istablist) {
     return /* @__PURE__ */ jsxDEV(TabPill, { node: item }, void 0, false, {
       fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-      lineNumber: 314,
+      lineNumber: 405,
       columnNumber: 16
     });
   }
-  return /* @__PURE__ */ jsxDEV(NavPill, { label: item.text, href: item.href ?? "#", selected: isNodeActive(item) }, void 0, false, {
-    fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 316,
-    columnNumber: 12
-  });
+  return /* @__PURE__ */ jsxDEV(
+    NavPill,
+    {
+      label: item.text,
+      href: item.href ?? "#",
+      title: item.title ?? void 0,
+      selected: isNodeActive(item)
+    },
+    void 0,
+    false,
+    {
+      fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+      lineNumber: 408,
+      columnNumber: 9
+    }
+  );
 }, "renderPill");
 const MEASURED_CLASS = "secondarynav-measured";
-function SecondaryNav({ items, morelabel, istablist }) {
-  const forced = items.filter((item) => item.forceintomoremenu);
-  const rest = items.filter((item) => !item.forceintomoremenu);
+function SecondaryNav({ items, morelabel, istablist, navbarstyle, measuredclass = MEASURED_CLASS }) {
+  const toplevel = items.filter((item) => !item.divider);
+  const forced = toplevel.filter((item) => item.forceintomoremenu);
+  const rest = toplevel.filter((item) => !item.forceintomoremenu);
   const menuRef = useRef(null);
   const [autoOverflowCount, setAutoOverflowCount] = useState(0);
   const [measured, setMeasured] = useState(false);
@@ -261,7 +356,7 @@ function SecondaryNav({ items, morelabel, istablist }) {
     }
     const reveal = /* @__PURE__ */ __name(() => {
       if (!measured) {
-        container.classList.add(MEASURED_CLASS);
+        container.classList.add(measuredclass);
       }
     }, "reveal");
     const wrapped = menu.offsetHeight > container.offsetHeight;
@@ -296,78 +391,93 @@ function SecondaryNav({ items, morelabel, istablist }) {
     setMeasured(true);
   });
   useEffect(() => {
-    const container = menuRef.current?.parentElement;
-    if (!container || typeof ResizeObserver === "undefined") {
-      return void 0;
-    }
-    const observer = new ResizeObserver(() => {
+    const remeasure = /* @__PURE__ */ __name(() => {
       stepsRef.current = 0;
       lastActionRef.current = null;
       shrinkExhaustedRef.current = false;
       forceRemeasure((tick) => tick + 1);
-    });
-    observer.observe(container);
+    }, "remeasure");
+    window.addEventListener("resize", remeasure);
+    const container = menuRef.current?.parentElement;
+    let observer = null;
+    if (container && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(remeasure);
+      observer.observe(container);
+    }
     return () => {
-      observer.disconnect();
+      window.removeEventListener("resize", remeasure);
+      observer?.disconnect();
     };
   }, []);
   const visibleCount = Math.max(rest.length - autoOverflowCount, 0);
   const visible = rest.slice(0, visibleCount);
   const overflow = [...rest.slice(visibleCount), ...forced];
   const itemRole = "none";
-  return /* @__PURE__ */ jsxDEV("ul", { ref: menuRef, className: "nav more-nav", role: istablist ? "tablist" : "menubar", children: [
-    visible.map((item) => {
-      const isSubmenuTrigger = item.showchildreninsubmenu && item.children.length > 0;
-      return /* @__PURE__ */ jsxDEV(
-        "li",
-        {
-          role: itemRole,
-          className: `nav-item d-flex align-items-center${isSubmenuTrigger ? " dropdown" : ""}`,
-          children: renderPill(item, istablist)
-        },
-        item.key,
-        false,
-        {
-          fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-          lineNumber: 494,
-          columnNumber: 21
-        },
-        this
-      );
-    }),
-    /* @__PURE__ */ jsxDEV(
-      "li",
-      {
-        role: itemRole,
-        className: `nav-item d-flex align-items-center dropdown dropdownmoremenu${overflow.length === 0 ? " d-none" : ""}`,
-        children: /* @__PURE__ */ jsxDEV(PillDropdownToggle, { label: morelabel, selected: overflow.some(isNodeActive), istablist, children: /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu dropdown-menu-start", "data-region": "moredropdown", children: /* @__PURE__ */ jsxDEV(DropdownItems, { items: overflow, istablist }, void 0, false, {
-          fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-          lineNumber: 509,
-          columnNumber: 25
-        }, this) }, void 0, false, {
-          fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-          lineNumber: 508,
-          columnNumber: 21
-        }, this) }, void 0, false, {
-          fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-          lineNumber: 507,
-          columnNumber: 17
-        }, this)
-      },
-      void 0,
-      false,
-      {
-        fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-        lineNumber: 503,
-        columnNumber: 13
-      },
-      this
-    )
-  ] }, void 0, true, {
-    fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
-    lineNumber: 490,
-    columnNumber: 9
-  }, this);
+  return /* @__PURE__ */ jsxDEV(
+    "ul",
+    {
+      ref: menuRef,
+      className: ["nav", "more-nav", navbarstyle].filter(Boolean).join(" "),
+      role: istablist ? "tablist" : "menubar",
+      children: [
+        visible.map((item) => {
+          const isSubmenuTrigger = item.showchildreninsubmenu && item.children.length > 0;
+          return /* @__PURE__ */ jsxDEV(
+            "li",
+            {
+              role: itemRole,
+              className: `nav-item d-flex align-items-center${isSubmenuTrigger ? " dropdown" : ""}`,
+              children: renderPill(item, istablist)
+            },
+            item.key,
+            false,
+            {
+              fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+              lineNumber: 616,
+              columnNumber: 21
+            },
+            this
+          );
+        }),
+        /* @__PURE__ */ jsxDEV(
+          "li",
+          {
+            role: itemRole,
+            className: `nav-item d-flex align-items-center dropdown dropdownmoremenu${overflow.length === 0 ? " d-none" : ""}`,
+            children: /* @__PURE__ */ jsxDEV(PillDropdownToggle, { label: morelabel, selected: overflow.some(isNodeActive), istablist, children: /* @__PURE__ */ jsxDEV("div", { className: "dropdown-menu dropdown-menu-start", "data-region": "moredropdown", children: /* @__PURE__ */ jsxDEV(DropdownItems, { items: overflow, istablist, submenus: true }, void 0, false, {
+              fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+              lineNumber: 631,
+              columnNumber: 25
+            }, this) }, void 0, false, {
+              fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+              lineNumber: 630,
+              columnNumber: 21
+            }, this) }, void 0, false, {
+              fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+              lineNumber: 629,
+              columnNumber: 17
+            }, this)
+          },
+          void 0,
+          false,
+          {
+            fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+            lineNumber: 625,
+            columnNumber: 13
+          },
+          this
+        )
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "public/lib/js/esm/src/nav/SecondaryNav.tsx",
+      lineNumber: 608,
+      columnNumber: 9
+    },
+    this
+  );
 }
 __name(SecondaryNav, "SecondaryNav");
 export {
