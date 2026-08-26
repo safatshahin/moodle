@@ -696,11 +696,19 @@ class registration {
      * confirmation, or because the {@see \core\task\registration_cron_task} scheduled task has been disabled.
      * Both cases leave the site reporting as "registered" with no other indication that updates have stopped.
      *
-     * @return string one of the self::REPORTING_PAUSED_* constants, or '' if the site is not registered or is
-     *     reporting normally
+     * When both causes apply at once, the new-fields cause is reported: it is the one the admin is redirected
+     * to resolve by {@see self::registration_reminder()}, and once confirmed the next call reports the
+     * task-disabled cause instead.
+     *
+     * Sites that are not publicly accessible are never reported as paused: {@see \core\task\registration_cron_task}
+     * only sends updates when site_is_public(), and {@see self::registration_reminder()} and the unregistered
+     * warning are gated the same way, so such a site is deliberately not nagged about paused reporting.
+     *
+     * @return string one of the self::REPORTING_PAUSED_* constants, or '' if the site is not registered, is not
+     *     public, or is reporting normally
      */
     public static function get_reporting_paused_reason(): string {
-        if (!self::is_registered()) {
+        if (!self::is_registered() || !site_is_public()) {
             return '';
         }
 
@@ -732,13 +740,16 @@ class registration {
     public static function get_registration_page_notification(bool $siteisregistered, bool $isinitialregistration): array {
         if ($siteisregistered) {
             $lastupdated = self::get_last_updated();
+            // The new-fields message is shown on this page regardless of site_is_public(), as it always has
+            // been: the admin is here to update the registration, so use the raw condition rather than
+            // get_reporting_paused_reason(), which only reports publicly accessible sites as paused.
             $pausedreason = self::get_reporting_paused_reason();
             if ($lastupdated == 0) {
                 return [
                     'message' => get_string('pleaserefreshregistrationunknown', 'admin'),
                     'type' => notification::NOTIFY_ERROR,
                 ];
-            } else if ($pausedreason === self::REPORTING_PAUSED_NEW_FIELDS) {
+            } else if (self::get_new_registration_fields()) {
                 return [
                     'message' => get_string('pleaserefreshregistrationnewdata', 'admin'),
                     'type' => notification::NOTIFY_ERROR,

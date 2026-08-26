@@ -326,9 +326,7 @@ class core_admin_renderer extends plugin_renderer_base {
         $output .= $this->overridetossl_warning($overridetossl);
         $output .= $this->cache_warnings($cachewarnings);
         $output .= $this->events_handlers($eventshandlers);
-        // Registration_reminder() already redirects away from this page for the new-fields-pending
-        // cause, so that branch of the warning can never legitimately render here.
-        $output .= $this->registration_warning($registered, false);
+        $output .= $this->registration_warning($registered);
         $output .= $this->mobile_configuration_warning($mobileconfigured);
         $output .= $this->forgotten_password_url_warning($invalidforgottenpasswordurl);
         $output .= $this->mnet_deprecation_warning($xmlrpcwarning);
@@ -855,14 +853,9 @@ class core_admin_renderer extends plugin_renderer_base {
      * Display a warning about not being registered on Moodle.org if necesary.
      *
      * @param boolean $registered true if the site is registered on Moodle.org
-     * @param bool $shownewfieldswarning whether the "new fields pending confirmation" paused-reporting warning
-     *     may be shown here. Pass false from a page that already calls
-     *     {@see \core\hub\registration::registration_reminder()} for the same condition, since that redirects
-     *     away before this warning would ever render there, and this flag keeps the two in sync instead of
-     *     relying on the redirect firing first.
      * @return string HTML to output.
      */
-    protected function registration_warning($registered, bool $shownewfieldswarning = true) {
+    protected function registration_warning($registered) {
 
         if (!$registered) {
             if (!site_is_public()) {
@@ -888,14 +881,11 @@ class core_admin_renderer extends plugin_renderer_base {
             return '';
         }
 
+        // The new-fields-pending cause is deliberately not covered here: every page that renders this warning
+        // for a registered site also calls \core\hub\registration::registration_reminder(), which redirects
+        // the admin to the registration form under that exact condition before this warning could render.
         $pausedreason = \core\hub\registration::get_reporting_paused_reason();
-        if ($shownewfieldswarning && $pausedreason === \core\hub\registration::REPORTING_PAUSED_NEW_FIELDS) {
-            $actionbutton = $this->single_button(
-                new moodle_url('/admin/registration/index.php'),
-                get_string('registerwithmoodleorgupdate', 'core_hub'),
-            );
-            return $this->warning(get_string('registrationreportingpausednewfields', 'admin') . '&nbsp;' . $actionbutton);
-        } else if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED) {
+        if ($pausedreason === \core\hub\registration::REPORTING_PAUSED_TASK_DISABLED) {
             $actionbutton = $this->single_button(
                 new moodle_url('/admin/tool/task/scheduledtasks.php'),
                 get_string('scheduledtasks', 'tool_task'),
@@ -909,12 +899,10 @@ class core_admin_renderer extends plugin_renderer_base {
     /**
      * Return an admin page warning if site is not registered with moodle.org
      *
-     * @param bool $shownewfieldswarning whether the "new fields pending confirmation" paused-reporting warning
-     *     may be shown here. See {@see self::registration_warning()}.
      * @return string
      */
-    public function warn_if_not_registered(bool $shownewfieldswarning = true) {
-        return $this->registration_warning(\core\hub\registration::is_registered(), $shownewfieldswarning);
+    public function warn_if_not_registered() {
+        return $this->registration_warning(\core\hub\registration::is_registered());
     }
 
     /**

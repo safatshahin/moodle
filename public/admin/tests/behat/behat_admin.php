@@ -142,6 +142,8 @@ class behat_admin extends behat_base {
     public function the_site_is_registered_with_moodleorg(): void {
         global $DB;
 
+        // Behat sites run on localhost, so force the public check a registered site would normally pass.
+        set_config('site_is_public', 1);
         $DB->insert_record('registration_hubs', [
             'token' => 'behattoken',
             'hubname' => 'Moodle.org',

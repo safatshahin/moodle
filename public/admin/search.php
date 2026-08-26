@@ -59,9 +59,7 @@ echo $OUTPUT->header();
 // Display a warning if site is not registered.
 if (empty($query)) {
     $adminrenderer = $PAGE->get_renderer('core', 'admin');
-    // Registration_reminder() above already redirects away from this page for the new-fields-pending
-    // cause, so that branch of the warning can never legitimately render here.
-    echo $adminrenderer->warn_if_not_registered(false);
+    echo $adminrenderer->warn_if_not_registered();
 }
 
 if ($errormsg !== '') {

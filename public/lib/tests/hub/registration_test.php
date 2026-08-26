@@ -293,7 +293,10 @@ final class registration_test extends \advanced_testcase {
      * @return int id of the inserted registration_hubs record
      */
     private function register_site(): int {
-        global $DB;
+        global $CFG, $DB;
+
+        // Paused reporting is only detected for publicly accessible sites.
+        $CFG->site_is_public = true;
 
         return $DB->insert_record('registration_hubs', [
             'token' => 'abc123',
@@ -357,6 +360,25 @@ final class registration_test extends \advanced_testcase {
         \core\task\manager::configure_scheduled_task($task);
 
         $this->assertSame(registration::REPORTING_PAUSED_TASK_DISABLED, registration::get_reporting_paused_reason());
+    }
+
+    /**
+     * Test get_reporting_paused_reason() for a site that is not publicly accessible.
+     *
+     * Such a site is deliberately not reported as paused: the registration task only sends updates when
+     * site_is_public(), so there is nothing the admin could usefully do about it.
+     *
+     * @covers \core\hub\registration::get_reporting_paused_reason
+     */
+    public function test_get_reporting_paused_reason_not_public(): void {
+        global $CFG;
+
+        $this->resetAfterTest();
+        $this->register_site();
+        set_config('site_regupdateversion', 0, 'hub');
+        $CFG->site_is_public = false;
+
+        $this->assertSame('', registration::get_reporting_paused_reason());
     }
 
     /**

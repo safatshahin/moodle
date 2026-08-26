@@ -29,11 +29,13 @@ final class registration_reporting_check_task_test extends \advanced_testcase {
      * Executing the task with a registered site that has paused reporting sends a notification.
      */
     public function test_execute_notifies_when_paused(): void {
-        global $DB;
+        global $CFG, $DB;
 
         $this->resetAfterTest();
         $sink = $this->redirectMessages();
 
+        // Paused reporting is only detected for publicly accessible sites.
+        $CFG->site_is_public = true;
         $DB->insert_record('registration_hubs', [
             'token' => 'abc123',
             'hubname' => 'Moodle.org',

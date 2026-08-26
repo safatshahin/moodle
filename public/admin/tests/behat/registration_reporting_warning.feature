@@ -12,11 +12,18 @@ Feature: Registered site reporting warning
     When I navigate to "Notifications" in site administration
     Then I should not see "automatic registration reporting is paused"
 
-  Scenario: A registered site with new registration fields pending does not duplicate the redirect warning here
+  Scenario: A registered site with new registration fields pending shows no warning here
     # \core\hub\registration::registration_reminder() already redirects the admin away from this page
-    # to the registration form under this exact same condition, so this banner must not also appear here.
+    # to the registration form under this exact same condition, so this cause is not covered here.
     Given the following config values are set as admin:
       | site_regupdateversion | 0 | hub |
+    When I navigate to "Notifications" in site administration
+    Then I should not see "automatic registration reporting is paused"
+
+  Scenario: A site that is not publicly accessible shows no paused-reporting warning
+    Given the following config values are set as admin:
+      | site_is_public | 0 |
+    And the scheduled task "\core\task\registration_cron_task" is disabled
     When I navigate to "Notifications" in site administration
     Then I should not see "automatic registration reporting is paused"
 
