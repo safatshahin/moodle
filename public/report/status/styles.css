@@ -1,3 +1,6 @@
+/* These rules style the markup produced by core\check\table, which is shared by the
+   status, security and performance reports. Plugin stylesheets are aggregated into a
+   single site stylesheet, so they apply on all three reports. */
 
 .checktable {
     table-layout: fixed;
@@ -19,3 +22,6 @@
     width: 20%;
 }
 
+.check-details-placeholder {
+    min-height: 4em;
+}

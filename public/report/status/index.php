@@ -39,9 +39,11 @@ if (!empty($table->detail)) {
     $PAGE->navbar->add($table->detail->get_name());
 }
 
-\core\session\manager::write_close();
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'report_status'));
 echo $table->render($OUTPUT);
 echo $OUTPUT->footer();
-echo $table->run_checks($OUTPUT);
+
+// The page is fully rendered, the session is no longer needed while the checks stream in.
+\core\session\manager::write_close();
+$table->run_checks($OUTPUT);
