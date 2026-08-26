@@ -31,6 +31,7 @@ use context_system;
 use stdClass;
 use html_writer;
 use core_plugin_manager;
+use core\output\notification;
 
 /**
  * Methods to use when registering the site at the moodle sites directory.
@@ -73,6 +74,12 @@ class registration {
         // Default homepage added in Moodle 5.2.
         2026012200 => ['defaulthomepage'],
     ];
+
+    /** @var string Registration reporting is paused because new registration fields need manual confirmation */
+    public const REPORTING_PAUSED_NEW_FIELDS = 'newfields';
+
+    /** @var string Registration reporting is paused because the registration cron task is disabled */
+    public const REPORTING_PAUSED_TASK_DISABLED = 'taskdisabled';
 
     /** @var string Site privacy: not displayed */
     const HUB_SITENOTPUBLISHED = 'notdisplayed';
@@ -680,6 +687,149 @@ class registration {
             }
         }
         return $fieldsneedconfirm;
+    }
+
+    /**
+     * Returns why a registered site has stopped sending registration updates, if at all.
+     *
+     * A registered site can stop reporting either because new registration fields are awaiting manual
+     * confirmation, or because the {@see \core\task\registration_cron_task} scheduled task has been disabled.
+     * Both cases leave the site reporting as "registered" with no other indication that updates have stopped.
+     *
+     * @return string one of the self::REPORTING_PAUSED_* constants, or '' if the site is not registered or is
+     *     reporting normally
+     */
+    public static function get_reporting_paused_reason(): string {
+        if (!self::is_registered()) {
+            return '';
+        }
+
+        if (self::get_new_registration_fields()) {
+            return self::REPORTING_PAUSED_NEW_FIELDS;
+        }
+
+        $task = \core\task\manager::get_scheduled_task(\core\task\registration_cron_task::class);
+        if ($task && $task->get_disabled()) {
+            return self::REPORTING_PAUSED_TASK_DISABLED;
+        }
+
+        return '';
+    }
+
+    /**
+     * Determines the status notification to display on the registration page.
+     *
+     * Split out from admin/registration/index.php so this branch selection can be unit tested on its own.
+     * The page itself additionally gates $siteisregistered on \core\hub\api::is_site_registered_in_hub(),
+     * a live request to the moodle.org hub that cannot be exercised in a test environment; this method
+     * covers everything downstream of that check.
+     *
+     * @param bool $siteisregistered whether the site is registered locally and confirmed at the hub
+     * @param bool $isinitialregistration whether this is a first-time/pending initial registration
+     * @return array{message: string, type: string} notification message and \core\output\notification type,
+     *     or an empty message when nothing should be displayed
+     */
+    public static function get_registration_page_notification(bool $siteisregistered, bool $isinitialregistration): array {
+        if ($siteisregistered) {
+            $lastupdated = self::get_last_updated();
+            $pausedreason = self::get_reporting_paused_reason();
+            if ($lastupdated == 0) {
+                return [
+                    'message' => get_string('pleaserefreshregistrationunknown', 'admin'),
+                    'type' => notification::NOTIFY_ERROR,
+                ];
+            } else if ($pausedreason === self::REPORTING_PAUSED_NEW_FIELDS) {
+                return [
+                    'message' => get_string('pleaserefreshregistrationnewdata', 'admin'),
+                    'type' => notification::NOTIFY_ERROR,
+                ];
+            } else if ($pausedreason === self::REPORTING_PAUSED_TASK_DISABLED) {
+                $taskurl = new moodle_url('/admin/tool/task/scheduledtasks.php');
+                return [
+                    'message' => get_string('registrationtaskdisabled', 'admin', $taskurl->out(false)),
+                    'type' => notification::NOTIFY_WARNING,
+                ];
+            }
+            return [
+                'message' => get_string(
+                    'pleaserefreshregistration',
+                    'admin',
+                    userdate($lastupdated, get_string('strftimedate', 'langconfig')),
+                ),
+                'type' => notification::NOTIFY_INFO,
+            ];
+        } else if (!$isinitialregistration) {
+            return [
+                'message' => get_string('registrationwarning', 'admin'),
+                'type' => notification::NOTIFY_ERROR,
+            ];
+        }
+
+        return ['message' => '', 'type' => ''];
+    }
+
+    /**
+     * Checks whether registration reporting has stopped since the last check and, if so, notifies site admins.
+     *
+     * Intended to be called periodically (see {@see \core\task\registration_reporting_check_task}) so the
+     * paused state is surfaced even if no administrator happens to visit a page that checks it directly.
+     */
+    public static function check_reporting_paused_notification(): void {
+        $reason = self::get_reporting_paused_reason();
+        $previouslynotified = get_config('hub', 'reportingpausednotifiedreason');
+
+        if ($reason === '') {
+            if ($previouslynotified !== false) {
+                unset_config('reportingpausednotifiedreason', 'hub');
+            }
+            return;
+        }
+
+        if ($previouslynotified === $reason) {
+            // Already notified admins for this reason since it started; do not repeat every run.
+            return;
+        }
+
+        self::send_reporting_paused_notification($reason);
+        set_config('reportingpausednotifiedreason', $reason, 'hub');
+    }
+
+    /**
+     * Sends the registration-reporting-paused notification to all site admins.
+     *
+     * @param string $reason one of the self::REPORTING_PAUSED_* constants
+     */
+    protected static function send_reporting_paused_notification(string $reason): void {
+        $admins = get_admins();
+        if (empty($admins)) {
+            return;
+        }
+
+        $stringkey = $reason === self::REPORTING_PAUSED_TASK_DISABLED
+            ? 'registrationreportingpausedtaskdisabledmessage'
+            : 'registrationreportingpausednewfieldsmessage';
+
+        $a = (object) ['siteurl' => (new moodle_url('/admin/registration/index.php'))->out(false)];
+        $messagetext = get_string($stringkey, 'admin', $a);
+        $subject = get_string('registrationreportingpausedsubject', 'admin');
+
+        foreach ($admins as $admin) {
+            $message = new \core\message\message();
+            $message->courseid          = SITEID;
+            $message->component         = 'moodle';
+            $message->name              = 'registrationreportingpaused';
+            $message->userfrom          = get_admin();
+            $message->userto            = $admin;
+            $message->subject           = $subject;
+            $message->fullmessage       = $messagetext;
+            $message->fullmessageformat = FORMAT_PLAIN;
+            $message->fullmessagehtml   = html_writer::tag('p', $messagetext);
+            $message->smallmessage      = $subject;
+            $message->notification      = 1;
+            $message->contexturl        = $a->siteurl;
+            $message->contexturlname    = get_string('registerwithmoodleorgupdate', 'core_hub');
+            message_send($message);
+        }
     }
 
     /**

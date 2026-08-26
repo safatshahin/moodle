@@ -135,6 +135,25 @@ class behat_admin extends behat_base {
     }
 
     /**
+     * Registers the site with moodle.org for testing purposes, without contacting the hub.
+     *
+     * @Given /^the site is registered with moodle\.org$/
+     */
+    public function the_site_is_registered_with_moodleorg(): void {
+        global $DB;
+
+        $DB->insert_record('registration_hubs', [
+            'token' => 'behattoken',
+            'hubname' => 'Moodle.org',
+            'huburl' => HUB_MOODLEORGHUBURL,
+            'confirmed' => 1,
+            'secret' => 'behatsecret',
+            'timemodified' => time(),
+        ]);
+        set_config('site_regupdateversion', max(array_keys(\core\hub\registration::CONFIRM_NEW_FIELDS)), 'hub');
+    }
+
+    /**
      * Sets pathtophp to the PHP binary.
      *
      * @Given /^the PHP CLI path is set to the system PHP binary$/
