@@ -4,6 +4,13 @@ $fixed-header-y: $navbar-height;
 $drawer-width: 285px !default;
 $drawer-left-width: 285px !default;
 $drawer-right-width: 315px !default;
+// Limits for the user-resizable course index drawer. At runtime these are
+// injected from theme_boost\courseindex_resizer::MIN_WIDTH and MAX_WIDTH via
+// theme_boost_get_pre_scss(), so the PHP constants are the single source of
+// truth; the !default values below only serve the statically precompiled CSS
+// and must mirror them.
+$drawer-index-width-min: 285px !default;
+$drawer-index-width-max: 640px !default;
 $drawer-padding-x: 20px !default;
 $drawer-padding-y: 20px !default;
 $drawer-offscreen-gutter: 20px !default;
@@ -39,12 +46,16 @@ $drawer-main-offset: calc(#{$drawer-content-gap} - #{$drawer-content-inset});
 $drawer-toggler-margin: 16px !default;
 $drawer-left-reserve: calc(#{$drawer-left-width} + #{$drawer-edge-gap} + #{$drawer-main-offset});
 $drawer-right-reserve: calc(#{$drawer-right-width} + #{$drawer-edge-gap} + #{$drawer-main-offset});
+// The resized course index width beyond $drawer-left-width (see the body rule below). The reserves stay at the default
+// width, and an open course index adds this to its page margin and shifts its anchor by it, so only its inner edge moves.
+$drawer-index-extra: var(--drawer-index-width-extra);
 // Room beside a closed drawer for its toggle button, with the same gaps as an open drawer.
 $drawer-toggle-reserve: calc(#{$drawer-edge-gap} + #{$icon-medium-width} + #{$drawer-content-gap} - #{$drawer-content-inset});
 // Closed toggle button position that keeps the screen-edge gap, for when there is no room to anchor to .main-inner.
 $drawer-toggle-edge-anchor: calc(100% - #{$icon-medium-width} - #{$drawer-edge-gap} - #{$drawer-toggler-margin});
 
-// Position of the left drawer (as `right`), or of its toggle when $shift is set, for the given reserves.
+// Position of the left drawer (as `right`), or of its toggle, for the given reserves. $shift moves it inwards: by the
+// toggle margin for a toggle, or by the resized course index extra width for the open drawer.
 // Min() picks the smaller: beside .main-inner when there is room, else the drawer keeps its screen-edge gap.
 @function drawer-left-anchor($reserve-left, $reserve-right, $shift: null) {
     $tail: if($shift, " - #{$shift}", "");
@@ -61,6 +72,34 @@ $drawer-toggle-edge-anchor: calc(100% - #{$icon-medium-width} - #{$drawer-edge-g
     $centred: "calc(50% + #{$course-content-maxwidth} / 2 + "
         + "(#{$reserve-left} - #{$reserve-right}) / 2 + #{$drawer-main-offset}#{$tail})";
     @return unquote("Min(#{$edge}, #{$centred})");
+}
+
+// The effective course index drawer width.
+// The saved user preference is emitted as an inline --drawer-index-width on
+// the body by the drawers layout, and updated live by the resize handle. It
+// only takes effect at lg and up, where the drawer pushes the page content:
+// below lg the drawer overlays the page and always keeps the default width.
+//
+// --drawer-index-width-extra is the width beyond the default. The page geometry is
+// laid out for the default width, and the extra is spent in exactly two
+// places: the drawer's inner edge extends by it, and the centred content
+// column shrinks from its left by it. The drawer's outer edge, the content
+// column's right edge and everything on the blocks drawer side never move.
+body {
+    --drawer-index-width-effective: #{$drawer-left-width};
+    // Zero must carry a unit here: the property is consumed inside calc()
+    // subtraction, where a unitless 0 is invalid.
+    --drawer-index-width-extra: 0px; // stylelint-disable-line length-zero-no-unit
+
+    @include media-breakpoint-up(lg) {
+        --drawer-index-width-effective:
+            clamp(
+                #{$drawer-index-width-min},
+                var(--drawer-index-width, #{$drawer-left-width}),
+                #{$drawer-index-width-max}
+            );
+        --drawer-index-width-extra: calc(var(--drawer-index-width-effective) - #{$drawer-left-width});
+    }
 }
 
 :target,
@@ -144,13 +183,13 @@ body.drawer-ease {
 
 body:not(.uses-drawers).drawer-open-left {
     @include media-breakpoint-up(md) {
-        margin-left: $drawer-left-width;
+        margin-left: var(--drawer-index-width-effective);
     }
 }
 
 body.drawer-open-left #page.drawers {
     @include media-breakpoint-up(md) {
-        margin-left: $drawer-left-width;
+        margin-left: var(--drawer-index-width-effective);
         padding-left: 1rem;
     }
 }
@@ -270,9 +309,9 @@ $right-drawer-width: 320px;
     }
     &.drawer-left {
         @include transition(left 0.2s ease, top 0.2s ease, bottom 0.2s ease, visibility 0.2s ease);
-        width: $drawer-left-width;
-        max-width: $drawer-left-width;
-        left: calc(-#{$drawer-left-width} + -10px);
+        width: var(--drawer-index-width-effective);
+        max-width: var(--drawer-index-width-effective);
+        left: calc(-1 * var(--drawer-index-width-effective) + -10px);
         visibility: hidden;
         background-color: $drawer-left-bg-color;
 
@@ -303,6 +342,89 @@ $right-drawer-width: 320px;
 .drawer {
     @include drawer();
     @include drawertypes();
+}
+
+// Course index drawer resize handle.
+// Only shown at lg and up, where the drawer pushes the page content. Below lg
+// the drawer overlays the page and keeps its default width, so the handle is
+// hidden and unreachable by keyboard.
+.drawer-left .drawerresizehandle {
+    display: none;
+}
+
+@include media-breakpoint-up(lg) {
+    .drawer-left.show .drawerresizehandle {
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0.5rem;
+        height: 100%;
+        cursor: col-resize;
+        // Without this, touch browsers claim the gesture for panning and
+        // pointermove stops firing mid-drag.
+        touch-action: none;
+        user-select: none;
+        z-index: 10;
+
+        // The visible grip line. Thinner than the grab area so the target
+        // stays generous while the affordance stays subtle.
+        &::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 2px;
+            width: 2px;
+            background-color: transparent;
+            @include transition(background-color 0.15s ease);
+        }
+
+        &:hover::after,
+        &.dragging::after,
+        &:focus-visible::after {
+            background-color: $primary;
+        }
+
+        &:focus-visible {
+            outline: 2px solid $primary;
+            outline-offset: -2px;
+        }
+    }
+
+    // Touch-capable devices: widen the grab zone to the 24px minimum target
+    // size (WCAG 2.5.8) and show the grip line permanently, since touch has
+    // no hover to reveal it. any-pointer (not pointer) so a device whose
+    // primary input is a mouse or trackpad but which also has a touch screen
+    // still gets a finger-sized target.
+    @media (any-pointer: coarse) {
+        .drawer-left.show .drawerresizehandle {
+            width: 24px;
+
+            &::after {
+                background-color: $border-color;
+            }
+
+            &.dragging::after {
+                background-color: $primary;
+            }
+        }
+    }
+
+    // While dragging, follow the pointer exactly: the drawer and the page
+    // content must not ease towards the new width.
+    body.drawer-resizing {
+        cursor: col-resize;
+        user-select: none;
+
+        #page.drawers,
+        .drawer.drawer-left,
+        .drawer-toggler,
+        .sticky-footer-content-wrapper,
+        .sticky-footer-supplementary-wrapper {
+            transition: none !important; // stylelint-disable-line declaration-no-important
+        }
+    }
 }
 
 @include media-breakpoint-up(lg) {
@@ -359,7 +481,7 @@ $right-drawer-width: 320px;
             right: $drawer-anchor-none;
             width: 0;
             min-width: 0;
-            max-width: $drawer-left-width;
+            max-width: var(--drawer-index-width-effective);
             overflow: clip;
             overscroll-behavior: none;
             @include transition(width 0.2s ease, right 0.2s ease, visibility 0.2s ease, max-height 0.2s ease);
@@ -367,7 +489,7 @@ $right-drawer-width: 320px;
             &.show {
                 left: auto;
                 right: $drawer-anchor-none;
-                width: $drawer-left-width;
+                width: var(--drawer-index-width-effective);
             }
 
             &:not(.show) .drawercontent {
@@ -408,7 +530,7 @@ $right-drawer-width: 320px;
 
         // Course index only: the block drawer side keeps room for its toggle button.
         &:has(#page.drawers.show-drawer-left):not(:has(#page.drawers.show-drawer-right)) {
-            $anchor-left: drawer-left-anchor($drawer-left-reserve, $drawer-toggle-reserve);
+            $anchor-left: drawer-left-anchor($drawer-left-reserve, $drawer-toggle-reserve, $drawer-index-extra);
             $anchor-right: drawer-right-anchor($drawer-left-reserve, $drawer-toggle-reserve);
 
             .drawer.drawer-left {
@@ -450,7 +572,7 @@ $right-drawer-width: 320px;
 
         // Both drawers open: anchor to main-inner edges, keeping the screen-edge gap when there is no room.
         &:has(#page.drawers.show-drawer-left.show-drawer-right) {
-            $anchor-left: drawer-left-anchor($drawer-left-reserve, $drawer-right-reserve);
+            $anchor-left: drawer-left-anchor($drawer-left-reserve, $drawer-right-reserve, $drawer-index-extra);
             $anchor-right: drawer-right-anchor($drawer-left-reserve, $drawer-right-reserve);
 
             .drawer.drawer-left {
