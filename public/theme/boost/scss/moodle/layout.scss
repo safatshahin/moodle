@@ -193,7 +193,7 @@
         right: 0;
 
         &.show-drawer-left {
-            margin-left: $drawer-left-width;
+            margin-left: var(--drawer-index-width-effective);
             margin-right: 0;
         }
 
@@ -203,7 +203,7 @@
         }
 
         &.show-drawer-left.show-drawer-right {
-            margin-left: $drawer-left-width;
+            margin-left: var(--drawer-index-width-effective);
             margin-right: $drawer-right-width;
         }
 
@@ -224,6 +224,29 @@
 
         &:has(#page.drawers.show-drawer-right) .maintenancewarning {
             right: calc(#{$drawer-right-width} + 5rem);
+        }
+    }
+
+    // When the course index is resized wider than its default, the extra
+    // width comes out of the centred content column: the column keeps its
+    // right edge and shrinks from the left, so the drawer never stretches
+    // into the left gutter and the blocks drawer side stays put. The
+    // margin-right formula reproduces the column's default centring gap
+    // (its percentage base already excludes the extra, so adding the extra
+    // back yields the default-width geometry), clamped at 0 for viewports
+    // with no spare space.
+    .pagelayout-standard,
+    body.limitedwidth {
+        #page.drawers.show-drawer-left {
+            .main-inner,
+            .footer-popover {
+                max-width: calc(#{$course-content-maxwidth} - var(--drawer-index-width-extra));
+                margin-left: auto;
+                // Capitalised Max so libsass (SassC) passes it through as CSS
+                // instead of evaluating its builtin max(), which cannot take
+                // a calc() argument. Browsers treat Max and max identically.
+                margin-right: Max(0px, calc((100% + var(--drawer-index-width-extra) - #{$course-content-maxwidth}) / 2));
+            }
         }
     }
 
@@ -255,7 +278,7 @@
     .pagelayout-standard #page.drawers,
     body.limitedwidth #page.drawers {
         &.show-drawer-left.show-drawer-right {
-            margin-left: $drawer-left-width;
+            margin-left: var(--drawer-index-width-effective);
             margin-right: $drawer-right-width;
         }
     }
