@@ -57,7 +57,13 @@ if (empty($reportlist) || $userid == $USER->id) {
 if ($userid) {
 
     // Work out which attempt is most significant from a grading point of view.
-    $attempt = grade_attempt_tracker::get_user_best_attempt($quiz, $userid);
+    if ((string) $quiz->grademethod === QUIZ_GRADEAVERAGE) {
+        // All attempts contribute to the grade, so show the most recent one.
+        $attempts = quiz_get_user_attempts($quiz->id, $userid, 'finished');
+        $attempt = end($attempts) ?: null;
+    } else {
+        $attempt = grade_attempt_tracker::get_user_best_attempt($quiz, $userid);
+    }
 
     // If the user can review the relevant attempt, redirect to it.
     if ($attempt) {

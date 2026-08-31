@@ -207,7 +207,8 @@ class grade_calculator {
      */
     protected function compute_final_grade($userid, ?array $attempts = null) {
         $quiz  = $this->quizobj->get_quiz();
-        $grademethod = $quiz->grademethod;
+        // Not ideal, sometimes this is string, sometimes its an int, see MDL-88180.
+        $grademethod = (string) $quiz->grademethod;
 
         return match ($grademethod) {
             QUIZ_ATTEMPTFIRST,
@@ -267,7 +268,8 @@ class grade_calculator {
 
         $param = [];
 
-        $where = match ($quiz->grademethod) {
+        // Not ideal, sometimes this is string, sometimes its an int, see MDL-88180.
+        $where = match ((string) $quiz->grademethod) {
             QUIZ_GRADEAVERAGE => "quiza.state = '" . quiz_attempt::FINISHED . "' AND",
             default => 'quiza.' . grade_attempt_tracker::get_best_attempt_column($quiz->grademethod) . ' = 1 AND',
         };
