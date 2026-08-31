@@ -742,7 +742,7 @@ final class manager_test extends \advanced_testcase {
             '\core\task\scheduled_test_task' => ['disabled' => 1],
         ];
 
-        $result = manager::get_next_scheduled_task_time($now);
+        $result = manager::get_next_scheduled_task_time();
 
         $this->assertEquals(
             $now + 200,
@@ -791,7 +791,7 @@ final class manager_test extends \advanced_testcase {
             '\core\task\scheduled_test_task' => ['disabled' => 0],
         ];
 
-        $result = manager::get_next_scheduled_task_time($now);
+        $result = manager::get_next_scheduled_task_time();
 
         $this->assertEquals(
             $now + 100,
@@ -835,12 +835,13 @@ final class manager_test extends \advanced_testcase {
         $b->nextruntime = $now + 200;
         $DB->insert_record('task_scheduled', $b);
 
-        // Wildcard disables the entire \core\task\ namespace.
+        // Wildcard disables every task matching \core\task\scheduled_test_*,
+        // which matches task A but not task B (scheduled_test2_task).
         $CFG->scheduled_tasks = [
-            '\core\task\scheduled_test_task' => ['disabled' => 1],
+            '\core\task\scheduled_test_*' => ['disabled' => 1],
         ];
 
-        $result = manager::get_next_scheduled_task_time($now);
+        $result = manager::get_next_scheduled_task_time();
 
         $this->assertEquals(
             $now + 200,
@@ -890,7 +891,7 @@ final class manager_test extends \advanced_testcase {
             '\core\task\scheduled_test_*' => ['disabled' => 0],
         ];
 
-        $result = manager::get_next_scheduled_task_time($now);
+        $result = manager::get_next_scheduled_task_time();
 
         $this->assertEquals(
             $now + 100,
@@ -900,13 +901,11 @@ final class manager_test extends \advanced_testcase {
     }
 
     /**
-     * get_next_scheduled_task_time() uses a strict "nextruntime > $after" query. When
-     * called with $after = $now - 1 the boundary becomes "nextruntime >= $now", so tasks
-     * that are currently due (nextruntime == now) are included. When called with $after = $now
-     * they are excluded. The keepalive loop relies on this to detect tasks left behind by a
-     * partial run_scheduled_tasks() call.
+     * A task left behind by a partial or skipped run keeps a nextruntime in the past.
+     * get_next_scheduled_task_time() must return that overdue time rather than skipping
+     * ahead to the next future task, so the keepalive loop re-runs immediately.
      */
-    public function test_get_next_scheduled_task_time_includes_currently_due_tasks_with_offset(): void {
+    public function test_get_next_scheduled_task_time_includes_overdue_tasks(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -924,25 +923,123 @@ final class manager_test extends \advanced_testcase {
             'disabled'   => 0,
         ];
 
-        // A task whose nextruntime is exactly now — currently due but not yet run.
+        // A task that is overdue, e.g. left behind because a previous run hit its
+        // concurrency limit or max runtime before reaching it.
         $a = clone $base;
         $a->classname   = '\core\task\scheduled_test_task';
-        $a->nextruntime = $now;
+        $a->nextruntime = $now - 60;
         $DB->insert_record('task_scheduled', $a);
 
-        // Passing $now excludes the currently-due task (nextruntime > $now is false).
-        $result = manager::get_next_scheduled_task_time($now);
-        $this->assertNull(
-            $result,
-            'A currently-due task should not be returned when $after equals its nextruntime',
+        // A task due in the future.
+        $b = clone $base;
+        $b->classname   = '\core\task\scheduled_test2_task';
+        $b->nextruntime = $now + 200;
+        $DB->insert_record('task_scheduled', $b);
+
+        $this->assertEquals(
+            $now - 60,
+            manager::get_next_scheduled_task_time(),
+            'An overdue task should be returned as the earliest time, not the next future task',
+        );
+    }
+
+    /**
+     * A task with a NULL nextruntime has never been scheduled and is due immediately
+     * (get_next_scheduled_task() treats NULL as due). get_next_scheduled_task_time()
+     * must report it as due now (returned as 0), not skip it.
+     */
+    public function test_get_next_scheduled_task_time_includes_null_nextruntime_tasks(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $now = time();
+
+        $DB->delete_records('task_scheduled');
+
+        $base = (object)[
+            'component'  => 'test_scheduled_task',
+            'minute'     => '*',
+            'hour'       => '*',
+            'day'        => '*',
+            'month'      => '*',
+            'dayofweek'  => '*',
+            'disabled'   => 0,
+        ];
+
+        // A task that has never been scheduled.
+        $a = clone $base;
+        $a->classname   = '\core\task\scheduled_test_task';
+        $a->nextruntime = null;
+        $DB->insert_record('task_scheduled', $a);
+
+        // A task due in the future.
+        $b = clone $base;
+        $b->classname   = '\core\task\scheduled_test2_task';
+        $b->nextruntime = $now + 200;
+        $DB->insert_record('task_scheduled', $b);
+
+        $this->assertSame(
+            0,
+            manager::get_next_scheduled_task_time(),
+            'A task with a NULL nextruntime should be reported as due immediately (0)',
         );
 
-        // Passing $now - 1 includes it (nextruntime > $now - 1 is true).
-        $result = manager::get_next_scheduled_task_time($now - 1);
+        // With no enabled tasks at all, null is returned.
+        $DB->delete_records('task_scheduled');
+        $this->assertNull(
+            manager::get_next_scheduled_task_time(),
+            'With no enabled scheduled tasks there is no next time',
+        );
+    }
+
+    /**
+     * A partial (non-prefix) wildcard key matches anywhere within the classname, the same
+     * unanchored semantics as the preg_match() in scheduled_task_get_override_key().
+     * The SQL translation must match it too.
+     */
+    public function test_get_next_scheduled_task_time_respects_partial_wildcard_override(): void {
+        global $CFG, $DB;
+        $this->resetAfterTest();
+
+        $now = time();
+
+        // Remove all real installed tasks to avoid interference from tasks with future nextruntimes.
+        $DB->delete_records('task_scheduled');
+
+        $base = (object)[
+            'component'  => 'test_scheduled_task',
+            'minute'     => '*',
+            'hour'       => '*',
+            'day'        => '*',
+            'month'      => '*',
+            'dayofweek'  => '*',
+            'disabled'   => 0,
+        ];
+
+        // Task A matches the partial wildcard and will be force-disabled.
+        $a = clone $base;
+        $a->classname   = '\core\task\scheduled_test_task';
+        $a->nextruntime = $now + 100;
+        $DB->insert_record('task_scheduled', $a);
+
+        // Task B does not match and should be unaffected.
+        $b = clone $base;
+        $b->classname   = '\core\task\scheduled_test2_task';
+        $b->nextruntime = $now + 200;
+        $DB->insert_record('task_scheduled', $b);
+
+        // The key does not start at the beginning of the classname: it matches the
+        // "task\scheduled_test_task" substring of task A only.
+        $CFG->scheduled_tasks = [
+            'task\scheduled_test_*' => ['disabled' => 1],
+        ];
+
+        $result = manager::get_next_scheduled_task_time();
+
         $this->assertEquals(
-            $now,
+            $now + 200,
             $result,
-            'A currently-due task should be returned when $after is one second before its nextruntime',
+            'Task disabled by a partial wildcard override should be skipped like the PHP matcher does',
         );
     }
 }

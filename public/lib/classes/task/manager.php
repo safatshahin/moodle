@@ -1061,7 +1061,7 @@ class manager {
             'task_scheduled',
             $where,
             $params,
-            'lastruntime, nextruntime ASC',
+            'lastruntime, nextruntime, id ASC',
         );
 
         $pluginmanager = \core_plugin_manager::instance();
@@ -1113,36 +1113,33 @@ class manager {
     }
 
     /**
-     * Get the earliest future nextruntime of any enabled scheduled task.
+     * Get the earliest nextruntime of any enabled scheduled task.
      *
      * Used by the keepalive loop to skip scheduled-task polling until at least one
      * task is actually due, avoiding unnecessary database round-trips.
+     *
+     * Overdue tasks are included: tasks left behind by a partial or skipped run
+     * (lock contention, concurrency limit, max runtime) keep a nextruntime in the
+     * past and produce a result in the past. A task that has never been scheduled
+     * (NULL nextruntime) is due immediately and is returned as 0.
      *
      * The same config.php disabled/enabled filter used by {@see self::get_next_scheduled_task()}
      * is applied in SQL via {@see self::build_scheduled_task_disabled_filter()}, including
      * wildcard override keys, so the two functions remain aligned.
      *
-     * @param int $after Only consider tasks whose nextruntime is strictly after this timestamp.
-     * @return int|null The earliest future nextruntime, or null if no future tasks are found.
+     * @return int|null The earliest nextruntime, or null if there are no enabled tasks.
      */
-    public static function get_next_scheduled_task_time(int $after): ?int {
+    public static function get_next_scheduled_task_time(): ?int {
         global $DB;
 
-        [$disabledfilter, $filterparams] = self::build_scheduled_task_disabled_filter();
-        $params = array_merge(['after' => $after], $filterparams);
+        [$disabledfilter, $params] = self::build_scheduled_task_disabled_filter();
 
-        $records = $DB->get_records_select(
-            'task_scheduled',
-            "nextruntime > :after AND ($disabledfilter)",
-            $params,
-            'nextruntime ASC',
-            'nextruntime',
-            0,
-            1,
-        );
+        $sql = "SELECT MIN(COALESCE(nextruntime, 0))
+                  FROM {task_scheduled}
+                 WHERE $disabledfilter";
+        $min = $DB->get_field_sql($sql, $params);
 
-        $record = reset($records);
-        return $record ? (int) $record->nextruntime : null;
+        return ($min === false || $min === null) ? null : (int) $min;
     }
 
     /**
@@ -1887,6 +1884,33 @@ class manager {
      * @param \stdClass $record scheduled task record
      * @return \stdClass scheduled task with any configured overrides
      */
+    protected static function get_record_with_config_overrides(\stdClass $record): \stdClass {
+        global $CFG;
+
+        $scheduledtaskkey = self::scheduled_task_get_override_key($record->classname);
+        $overriddenrecord = $record;
+
+        if ($scheduledtaskkey) {
+            $overriddenrecord->customised = true;
+            $taskconfig = $CFG->scheduled_tasks[$scheduledtaskkey];
+
+            if (isset($taskconfig['disabled'])) {
+                $overriddenrecord->disabled = $taskconfig['disabled'];
+            }
+            if (isset($taskconfig['schedule'])) {
+                [
+                    $overriddenrecord->minute,
+                    $overriddenrecord->hour,
+                    $overriddenrecord->day,
+                    $overriddenrecord->month,
+                    $overriddenrecord->dayofweek
+                ] = explode(' ', $taskconfig['schedule']);
+            }
+        }
+
+        return $overriddenrecord;
+    }
+
     /**
      * Build the SQL fragment and parameters that filter scheduled tasks by their enabled/disabled
      * state, respecting all $CFG->scheduled_tasks overrides including wildcard keys.
@@ -1899,7 +1923,10 @@ class manager {
      *       - it matches no wildcard force-disable pattern AND is enabled in the DB.
      *
      * Wildcard keys (e.g. "\some\plugin\*") are translated to SQL LIKE patterns by
-     * converting * → % and escaping any literal % or _ in the key. The edge case where
+     * escaping each literal segment with sql_like_escape(), joining the segments with %,
+     * and wrapping the result in leading and trailing % so the pattern matches anywhere
+     * in the classname. This mirrors the unanchored regex used by
+     * {@see self::scheduled_task_get_override_key()}. The edge case where
      * a classname matches both a wildcard force-enable and a wildcard force-disable is
      * resolved in favour of force-enable; in PHP, the first-listed key would win instead.
      * This conflict is vanishingly rare in practice.
@@ -1912,24 +1939,25 @@ class manager {
         $exactdisabled    = [];
         $exactenabled     = [];
         $wildcarddisabled = []; // SQL LIKE patterns.
-        $wildcarddenabled = []; // SQL LIKE patterns.
+        $wildcardenabled  = []; // SQL LIKE patterns.
 
         foreach ($CFG->scheduled_tasks ?? [] as $key => $config) {
             if (!isset($config['disabled'])) {
                 continue;
             }
             if (str_contains($key, '*')) {
-                // Convert glob wildcard to a SQL LIKE pattern:
-                // escape the LIKE escape char (\), literal % and _, then replace * with %.
-                $likepattern = str_replace(
-                    ['\\', '%', '_', '*'],
-                    ['\\\\', '\%', '\_', '%'],
-                    $key,
+                // Convert the glob-style key to a SQL LIKE pattern: escape each literal
+                // segment, join with %, and wrap in % so the pattern matches anywhere in
+                // the classname, like the unanchored regex in scheduled_task_get_override_key().
+                $segments = array_map(
+                    fn ($segment) => $DB->sql_like_escape($segment),
+                    explode('*', $key),
                 );
+                $likepattern = '%' . implode('%', $segments) . '%';
                 if ($config['disabled']) {
                     $wildcarddisabled[] = $likepattern;
                 } else {
-                    $wildcarddenabled[] = $likepattern;
+                    $wildcardenabled[] = $likepattern;
                 }
             } else {
                 if ($config['disabled']) {
@@ -1961,10 +1989,10 @@ class manager {
 
         $innerparts = [];
 
-        // Wildcard force-enable: match any of these patterns → include.
-        if ($wildcarddenabled) {
+        // Wildcard force-enable: match any of these patterns to include the task.
+        if ($wildcardenabled) {
             $wfesql = [];
-            foreach ($wildcarddenabled as $i => $pattern) {
+            foreach ($wildcardenabled as $i => $pattern) {
                 $paramname      = 'wfe' . $i;
                 $wfesql[]       = $DB->sql_like('classname', ":$paramname");
                 $params[$paramname] = $pattern;
@@ -1985,33 +2013,6 @@ class manager {
         $parts[]          = '(' . implode(' AND ', $noexactclauses) . ')';
 
         return [implode(' OR ', $parts), $params];
-    }
-
-    protected static function get_record_with_config_overrides(\stdClass $record): \stdClass {
-        global $CFG;
-
-        $scheduledtaskkey = self::scheduled_task_get_override_key($record->classname);
-        $overriddenrecord = $record;
-
-        if ($scheduledtaskkey) {
-            $overriddenrecord->customised = true;
-            $taskconfig = $CFG->scheduled_tasks[$scheduledtaskkey];
-
-            if (isset($taskconfig['disabled'])) {
-                $overriddenrecord->disabled = $taskconfig['disabled'];
-            }
-            if (isset($taskconfig['schedule'])) {
-                [
-                    $overriddenrecord->minute,
-                    $overriddenrecord->hour,
-                    $overriddenrecord->day,
-                    $overriddenrecord->month,
-                    $overriddenrecord->dayofweek
-                ] = explode(' ', $taskconfig['schedule']);
-            }
-        }
-
-        return $overriddenrecord;
     }
 
     /**

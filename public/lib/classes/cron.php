@@ -170,13 +170,12 @@ class cron {
                 $runagain = $runagain && !\core\task\manager::static_caches_cleared_since($timenow);
 
                 if ($runagain && $nextscheduledtime === null) {
-                    // Re-query only when scheduled tasks ran this iteration — their nextruntimes
-                    // have just been updated so this is the freshest possible result.
-                    // Pass $clock->time() - 1 so the query uses nextruntime > (now-1),
-                    // i.e. nextruntime >= now. This ensures that any tasks left behind by a
-                    // partial run (lock contention, max runtime, etc.) are detected as still due,
-                    // producing a $nextscheduledtime <= now that triggers an immediate re-run.
-                    $nextscheduledtime = static::get_next_scheduled_task_time($clock->time() - 1) ?? ($clock->time() + MINSECS);
+                    // Re-query only when scheduled tasks ran this iteration: their nextruntimes
+                    // have just been updated so this is the freshest possible result. The query
+                    // includes overdue and never-run tasks, so any tasks left behind by a
+                    // partial or skipped run (lock contention, concurrency limit, max runtime)
+                    // yield a $nextscheduledtime <= now that triggers an immediate re-run.
+                    $nextscheduledtime = static::get_next_scheduled_task_time() ?? ($clock->time() + MINSECS);
                 }
             } else {
                 mtrace($message);
@@ -197,16 +196,15 @@ class cron {
     }
 
     /**
-     * Get the earliest future nextruntime of any enabled scheduled task.
+     * Get the earliest nextruntime of any enabled scheduled task, including overdue tasks.
      *
      * Extracted as a protected static method so that test subclasses can override it
      * to return a controlled value without hitting the database.
      *
-     * @param int $after Only consider tasks whose nextruntime is strictly after this timestamp.
-     * @return int|null The earliest future nextruntime, or null if no future tasks are found.
+     * @return int|null The earliest nextruntime, or null if there are no enabled tasks.
      */
-    protected static function get_next_scheduled_task_time(int $after): ?int {
-        return \core\task\manager::get_next_scheduled_task_time($after);
+    protected static function get_next_scheduled_task_time(): ?int {
+        return \core\task\manager::get_next_scheduled_task_time();
     }
 
     /**
@@ -244,7 +242,8 @@ class cron {
             return;
         }
 
-        $starttime = time();
+        $clock = \core\di::get(\core\clock::class);
+        $starttime = $clock->time();
 
         // Run all scheduled tasks.
         try {
@@ -256,7 +255,7 @@ class cron {
                 self::run_inner_scheduled_task($task);
                 unset($task);
 
-                if ((time() - $starttime) > $maxruntime) {
+                if (($clock->time() - $starttime) > $maxruntime) {
                     mtrace("Stopping processing of scheduled tasks as time limit has been reached.");
                     break;
                 }
@@ -312,6 +311,7 @@ class cron {
             }
         }
 
+        $clock = \core\di::get(\core\clock::class);
         $humantimenow = date('r', $startruntime);
         $finishtime = $startruntime + $keepalive;
         $waiting = false;
@@ -322,7 +322,7 @@ class cron {
             !\core\local\cli\shutdown::should_gracefully_exit() &&
             !\core\task\manager::static_caches_cleared_since($startprocesstime)
         ) {
-            if ($checklimits && (time() - $startruntime) >= $maxruntime) {
+            if ($checklimits && ($clock->time() - $startruntime) >= $maxruntime) {
                 if ($waiting) {
                     $waiting = false;
                     mtrace('');
@@ -332,7 +332,7 @@ class cron {
             }
 
             try {
-                $task = \core\task\manager::get_next_adhoc_task(time(), $checklimits, $classname);
+                $task = \core\task\manager::get_next_adhoc_task($clock->time(), $checklimits, $classname);
             } catch (\Throwable $e) {
                 if ($adhoclock) {
                     // Release the adhoc task runner lock.
@@ -354,7 +354,7 @@ class cron {
                 }
                 unset($task);
             } else {
-                $timeleft = $finishtime - time();
+                $timeleft = $finishtime - $clock->time();
                 if ($timeleft <= 0) {
                     break;
                 }
@@ -365,7 +365,7 @@ class cron {
                 }
                 $waiting = true;
                 self::set_process_title("Waiting {$timeleft}s for next adhoc task");
-                sleep(1);
+                static::sleep(1);
             }
         }
 
