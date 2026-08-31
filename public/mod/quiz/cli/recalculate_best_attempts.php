@@ -77,7 +77,7 @@ if ($options['run_all']) {
 } else {
     mtrace('Recalculating best attempts for quiz id ' . $options['quiz_id'] . '...');
     if ($options['adhoc']) {
-        grade_attempt_tracker::queue_quiz_calculation($options['quiz_id'], new text_progress_trace());
+        grade_attempt_tracker::queue_quiz_calculation($options['quiz_id']);
     } else {
         grade_attempt_tracker::calculate_quiz($options['quiz_id'], new text_progress_trace());
     }

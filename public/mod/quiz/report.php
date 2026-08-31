@@ -72,7 +72,10 @@ if (!is_readable("report/$mode/report.php")) {
 }
 
 if (grade_attempt_tracker::quiz_has_pending_calculation($quiz->id)) {
-    echo $OUTPUT->notification(get_string('quizhaspendingbestattemptcalculation', 'quiz'), 'warning');
+    \core\notification::add(
+        get_string('quizhaspendingbestattemptcalculation', 'quiz'),
+        \core\output\notification::NOTIFY_WARNING
+    );
 }
 
 // Open the selected quiz report and display it.

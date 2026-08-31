@@ -166,6 +166,11 @@ class grade_calculator {
             $userid = $USER->id;
         }
 
+        // The final grade is read from the stored best-attempt flags, so they must be
+        // brought up to date first. Doing it here covers every path that changes
+        // which attempt counts (finish, regrade, delete, ...).
+        grade_attempt_tracker::calculate_quiz_user_attempts($quiz->id, $userid);
+
         // Calculate the best grade.
         $bestgrade = $this->compute_final_grade($userid, $attempts);
         $bestgrade = quiz_rescale_grade($bestgrade, $quiz, false);
@@ -283,6 +288,7 @@ class grade_calculator {
                 FROM {quiz_attempts} quiza
                 WHERE
                     $where
+                    quiza.preview = 0 AND
                     quiza.quiz = :quizid
                 GROUP BY quiza.userid";
 

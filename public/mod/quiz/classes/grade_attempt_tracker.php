@@ -37,15 +37,6 @@ class grade_attempt_tracker {
         quiz_attempt::SUBMITTED,
     ];
 
-    /**
-     * What grading methods do we calculate for?
-     */
-    public const GRADE_METHODS = [
-        QUIZ_GRADEHIGHEST,
-        QUIZ_ATTEMPTFIRST,
-        QUIZ_ATTEMPTLAST,
-    ];
-
     /** @var bool[] quizid => true for quizzes pending fallback recalculation at shutdown. */
     private static array $shutdownpendingquizids = [];
 
@@ -53,7 +44,7 @@ class grade_attempt_tracker {
     private static bool $shutdownregistered = false;
 
     /**
-     * Output a trace message to CLI trace output or a null trace based on runtime context.
+     * Output a progress message to the given trace, or discard it if no trace was given.
      *
      * @param string $message
      * @param ?progress_trace $trace The trace to output to, or null to use a null trace.
@@ -67,7 +58,7 @@ class grade_attempt_tracker {
     }
 
     /**
-     * Queue a quiz calculaton task for a given quiz.
+     * Queue an adhoc task to calculate best attempts for a given quiz.
      *
      * @param int $quizid
      * @return void
@@ -95,6 +86,7 @@ class grade_attempt_tracker {
         $sql = "SELECT DISTINCT qa.userid
                   FROM {quiz_attempts} qa
                  WHERE qa.state $statesql
+                   AND qa.preview = 0
                    AND qa.quiz = :quiz";
 
         $params = array_merge($stateparams, ['quiz' => $quizid]);
@@ -160,7 +152,7 @@ class grade_attempt_tracker {
         ]);
         $attempts = $DB->get_records_select(
             'quiz_attempts',
-            "quiz = :quiz AND userid = :userid AND state $statesql",
+            "quiz = :quiz AND userid = :userid AND preview = 0 AND state $statesql",
             $params,
             'attempt ASC'
         );
@@ -215,7 +207,8 @@ class grade_attempt_tracker {
 
         $sql = "SELECT DISTINCT qa.quiz
                   FROM {quiz_attempts} qa
-                 WHERE qa.state $statesql";
+                 WHERE qa.state $statesql
+                   AND qa.preview = 0";
 
         $quizids = $DB->get_fieldset_sql($sql, $stateparams);
 

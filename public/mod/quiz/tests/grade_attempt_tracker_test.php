@@ -16,6 +16,11 @@
 
 namespace mod_quiz;
 
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
+require_once($CFG->dirroot . '/mod/quiz/locallib.php');
+
 /**
  * Unit tests for best attempt tracking.
  *
@@ -131,6 +136,115 @@ final class grade_attempt_tracker_test extends \advanced_testcase {
                 null,
             ],
         ];
+    }
+
+    /**
+     * Create a quiz worth 100 marks and insert finished attempts for a user, without going through the API.
+     *
+     * @param array $sumgrades sumgrades for each attempt, in attempt order.
+     * @return array [quiz record, user record, attempt records keyed by attempt number]
+     */
+    private function create_quiz_with_finished_attempts(array $sumgrades): array {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
+        $quiz = $quizgenerator->create_instance(['course' => $course->id, 'grade' => 100]);
+        $DB->set_field('quiz', 'sumgrades', 100, ['id' => $quiz->id]);
+        $quiz->sumgrades = 100;
+        $user = $this->getDataGenerator()->create_user();
+
+        $attempts = [];
+        $uniqueid = 3000;
+        foreach ($sumgrades as $i => $sumgrade) {
+            $attempt = (object) [
+                'quiz' => $quiz->id,
+                'userid' => $user->id,
+                'attempt' => $i + 1,
+                'state' => quiz_attempt::FINISHED,
+                'sumgrades' => $sumgrade,
+                'uniqueid' => $uniqueid++,
+                'layout' => '',
+                'preview' => 0,
+            ];
+            $attempt->id = $DB->insert_record('quiz_attempts', $attempt);
+            $attempts[$i + 1] = $attempt;
+        }
+
+        return [$quiz, $user, $attempts];
+    }
+
+    /**
+     * Test that preview attempts are ignored and never flagged as first, last or highest.
+     */
+    public function test_preview_attempts_are_ignored(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        [$quiz, $user, $attempts] = $this->create_quiz_with_finished_attempts([40]);
+        $preview = (object) [
+            'quiz' => $quiz->id,
+            'userid' => $user->id,
+            'attempt' => 2,
+            'state' => quiz_attempt::FINISHED,
+            'sumgrades' => 90,
+            'uniqueid' => 4000,
+            'layout' => '',
+            'preview' => 1,
+        ];
+        $preview->id = $DB->insert_record('quiz_attempts', $preview);
+
+        grade_attempt_tracker::calculate_quiz($quiz->id);
+
+        $real = $DB->get_record('quiz_attempts', ['id' => $attempts[1]->id], '*', MUST_EXIST);
+        $this->assertEquals(1, $real->gradehighest);
+        $this->assertEquals(1, $real->attemptfirst);
+        $this->assertEquals(1, $real->attemptlast);
+        $previewrecord = $DB->get_record('quiz_attempts', ['id' => $preview->id], '*', MUST_EXIST);
+        $this->assertEquals(0, $previewrecord->gradehighest);
+        $this->assertEquals(0, $previewrecord->attemptfirst);
+        $this->assertEquals(0, $previewrecord->attemptlast);
+    }
+
+    /**
+     * Test that recompute_final_grade brings the best-attempt flags up to date before computing the grade.
+     */
+    public function test_recompute_final_grade_updates_flags(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        [$quiz, $user, $attempts] = $this->create_quiz_with_finished_attempts([40, 70, 55]);
+
+        // Flags are all stale (0) because the attempts were inserted directly.
+        quiz_settings::create($quiz->id)->get_grade_calculator()->recompute_final_grade($user->id);
+
+        $this->assertEquals(1, $DB->get_field('quiz_attempts', 'gradehighest', ['id' => $attempts[2]->id]));
+        $this->assertEquals(1, $DB->get_field('quiz_attempts', 'attemptfirst', ['id' => $attempts[1]->id]));
+        $this->assertEquals(1, $DB->get_field('quiz_attempts', 'attemptlast', ['id' => $attempts[3]->id]));
+        $this->assertEquals(70, $DB->get_field('quiz_grades', 'grade', ['quiz' => $quiz->id, 'userid' => $user->id]));
+    }
+
+    /**
+     * Test that deleting the attempt that provides the grade moves the flags and keeps the user's grade.
+     */
+    public function test_delete_best_attempt_recalculates_flags_and_grade(): void {
+        global $DB;
+
+        $this->resetAfterTest();
+        [$quiz, $user, $attempts] = $this->create_quiz_with_finished_attempts([50, 80]);
+
+        grade_attempt_tracker::calculate_quiz($quiz->id);
+        quiz_settings::create($quiz->id)->get_grade_calculator()->recompute_final_grade($user->id);
+        $this->assertEquals(1, $DB->get_field('quiz_attempts', 'gradehighest', ['id' => $attempts[2]->id]));
+        $this->assertEquals(80, $DB->get_field('quiz_grades', 'grade', ['quiz' => $quiz->id, 'userid' => $user->id]));
+
+        quiz_delete_attempt($attempts[2]->id, $quiz);
+
+        $remaining = $DB->get_record('quiz_attempts', ['id' => $attempts[1]->id], '*', MUST_EXIST);
+        $this->assertEquals(1, $remaining->gradehighest);
+        $this->assertEquals(1, $remaining->attemptfirst);
+        $this->assertEquals(1, $remaining->attemptlast);
+        $this->assertEquals(50, $DB->get_field('quiz_grades', 'grade', ['quiz' => $quiz->id, 'userid' => $user->id]));
     }
 
     /**
