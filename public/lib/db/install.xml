@@ -4968,7 +4968,6 @@
       <INDEXES>
         <INDEX NAME="action" UNIQUE="true" FIELDS="actionname, actionid" COMMENT="Unique index of actionname and actionid"/>
         <INDEX NAME="provider" UNIQUE="false" FIELDS="actionname, provider" COMMENT="Index of actionname and provider"/>
-        <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid" COMMENT="Index of courseid for course-level report queries"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="ai_action_generate_text" COMMENT="Stores specific data about generate text actions.">

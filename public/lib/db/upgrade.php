@@ -2183,15 +2183,12 @@ function xmldb_main_upgrade($oldversion) {
         $table = new xmldb_table('ai_action_register');
         $field = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'model');
 
-        // Conditionally launch add field courseid.
+        // Conditionally launch add field courseid, with its foreign key to course.
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
-        }
 
-        // Conditionally launch add index courseid.
-        $index = new xmldb_index('courseid', XMLDB_INDEX_NOTUNIQUE, ['courseid']);
-        if (!$dbman->index_exists($table, $index)) {
-            $dbman->add_index($table, $index);
+            $key = new xmldb_key('courseid', XMLDB_KEY_FOREIGN, ['courseid'], 'course', ['id']);
+            $dbman->add_key($table, $key);
         }
 
         // Existing rows are left with courseid = 0. Queue an adhoc task to backfill them from their

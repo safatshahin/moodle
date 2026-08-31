@@ -28,7 +28,7 @@
  * This is reached via course administration > Reports, which core gates behind the
  * moodle/site:viewreports capability (teacher/manager archetypes by default), so this entry point
  * only ever benefits users who can already view all students' usage.
- * Students reach their own usage report via {@see report_aiusage_extend_navigation_user()} instead.
+ * Students reach their own usage report via {@see report_aiusage_myprofile_navigation()} instead.
  *
  * @param navigation_node $navigation The navigation node to extend.
  * @param stdClass $course The course to add the report link for.

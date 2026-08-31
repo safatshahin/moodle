@@ -148,6 +148,84 @@ final class course_usage_test extends \advanced_testcase {
     }
 
     /**
+     * Test a user with only the "view own" capability cannot request the report without the
+     * restriction to their own actions, as the parameters round-trip through the client.
+     */
+    public function test_student_cannot_drop_own_user_restriction(): void {
+        $this->resetAfterTest();
+
+        [$course, , $student1] = $this->create_course_with_ai_usage();
+        $context = context_course::instance($course->id);
+
+        $this->setUser($student1);
+        $this->set_page_url($course->id);
+
+        $this->expectException(report_access_exception::class);
+        system_report_factory::create(course_usage::class, $context, 'report_aiusage', '', 0, [
+            'courseid' => $course->id,
+        ]);
+    }
+
+    /**
+     * Test a user cannot point the report at a course where they hold neither capability.
+     */
+    public function test_student_cannot_view_other_course(): void {
+        $this->resetAfterTest();
+
+        [$course, , $student1] = $this->create_course_with_ai_usage();
+        $context = context_course::instance($course->id);
+
+        // A course the student is not enrolled in, so they hold neither capability there.
+        $othercourse = $this->getDataGenerator()->create_course();
+
+        $this->setUser($student1);
+        $this->set_page_url($course->id);
+
+        $this->expectException(report_access_exception::class);
+        system_report_factory::create(course_usage::class, $context, 'report_aiusage', '', 0, [
+            'courseid' => $othercourse->id,
+            'restricttouserid' => $student1->id,
+        ]);
+    }
+
+    /**
+     * Test a viewer without the "access all groups" capability in a separate groups course only
+     * sees actions from members of their own groups.
+     */
+    public function test_separate_groups_viewer_sees_only_own_groups(): void {
+        $this->resetAfterTest();
+
+        $generator = $this->getDataGenerator();
+        $course = $generator->create_course(['groupmode' => SEPARATEGROUPS]);
+        $coursecontext = context_course::instance($course->id);
+
+        // Non-editing teachers hold report/aiusage:view but not moodle/site:accessallgroups.
+        $teacher = $generator->create_and_enrol($course, 'teacher');
+        $student1 = $generator->create_and_enrol($course, 'student');
+        $student2 = $generator->create_and_enrol($course, 'student');
+
+        foreach ([$student1, $student2] as $student) {
+            $this->insert_ai_action($student->id, $coursecontext->id, $course->id);
+        }
+
+        $group1 = $generator->create_group(['courseid' => $course->id]);
+        $group2 = $generator->create_group(['courseid' => $course->id]);
+        groups_add_member($group1, $teacher);
+        groups_add_member($group1, $student1);
+        groups_add_member($group2, $student2);
+
+        $this->setUser($teacher);
+        $this->set_page_url($course->id);
+        $report = system_report_factory::create(course_usage::class, $coursecontext, 'report_aiusage', '', 0, [
+            'courseid' => $course->id,
+        ]);
+        $content = $report->output();
+
+        $this->assertStringContainsString(fullname($student1), $content);
+        $this->assertStringNotContainsString(fullname($student2), $content);
+    }
+
+    /**
      * Test the report only includes actions for the given course, not actions from other courses.
      */
     public function test_report_scoped_to_course(): void {

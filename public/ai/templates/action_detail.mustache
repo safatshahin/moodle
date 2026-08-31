@@ -131,13 +131,13 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h3 class="card-title h5">{{#str}}prompt, core_ai{{/str}}</h3>
-                <pre class="core-ai-action-detail-text p-3 bg-light border rounded" style="white-space: pre-wrap; word-break: break-word;">{{prompt}}</pre>
+                <pre class="core-ai-action-detail-text p-3 bg-light border rounded">{{prompt}}</pre>
             </div>
         </div>
         <div class="card mb-3">
             <div class="card-body">
                 <h3 class="card-title h5">{{#str}}generatedcontent, core_ai{{/str}}</h3>
-                <pre class="core-ai-action-detail-text p-3 bg-light border rounded" style="white-space: pre-wrap; word-break: break-word;">{{generatedcontent}}</pre>
+                <pre class="core-ai-action-detail-text p-3 bg-light border rounded">{{generatedcontent}}</pre>
                 <p class="text-muted small mb-0">
                     {{#str}}prompttokens, core_ai{{/str}}: {{prompttokens}}
                     &bull;
@@ -151,10 +151,10 @@
         <div class="card mb-3">
             <div class="card-body">
                 <h3 class="card-title h5">{{#str}}prompt, core_ai{{/str}}</h3>
-                <pre class="core-ai-action-detail-text text-break p-3 bg-light border rounded">{{prompt}}</pre>
+                <pre class="core-ai-action-detail-text p-3 bg-light border rounded">{{prompt}}</pre>
                 {{#revisedprompt}}
                     <h4 class="h6 mt-3">{{#str}}revisedprompt, core_ai{{/str}}</h4>
-                    <pre class="core-ai-action-detail-text text-break p-3 bg-light border rounded">{{revisedprompt}}</pre>
+                    <pre class="core-ai-action-detail-text p-3 bg-light border rounded">{{revisedprompt}}</pre>
                 {{/revisedprompt}}
             </div>
         </div>

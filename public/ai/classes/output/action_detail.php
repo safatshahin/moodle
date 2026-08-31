@@ -41,8 +41,15 @@ class action_detail implements \renderable, \templatable {
 
     #[\Override]
     public function export_for_template(\renderer_base $output): array {
+        global $USER;
+
         $record = $this->record;
         $typedata = $record->typedata;
+
+        // The stored prompt and generated content are only shown to the user who performed the
+        // action: exposing that text to course staff has no privacy sign-off, so other viewers
+        // see the action metadata only.
+        $ownaction = (int) $record->userid === (int) $USER->id;
 
         $actioncontext = \context::instance_by_id($record->contextid, IGNORE_MISSING);
         $user = \core_user::get_user($record->userid);
@@ -61,8 +68,8 @@ class action_detail implements \renderable, \templatable {
             'contexturl' => $actioncontext ? $actioncontext->get_url()->out(false) : null,
             'userfullname' => $user ? fullname($user) : null,
             'userprofileurl' => $user ? (new \moodle_url('/user/profile.php', ['id' => $user->id]))->out(false) : null,
-            'istext' => in_array($record->actionname, self::TEXT_ACTIONS, true) && $typedata !== null,
-            'isimage' => $record->actionname === 'generate_image' && $typedata !== null,
+            'istext' => $ownaction && in_array($record->actionname, self::TEXT_ACTIONS, true) && $typedata !== null,
+            'isimage' => $ownaction && $record->actionname === 'generate_image' && $typedata !== null,
         ];
 
         if ($data['istext']) {

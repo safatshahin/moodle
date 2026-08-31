@@ -70,6 +70,12 @@ class usage extends system_report {
         return get_string('aiusage', 'core_ai');
     }
 
+    #[\Override]
+    public function get_exclude_columns_for_download(): array {
+        // The detail column is a link to the detail page, which is meaningless in a download.
+        return ['ai_action_register:detail'];
+    }
+
     /**
      * Adds the columns we want to display in the report.
      *

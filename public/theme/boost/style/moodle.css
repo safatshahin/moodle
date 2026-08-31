@@ -32014,6 +32014,7 @@ blockquote {
 /* AI action detail page (ai/detail.php). */
 .core-ai-action-detail-text {
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .core-ai-action-detail-image {
