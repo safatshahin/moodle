@@ -104,6 +104,21 @@ final class api_test extends \advanced_testcase {
     }
 
     /**
+     * The hub's update, is-registered and unregister functions return a JSON scalar (true or 1),
+     * which must be accepted as a successful response rather than treated as an unreachable hub.
+     */
+    public function test_call_rest_succeeds_on_scalar_json_response(): void {
+        $this->resetAfterTest();
+        $this->register_confirmed_site();
+
+        \curl::mock_response(json_encode(true));
+
+        // No exception means the call was accepted as successful.
+        api::update_registration(['url' => 'https://example.com']);
+        $this->assertTrue(true);
+    }
+
+    /**
      * A well-formed, decodable JSON response with no exception key must still succeed.
      */
     public function test_call_rest_succeeds_on_valid_json_response(): void {

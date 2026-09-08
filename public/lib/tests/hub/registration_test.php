@@ -638,7 +638,8 @@ final class registration_test extends \advanced_testcase {
         $this->disable_airnotifier_post_registration_hook();
 
         $hubid = $this->create_unconfirmed_registration('oldtoken');
-        \curl::mock_response(json_encode([]));
+        // hub_update_site_info returns a JSON scalar (true) on success.
+        \curl::mock_response(json_encode(true));
 
         $result = registration::confirm_registration('oldtoken', 'newtoken', 'moodle');
 
