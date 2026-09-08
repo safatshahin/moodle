@@ -297,10 +297,9 @@ final class registration_test extends \advanced_testcase {
 
         $this->expectOutputRegex('~Registration information has been changed.*Site registration updated~s');
 
-        // Fake a successful response from the hub for hub_update_site_info. A bare scalar body
-        // (e.g. json_encode(1)) is no longer treated as success: call_rest() now requires a
-        // decodable JSON array, so the mocked response must be one too.
-        \curl::mock_response(json_encode([]));
+        // Fake a successful response from the hub for hub_update_site_info, which returns a
+        // JSON scalar (true) on success.
+        \curl::mock_response(json_encode(true));
         registration::update_cron();
 
         $updated = $DB->get_record('registration_hubs', ['id' => $registration->id]);
