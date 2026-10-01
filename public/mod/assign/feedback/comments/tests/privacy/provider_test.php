@@ -150,13 +150,18 @@ final class provider_test extends provider_testcase {
         $this->assertTrue($DB->record_exists('assignfeedback_comments', ['grade' => $grade->id, 'mark' => $mark->id]));
         $this->assertArrayNotHasKey($teacher1->id, $assign->get_mark_records($grade->id, $student->id));
 
-        // The retained comment should still be exported for both the student and the marker who left it.
+        // The student's own export should not include the comment, as it is no longer shown to them.
         $writer = \core_privacy\local\request\writer::with_context($context);
-        foreach ([$student, $teacher1] as $user) {
-            $exportdata = new \mod_assign\privacy\assign_plugin_request_data($context, $assign, $grade, [], $user);
-            \assignfeedback_comments\privacy\provider::export_feedback_user_data($exportdata);
-            $this->assertStringContainsString($feedbacktext, $writer->get_data(['Feedback comments'])->$prop);
-        }
+        $exportdata = new \mod_assign\privacy\assign_plugin_request_data($context, $assign, $grade, []);
+        \assignfeedback_comments\privacy\provider::export_feedback_user_data($exportdata);
+        $this->assertObjectNotHasProperty($prop, $writer->get_data(['Feedback comments']));
+
+        // The retained comment should still be exported for the marker who left it.
+        \core_privacy\local\request\writer::reset();
+        $writer = \core_privacy\local\request\writer::with_context($context);
+        $exportdata = new \mod_assign\privacy\assign_plugin_request_data($context, $assign, $grade, [], $teacher1);
+        \assignfeedback_comments\privacy\provider::export_feedback_user_data($exportdata);
+        $this->assertStringContainsString($feedbacktext, $writer->get_data(['Feedback comments'])->$prop);
     }
 
     /**
