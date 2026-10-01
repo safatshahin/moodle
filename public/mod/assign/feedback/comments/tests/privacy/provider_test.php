@@ -118,6 +118,48 @@ final class provider_test extends provider_testcase {
     }
 
     /**
+     * Test that a retained comment from a marker who is no longer allocated is still exported.
+     */
+    public function test_export_feedback_user_data_unallocated_marker(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $teacher1 = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $teacher2 = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $assign = $this->create_instance([
+            'course' => $course,
+            'markingworkflow' => 1,
+            'markingallocation' => 1,
+            'markercount' => 2,
+        ]);
+        $context = $assign->get_context();
+
+        // Teacher 1 is allocated and leaves a marker comment.
+        $this->setAdminUser();
+        $assign->update_marker_allocations($student->id, [1 => [$teacher1->id]]);
+        $feedbacktext = '<p>Retained marker comment</p>';
+        [, $grade] = $this->create_feedback($assign, $student, $teacher1, 'Submission text', $feedbacktext, true);
+        $mark = $assign->get_mark($grade->id, $teacher1->id);
+        $prop = 'commenttext_mark_' . $mark->id;
+
+        // Replace teacher 1 with teacher 2. The comment is retained in the database.
+        $this->setAdminUser();
+        $assign->update_marker_allocations($student->id, [1 => [$teacher2->id]]);
+        $this->assertTrue($DB->record_exists('assignfeedback_comments', ['grade' => $grade->id, 'mark' => $mark->id]));
+        $this->assertArrayNotHasKey($teacher1->id, $assign->get_mark_records($grade->id, $student->id));
+
+        // The retained comment should still be exported for both the student and the marker who left it.
+        $writer = \core_privacy\local\request\writer::with_context($context);
+        foreach ([$student, $teacher1] as $user) {
+            $exportdata = new \mod_assign\privacy\assign_plugin_request_data($context, $assign, $grade, [], $user);
+            \assignfeedback_comments\privacy\provider::export_feedback_user_data($exportdata);
+            $this->assertStringContainsString($feedbacktext, $writer->get_data(['Feedback comments'])->$prop);
+        }
+    }
+
+    /**
      * Test that all feedback is deleted for a context.
      */
     public function test_delete_feedback_for_context(): void {
