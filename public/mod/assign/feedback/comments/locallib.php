@@ -657,9 +657,7 @@ class assign_feedback_comments extends assign_feedback_plugin {
 
                     // If hidegrader is enabled, do not display the markers' names.
                     if ($hidemarkers) {
-                        if (isset($markerpositions[$mark->marker])) {
-                            $context = get_string('markercomment1', 'assignfeedback_comments', $markerpositions[$mark->marker]);
-                        }
+                        $context = get_string('markercomment1', 'assignfeedback_comments', $markerpositions[$mark->marker]);
                     } else {
                         $marker = $DB->get_record('user', ['id' => $mark->marker]);
                         $context = get_string('markercomment', 'assignfeedback_comments', fullname($marker));

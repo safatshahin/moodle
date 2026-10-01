@@ -165,7 +165,7 @@ Feature: In an assignment, teachers can provide feedback comments on student sub
     And I choose "Grade" in the open action menu
     And I set the field "Marking workflow state" to "Released"
     And I press "Save changes"
-    # The student views their assignment and should see each marker's comment under a personalised label.
+    # The student views their assignment and should see each marker's comment labelled with the marker's position only.
     When I am on the "A1" "assign activity" page logged in as student1
     Then I should see "Marker 1 comment"
     And I should see "First feedback."

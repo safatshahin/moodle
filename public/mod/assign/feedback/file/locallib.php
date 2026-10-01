@@ -386,11 +386,11 @@ class assign_feedback_file extends assign_feedback_plugin {
                 $overall = true;
             } else {
                 $mark = $DB->get_record('assign_mark', ['id' => $filefeedbackitem->mark], 'marker');
-                $marker = $DB->get_record('user', ['id' => $mark->marker]);
 
                 if ($hidemarkers) {
                     $feedback['context'] = get_string('markernumberfile', 'assignfeedback_file', $markerpositions[$mark->marker]);
                 } else {
+                    $marker = $DB->get_record('user', ['id' => $mark->marker]);
                     $feedback['context'] = get_string('markerfile', 'assignfeedback_file', fullname($marker));
                 }
 

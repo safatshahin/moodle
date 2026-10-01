@@ -468,10 +468,11 @@ class assign_feedback_editpdf extends assign_feedback_plugin {
                     $renderer = $PAGE->get_renderer('assignfeedback_editpdf');
                     $widget = $this->get_widget($grade->userid, $grade, true, $USER->id, $mark->id);
                     $markdata['widget'] = $renderer->render($widget);
-                    $markeruser = $DB->get_record('user', ['id' => $mark->marker]);
                     if ($hidemarkers) {
-                        $markdata['markerlabel'] = get_string('markernumberfeedback', 'assignfeedback_editpdf', $markerpositions[$mark->marker]);
+                        $position = $markerpositions[$mark->marker];
+                        $markdata['markerlabel'] = get_string('markernumberfeedback', 'assignfeedback_editpdf', $position);
                     } else {
+                        $markeruser = $DB->get_record('user', ['id' => $mark->marker]);
                         $markdata['markerlabel'] = get_string('markerfeedback', 'assignfeedback_editpdf', fullname($markeruser));
                     }
 
