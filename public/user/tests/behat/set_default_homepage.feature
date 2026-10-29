@@ -19,6 +19,8 @@ Feature: Set the site home page and dashboard as the default home page
     And the following config values are set as admin:
       | enablemyhome | 1 |
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Admin sets the site page and then the dashboard as the default home page
     # This functionality does not work without the administration block.
     Given I log in as "admin"

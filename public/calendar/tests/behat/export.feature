@@ -16,6 +16,8 @@ Feature: Export calendar events
       | student1 | C1 | student |
     And I log in as "student1"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Viewing calendar export options
     Given I follow "Full calendar"
     When I click on "Import or export calendars" "link"
@@ -143,6 +145,8 @@ Feature: Export calendar events
     When I visit the calendar export URL for "manager1" user and "C4" course
     Then I should see "SUMMARY:C4 event"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Generating calendar URL for all events
     Given I follow "Full calendar"
     And I click on "Import or export calendars" "link"
@@ -152,6 +156,8 @@ Feature: Export calendar events
     When I click on "Get calendar URL" "button"
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=all&"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Generating calendar URL for course events
     Given I follow "Full calendar"
     And I click on "Import or export calendars" "link"
@@ -161,6 +167,8 @@ Feature: Export calendar events
     When I click on "Get calendar URL" "button"
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=courses&"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Generating calendar URL for group events
     Given I follow "Full calendar"
     And I click on "Import or export calendars" "link"
@@ -170,6 +178,8 @@ Feature: Export calendar events
     When I click on "Get calendar URL" "button"
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=groups&"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Generating calendar URL for category events
     Given I follow "Full calendar"
     And I click on "Import or export calendars" "link"
@@ -179,6 +189,8 @@ Feature: Export calendar events
     When I click on "Get calendar URL" "button"
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=categories&"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: Generating calendar URL for user events
     Given I follow "Full calendar"
     And I click on "Import or export calendars" "link"
