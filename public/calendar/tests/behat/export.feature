@@ -17,7 +17,7 @@ Feature: Export calendar events
     And I log in as "student1"
 
   Scenario: Viewing calendar export options
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     When I click on "Import or export calendars" "link"
     And "Calendar" "link" should exist in the ".breadcrumb" "css_element"
     And "Import or export calendars" "text" should exist in the ".breadcrumb" "css_element"
@@ -144,7 +144,7 @@ Feature: Export calendar events
     Then I should see "SUMMARY:C4 event"
 
   Scenario: Generating calendar URL for all events
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     And I click on "Import or export calendars" "link"
     And I click on "Export calendar" "button"
     And I set the field "All events" to "1"
@@ -153,7 +153,7 @@ Feature: Export calendar events
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=all&"
 
   Scenario: Generating calendar URL for course events
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     And I click on "Import or export calendars" "link"
     And I click on "Export calendar" "button"
     And I set the field "Events related to courses" to "1"
@@ -162,7 +162,7 @@ Feature: Export calendar events
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=courses&"
 
   Scenario: Generating calendar URL for group events
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     And I click on "Import or export calendars" "link"
     And I click on "Export calendar" "button"
     And I set the field "Events related to groups" to "1"
@@ -171,7 +171,7 @@ Feature: Export calendar events
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=groups&"
 
   Scenario: Generating calendar URL for category events
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     And I click on "Import or export calendars" "link"
     And I click on "Export calendar" "button"
     And I set the field "Events related to categories" to "1"
@@ -180,7 +180,7 @@ Feature: Export calendar events
     Then the "value" attribute of "Calendar URL" "field" should contain "&preset_what=categories&"
 
   Scenario: Generating calendar URL for user events
-    Given I follow "Full calendar"
+    Given I am viewing calendar in "month" view
     And I click on "Import or export calendars" "link"
     And I click on "Export calendar" "button"
     And I set the field "My personal events" to "1"

@@ -146,6 +146,8 @@ Feature: H5P file upload to content bank for admins
     And "No content available" "text" should exist
     And I should not see "1.jpg"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario: File upload for content bank can be disabled by admin
     Given I log in as "admin"
     And I navigate to "Plugins > Content bank > Manage content types" in site administration

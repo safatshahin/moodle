@@ -90,6 +90,8 @@ Feature: Edited glossary entries handle tags correctly
     And I should see "OT2" in the ".glossary-tags" "css_element"
     And I should see "OT3" in the ".glossary-tags" "css_element"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario Outline: Student glossary entry tags can be viewed depending on approval
     # Add glossary entry with tags as an enrolled student.
     Given the following "mod_glossary > entries" exist:
