@@ -102,6 +102,8 @@ Feature: Edited book chapters handle tags correctly
     And I should see "Chapter" in the ".book-tags" "css_element"
     And I should see "Cool" in the ".book-tags" "css_element"
 
+  # The dashboard is a JavaScript application (the flexible dashboard grid).
+  @javascript
   Scenario Outline: Only enrolled users can see book chapters by tags
     # Add a book chapter with tags.
     Given the following "mod_book > chapters" exist:

@@ -2452,5 +2452,25 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026102600.00);
     }
 
+    if ($oldversion < 2026111100.01) {
+        $table = new xmldb_table('block_positions');
+        $fields = [
+            new xmldb_field('gridcolumn', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'weight'),
+            new xmldb_field('gridrow', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gridcolumn'),
+            new xmldb_field('gridcolumns', XMLDB_TYPE_INTEGER, '4', null, null, null, null, 'gridrow'),
+            new xmldb_field('gridrows', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'gridcolumns'),
+        ];
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }
+        }
+
+        // Translate the legacy dashboard's centre and drawer stacks to one six-column grid.
+        upgrade_migrate_dashboard_blocks_to_grid();
+
+        upgrade_main_savepoint(true, 2026111100.01);
+    }
+
     return true;
 }

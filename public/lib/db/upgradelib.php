@@ -2377,3 +2377,189 @@ function moodlenet_migrate_profile_field(): void {
                      )";
     $DB->execute($sql, ['fieldid' => $field->id, 'fieldid2' => $field->id]);
 }
+
+/**
+ * Give every block on a dashboard page a position on the dashboard's six-column grid.
+ *
+ * The legacy dashboard had a main (content) stack and a side stack. Each becomes a column of
+ * blocks on the grid, in the order the blocks had: the content stack three columns wide, the side
+ * stack one column wide beside it, with an empty column left on each side. A block which already
+ * has a grid position is left alone, so this is safe to run more than once.
+ *
+ * @param int $chunksize How many dashboard pages to read at a time.
+ */
+function upgrade_migrate_dashboard_blocks_to_grid(int $chunksize = 500): void {
+    global $DB;
+
+    // This is core upgrade code, so it talks to the database directly throughout: each page's context
+    // comes from a join rather than from the context classes, and the blocks and the existing
+    // positions of a whole chunk of pages are each read in one query and grouped here, so that
+    // a site with very many customised dashboards costs three reads per 500 pages plus the
+    // position writes. A user's page is joined to its context on a plain equality, which the
+    // context table's unique index on level and instance serves; the one system context, for
+    // the site default page, is read once up front rather than being part of that join.
+    $systemcontextid = $DB->get_field('context', 'id', ['contextlevel' => CONTEXT_SYSTEM]);
+    $pagesql = "SELECT mp.id, mp.userid, ctx.id AS contextid
+                  FROM {my_pages} mp
+             LEFT JOIN {context} ctx
+                    ON ctx.contextlevel = :userlevel
+                   AND ctx.instanceid = mp.userid
+                 WHERE mp.id > :lastpageid
+                   AND mp.name = :name
+                   AND mp.private = :private
+              ORDER BY mp.id ASC";
+    // A block belongs to a dashboard page when its page type pattern matches the dashboard's page
+    // type and it names that page as its sub page or names no sub page at all, which is how
+    // block_manager loads a page's blocks: configuring a block on a user's own dashboard clears
+    // its sub page (block_manager::save_block_data()), so a match on the page id alone would
+    // leave every configured block behind. Only the blocks of the page's own context are
+    // migrated. A block the page inherits from a parent context (one shown throughout the site,
+    // say) would need a position row for every user who has a dashboard, for a block none of
+    // them has arranged: it is given a default position clear of the others when the dashboard
+    // is shown, which is saved with the layout the first time the user changes it.
+    $blocksqlhead = "SELECT bi.id, bi.parentcontextid, bi.subpagepattern, bi.defaultregion, bi.defaultweight
+                       FROM {block_instances} bi
+                      WHERE bi.parentcontextid ";
+    $blocksqlmiddle = " AND bi.pagetypepattern IN (:pattern1, :pattern2, :pattern3, :pattern4)
+                        AND (bi.subpagepattern IS NULL OR bi.subpagepattern ";
+    // Every page type pattern which matches the dashboard's page type, my-index.
+    $patternparams = ['pattern1' => 'my-index', 'pattern2' => 'my-index-*', 'pattern3' => 'my-*', 'pattern4' => '*'];
+    $positionsqlhead = "SELECT bp.id, bp.blockinstanceid, bp.contextid, bp.subpage, bp.region, bp.weight,
+                               bp.visible, bp.gridcolumn
+                          FROM {block_positions} bp
+                         WHERE bp.pagetype = :positionpagetype
+                           AND bp.contextid ";
+    $positionsqlmiddle = " AND bp.subpage ";
+    $regionorder = ['content' => 0, 'side-pre' => 1];
+    // The row spans core_my\local\dashboard::get_layout() derived for an unmigrated block when
+    // this step was written (DEFAULT_ROWS_FIRST and DEFAULT_ROWS), kept as literals so that a
+    // later change to those constants does not change what this step produces.
+    $firstrows = 5;
+    $otherrows = 3;
+    $lastpageid = 0;
+    do {
+        $pages = $DB->get_records_sql($pagesql, [
+            'userlevel' => CONTEXT_USER,
+            'lastpageid' => $lastpageid,
+            'name' => '__default',
+            'private' => 1,
+        ], 0, $chunksize);
+        if (!$pages) {
+            break;
+        }
+        $lastpageid = (int) array_key_last($pages);
+        $morepages = count($pages) === $chunksize;
+        foreach ($pages as $pageid => $page) {
+            if (empty($page->userid)) {
+                // The site default page.
+                $page->contextid = $systemcontextid;
+            }
+            if (empty($page->contextid)) {
+                // A page left behind by a user who no longer exists.
+                unset($pages[$pageid]);
+            }
+        }
+        if (!$pages) {
+            continue;
+        }
+
+        // The context filter is what lets the queries use the context indexes; page type and
+        // sub page alone would scan the whole table for every chunk.
+        [$incontexts, $contextparams] = $DB->get_in_or_equal(
+            array_unique(array_map(static fn($page): int => (int) $page->contextid, $pages)),
+            SQL_PARAMS_NAMED,
+            'ctx',
+        );
+        [$insubpages, $subpageparams] = $DB->get_in_or_equal(
+            array_map('strval', array_keys($pages)),
+            SQL_PARAMS_NAMED,
+            'subpage',
+        );
+        $blocksbycontext = [];
+        $blocks = $DB->get_records_sql(
+            $blocksqlhead . $incontexts . $blocksqlmiddle . $insubpages . ')',
+            $contextparams + $subpageparams + $patternparams,
+        );
+        foreach ($blocks as $block) {
+            $blocksbycontext[$block->parentcontextid][] = $block;
+        }
+        $positions = [];
+        $positionrecords = $DB->get_records_sql(
+            $positionsqlhead . $incontexts . $positionsqlmiddle . $insubpages,
+            $contextparams + $subpageparams + ['positionpagetype' => 'my-index'],
+        );
+        foreach ($positionrecords as $position) {
+            $positions["{$position->contextid}:{$position->subpage}:{$position->blockinstanceid}"] = $position;
+        }
+
+        $inserts = [];
+        foreach ($pages as $mypage) {
+            $pageblocks = [];
+            foreach ($blocksbycontext[$mypage->contextid] ?? [] as $block) {
+                if ($block->subpagepattern !== null && (string) $block->subpagepattern !== (string) $mypage->id) {
+                    continue;
+                }
+                // A copy, so that a block with no sub page in a context holding more than one
+                // page keeps a position of its own on each of them.
+                $pageblock = clone $block;
+                $position = $positions["{$mypage->contextid}:{$mypage->id}:{$block->id}"] ?? null;
+                $pageblock->positionid = $position->id ?? null;
+                $pageblock->region = $position->region ?? null;
+                $pageblock->weight = $position->weight ?? null;
+                $pageblock->visible = $position->visible ?? null;
+                $pageblock->gridcolumn = $position->gridcolumn ?? null;
+                $pageblocks[] = $pageblock;
+            }
+            usort($pageblocks, static function ($left, $right) use ($regionorder): int {
+                $leftregion = $left->region ?? $left->defaultregion;
+                $rightregion = $right->region ?? $right->defaultregion;
+                $regioncomparison = ($regionorder[$leftregion] ?? 2) <=> ($regionorder[$rightregion] ?? 2);
+                if ($regioncomparison !== 0) {
+                    return $regioncomparison;
+                }
+                return ($left->weight ?? $left->defaultweight) <=> ($right->weight ?? $right->defaultweight);
+            });
+
+            $nextrow = ['content' => 0, 'drawer' => 0];
+            foreach ($pageblocks as $block) {
+                if ($block->gridcolumn !== null) {
+                    // Already on the grid (for example a site that ran an earlier build of this
+                    // step): a position the user may have arranged since is never overwritten.
+                    continue;
+                }
+                $region = $block->region ?? $block->defaultregion;
+                $isdrawer = $region !== 'content';
+                $stack = $isdrawer ? 'drawer' : 'content';
+                $position = (object) [
+                    'blockinstanceid' => $block->id,
+                    'contextid' => $mypage->contextid,
+                    'pagetype' => 'my-index',
+                    'subpage' => (string) $mypage->id,
+                    'visible' => $block->visible ?? 1,
+                    'region' => $region,
+                    'weight' => $block->weight ?? $block->defaultweight,
+                    // Leave an empty column on each side: legacy content blocks take
+                    // the next three columns, legacy side-region blocks the column after.
+                    // The first block in each stack is taller than the rest, the shape
+                    // a freshly defaulted dashboard gets for the same blocks.
+                    'gridcolumn' => $isdrawer ? 4 : 1,
+                    'gridrow' => $nextrow[$stack],
+                    'gridcolumns' => $isdrawer ? 1 : 3,
+                    'gridrows' => $nextrow[$stack] === 0 ? $firstrows : $otherrows,
+                ];
+                $nextrow[$stack] = $position->gridrow + $position->gridrows;
+                if ($block->positionid) {
+                    $position->id = $block->positionid;
+                    $DB->update_record('block_positions', $position);
+                } else {
+                    $inserts[] = $position;
+                }
+            }
+        }
+        if ($inserts) {
+            $DB->insert_records('block_positions', $inserts);
+        }
+        // Reset the timeout after each chunk to avoid timeouts on large sites.
+        upgrade_set_timeout();
+    } while ($morepages);
+}
