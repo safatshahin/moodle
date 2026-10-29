@@ -1,4 +1,6 @@
-@core @core_my
+# The dashboard is a JavaScript application (the flexible dashboard grid), so its blocks are
+# only rendered with JavaScript on.
+@core @core_my @javascript
 Feature: Restrict which blocks can be added to Dashboard
   In order to restrict which blocks can be added
   As a student I need to ensure I can add the blocks
@@ -20,7 +22,8 @@ Feature: Restrict which blocks can be added to Dashboard
     And I log in as "student1"
     And I turn editing mode on
     Then the add block selector should contain "Comments" block
-    And the add block selector should contain "Text" block
+    # A block type added through its own form is listed with an ellipsis in the dialogue.
+    And the add block selector should contain "Text..." block
     And the add block selector should contain "Tags" block
 
   Scenario: Remove the ability to add the comments block to Dashboard
@@ -33,5 +36,5 @@ Feature: Restrict which blocks can be added to Dashboard
     And I turn editing mode on
     Then the add block selector should not contain "Comments" block
     And the add block selector should not contain "Courses" block
-    And the add block selector should not contain "Text" block
+    And the add block selector should not contain "Text..." block
     And the add block selector should contain "Tags" block

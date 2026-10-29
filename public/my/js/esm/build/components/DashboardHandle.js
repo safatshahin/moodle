@@ -1,0 +1,7 @@
+import{Button as f,Tooltip as u}from"@moodlehq/design-system";import v from"./GridControls";import{renderIcon as y}from"./Icon";import{jsx as r,jsxs as w}from"react/jsx-runtime";/**
+ * Accessible move and resize handle for dashboard tiles.
+ *
+ * @module     core_my/components/DashboardHandle
+ * @copyright  2026 Matt Porritt <matt.porritt@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */const D=r("svg",{className:"core-my-dashboard-icon core-my-dashboard-resize-grip",viewBox:"0 0 12 12","aria-hidden":"true",focusable:"false",children:r("path",{d:"M10.8 1.2L1.2 10.8M10.8 6L6 10.8",stroke:"currentColor",strokeWidth:"1.75",strokeLinecap:"round",strokeLinejoin:"round",fill:"none"})}),g=({mode:a,label:n,labels:d,icons:t,instructionsId:l,active:e,showControls:c,onStart:b,onKeyDown:m,onPointerDown:p,onDirection:h,onCommit:s})=>w("div",{className:`core-my-dashboard-handle-wrapper core-my-dashboard-handle-wrapper--${a}${e?" active":""}`,onBlur:o=>{const i=o.relatedTarget;e&&(!(i instanceof Node)||!o.currentTarget.contains(i))&&s()},children:[e&&c&&r(v,{mode:a,labels:d,icons:t,onDirection:h}),r(u,{label:n,children:r(f,{size:"lg",variant:"ghost",className:`core-my-dashboard-handle core-my-dashboard-handle--${a}`,"aria-label":n,"aria-describedby":l,"aria-pressed":e,startIcon:a==="move"?y(t.move):D,onClick:o=>{o.detail===0&&!e&&b()},onKeyDown:m,onPointerDown:o=>{if(e){o.preventDefault(),s();return}o.currentTarget.focus(),p(o)}})})]});var P=g;export{P as default};
