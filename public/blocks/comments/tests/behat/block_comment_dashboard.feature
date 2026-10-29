@@ -12,16 +12,10 @@ Feature: Enable Block comments on the dashboard and view comments
       | username | firstname | lastname | email |
       | teacher1 | Teacher | First | teacher1@example.com |
 
-  Scenario: Add the comments block on the dashboard and add comments with Javascript disabled
-    When I log in as "teacher1"
-    And I turn editing mode on
-    And I add the "Comments" block
-    And I follow "Show comments"
-    And I add "I'm a comment from the teacher" comment to comments block
-    Then I should see "I'm a comment from the teacher"
-
+  # The dashboard is a JavaScript application (the flexible dashboard grid), so there is no
+  # JavaScript-free way to add the block there any more.
   @javascript
-  Scenario: Add the comments block on the dashboard and add comments with Javascript enabled
+  Scenario: Add the comments block on the dashboard and add comments
     When I log in as "teacher1"
     And I turn editing mode on
     And I add the "Comments" block
