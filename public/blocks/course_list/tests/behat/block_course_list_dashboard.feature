@@ -1,4 +1,6 @@
-@block @block_course_list
+# The dashboard is a JavaScript application (the flexible dashboard grid), so its blocks are
+# only rendered with JavaScript on.
+@block @block_course_list @javascript
 Feature: Enable the course_list block on the dashboard and view it's contents
   In order to enable the course list block on the dashboard
   As a user
