@@ -1,4 +1,6 @@
-@block @block_myprofile
+# The dashboard is a JavaScript application (the flexible dashboard grid), so its blocks are
+# only rendered with JavaScript on.
+@block @block_myprofile @javascript
 Feature: The logged in user block allows users to view their profile information in on the dashboard
   In order to enable the logged in user block on the dashboard
   As a user
