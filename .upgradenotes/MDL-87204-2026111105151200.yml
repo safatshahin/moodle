@@ -1,0 +1,36 @@
+issueNumber: MDL-87204
+notes:
+  core_cache:
+    - message: >-
+        The following cache interfaces gain new required methods, so any third party
+        loader or cache store implementing them must be updated:
+
+
+        - `loader_interface::get_many_versioned(array $items): array`
+
+        - `loader_with_locking_interface::get_lock(string $key, ?int $timeout = null): bool`
+
+        - `lockable_cache_interface::get_lock(string $key, string $ownerid, ?int $timeout = null): bool`
+      type: changed
+  core_course:
+    - message: >-
+        A new `cacherev` column has been added to the `course_modules` table. It holds the
+        revision of the per-module `coursemodinfo` cache fragment, which allows a single
+        activity to be rebuilt without rebuilding the whole course. Code that creates or
+        updates `course_modules` rows directly should bump it through
+        `increment_revision_number('course_modules', 'cacherev', ...)` rather than writing
+        the value, and read it via the new read only `cm_info::$cacherev` property.
+      type: changed
+    - message: >-
+        The following `core_course\modinfo` methods have been deprecated. The replacements
+        mark the affected modules as needing a rebuild instead of deleting cache entries:
+
+
+        - `purge_course_module_cache()`, use `modinfo::invalidate_module_cache()` instead
+
+        - `purge_course_modules_cache()`, use `modinfo::invalidate_module_caches()` instead
+
+        - `purge_course_section_cache_by_id()`, use `rebuild_course_cache()` instead
+
+        - `purge_course_section_cache_by_number()`, use `rebuild_course_cache()` instead
+      type: deprecated
