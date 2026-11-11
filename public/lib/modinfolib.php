@@ -252,6 +252,8 @@ function get_course_and_cm_from_instance($instanceorid, $modulename, $courseorid
  * @param int $courseid id of course to rebuild, empty means all
  * @param boolean $clearonly only clear the cache, gets rebuild automatically on the fly.
  *      Recommended to set to true to avoid unnecessary multiple rebuilding.
+ *      Ignored when $partialrebuild is true: a partial rebuild only replaces the module
+ *      fragments that are missing or marked as invalid, so there is nothing to defer.
  * @param boolean $partialrebuild will only rebuild what is missing or marked as invalid.
  *
  * @return void

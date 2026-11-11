@@ -2378,7 +2378,7 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2026092300.01);
     }
 
-    if ($oldversion < 2026100500.01) {
+    if ($oldversion < 2026102100.01) {
         // Define field cacherev to be added to course_modules.
         $table = new xmldb_table('course_modules');
         $field = new xmldb_field('cacherev', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'enabledaiactions');
@@ -2389,7 +2389,7 @@ function xmldb_main_upgrade($oldversion) {
         }
 
         // Main savepoint reached.
-        upgrade_main_savepoint(true, 2026100500.01);
+        upgrade_main_savepoint(true, 2026102100.01);
     }
 
     return true;

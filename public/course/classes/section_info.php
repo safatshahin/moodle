@@ -486,7 +486,9 @@ class section_info implements IteratorAggregate {
             if (!$parentcm->uservisible) {
                 return false;
             }
-            $result = $parentcm->get_section_info()->uservisible ?? true;
+            // A module fragment whose revision no longer matches is left out of the compiled
+            // modinfo, so the parent section may not resolve. Fail closed when it does not.
+            $result = $parentcm->get_section_info()->uservisible ?? false;
 
             return $result;
         }
