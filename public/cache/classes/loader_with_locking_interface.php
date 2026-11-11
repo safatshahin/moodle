@@ -33,13 +33,13 @@ interface loader_with_locking_interface {
     /**
      * Acquires a lock for the given key.
      *
-        * Deprecated alias of {@see self::get_lock()}.
+     * Deprecated alias of {@see self::get_lock()}.
      *
      * @param string|int $key
-        * @return bool True if the lock could be acquired, false otherwise
-        * @deprecated since 5.3 MDL-87204 Use get_lock() instead.
+     * @return bool True if the lock could be acquired, false otherwise
+     * @deprecated since Moodle 6.0 MDL-87204 Use get_lock() instead.
      */
-    #[\core\attribute\deprecated('loader_with_locking_interface::get_lock()', since: '5.3', mdl: 'MDL-87204')]
+    #[\core\attribute\deprecated('loader_with_locking_interface::get_lock()', since: '6.0', mdl: 'MDL-87204')]
     public function acquire_lock($key);
 
     /**

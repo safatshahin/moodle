@@ -1060,11 +1060,12 @@ class cachestore_file extends store implements
      * @param string $key Lock identifier
      * @param string $ownerid Cache identifier
      * @return bool
+     * @deprecated since Moodle 6.0 MDL-87204 Use cachestore_file::get_lock() instead.
      */
-    #[\core\attribute\deprecated('cachestore_file::get_lock()', since: '5.3', mdl: 'MDL-87204')]
+    #[\core\attribute\deprecated('cachestore_file::get_lock()', since: '6.0', mdl: 'MDL-87204')]
     public function acquire_lock($key, $ownerid): bool {
         \core\deprecation::emit_deprecation_if_present([self::class, __FUNCTION__]);
-        return self::get_lock($key, $ownerid);
+        return $this->get_lock($key, $ownerid);
     }
 
     /**

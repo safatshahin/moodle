@@ -30,16 +30,16 @@ namespace core_cache;
 interface lockable_cache_interface {
     /**
      * Acquires a lock on the given key for the given identifier.
-        *
-        * Deprecated alias of {@see self::get_lock()}.
+     *
+     * Deprecated alias of {@see self::get_lock()}.
      *
      * @param string $key The key we are locking.
      * @param string $ownerid The identifier so we can check if we have the lock or if it is someone else.
      *      The use of this property is entirely optional and implementations can act as they like upon it.
      * @return bool True if the lock could be acquired, false otherwise.
-        * @deprecated since 5.3 MDL-87204 Use get_lock() instead.
+     * @deprecated since Moodle 6.0 MDL-87204 Use get_lock() instead.
      */
-    #[\core\attribute\deprecated('lockable_cache_interface::get_lock()', since: '5.3', mdl: 'MDL-87204')]
+    #[\core\attribute\deprecated('lockable_cache_interface::get_lock()', since: '6.0', mdl: 'MDL-87204')]
     public function acquire_lock($key, $ownerid);
 
     /**

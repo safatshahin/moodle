@@ -674,11 +674,12 @@ class cachestore_redis extends store implements
      * @param string $key Name of the lock to acquire.
      * @param string $ownerid Information to identify owner of lock if acquired.
      * @return bool True if the lock was acquired, false if it was not.
+     * @deprecated since Moodle 6.0 MDL-87204 Use cachestore_redis::get_lock() instead.
      */
-    #[\core\attribute\deprecated('cachestore_redis::get_lock()', since: '5.3', mdl: 'MDL-87204')]
+    #[\core\attribute\deprecated('cachestore_redis::get_lock()', since: '6.0', mdl: 'MDL-87204')]
     public function acquire_lock($key, $ownerid) {
         \core\deprecation::emit_deprecation_if_present([self::class, __FUNCTION__]);
-        return self::get_lock($key, $ownerid);
+        return $this->get_lock($key, $ownerid);
     }
 
     /**

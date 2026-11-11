@@ -191,11 +191,12 @@ class disabled_cache extends cache implements loader_with_locking_interface {
      *
      * @param int|string $key
      * @return bool
+     * @deprecated since Moodle 6.0 MDL-87204 Use disabled_cache::get_lock() instead.
      */
-    #[\core\attribute\deprecated('disabled_cache::get_lock()', since: '5.3', mdl: 'MDL-87204')]
+    #[\core\attribute\deprecated('disabled_cache::get_lock()', since: '6.0', mdl: 'MDL-87204')]
     public function acquire_lock($key): bool {
         \core\deprecation::emit_deprecation_if_present([self::class, __FUNCTION__]);
-        return self::get_lock($key);
+        return $this->get_lock($key);
     }
 
     /**
